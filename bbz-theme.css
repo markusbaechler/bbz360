@@ -1,0 +1,234 @@
+/* ============================================================================
+   bbz-theme.css — Single Source of Truth (v3.0 "produktiv")
+   ----------------------------------------------------------------------------
+   Ersetzt die inline-CSS-Duplikate + die vh/vw-Schriftlogik der Module.
+   Identitaet (Farben, DM Sans, Blau/Rot-System) bleibt unveraendert.
+   Geaendert wird nur die MECHANIK: Einheiten, Shell, Navigation.
+
+   Einbinden im <head> JEDES Moduls, NACH dem Font-Link, VOR bbz-data.js:
+     <link rel="stylesheet" href="bbz-theme.css">
+   ========================================================================== */
+
+/* ── 1. TOKENS ────────────────────────────────────────────────────────────
+   Farben 1:1 aus dem bestehenden Design-System uebernommen. Nicht aendern
+   ohne Ratifizierung — das Blau/Rot/Amber-System ist semantisch belegt.     */
+:root {
+  /* Marke / Struktur */
+  --blue:    #004078;   /* Primaer: Header, Zahlen, Akzente            */
+  --blue-dk: #002d57;   /* dunkle Flaechen, Hover                       */
+  --blue-md: #00528a;
+  --blue-lt: #dce8f4;   /* aktiver Nav-Tab, Zeilen-Hover                */
+
+  /* Semantische Farben (RESERVIERT — nicht fuer UI-Zustaende zweckentfremden) */
+  --red:     #950e13;   /* AUSSCHLIESSLICH client-generierter Inhalt    */
+  --green:   #15803d;   /* Kapitalzufluesse                             */
+  --amber:   #b45309;   /* AUSSCHLIESSLICH Zeithorizont "mittelfristig"  */
+  --slate:   #475569;   /* Zeithorizont "langfristig"                   */
+
+  /* Neutralschritte */
+  --ink:     #0f172a;   /* Hauptueberschriften  */
+  --ink-2:   #334155;   /* Fliesstext           */
+  --ink-3:   #64748b;   /* Untertitel           */
+  --ink-4:   #94a3b8;   /* Labels, Hints        */
+  --surface: #ffffff;
+  --bg:      #f1f5f9;
+  --line:    #e2e8f0;
+
+  --font:    'DM Sans', system-ui, sans-serif;
+
+  /* ── TYPO-SKALA (rem statt vw/vh) ──────────────────────────────────────
+     Basis: html { font-size } steuert alles zentral (siehe unten).
+     clamp(min, fluid, max) => waechst mit dem Fenster, faellt aber NIE
+     unter ein lesbares Minimum. Das ist die Kur gegen "zu klein / filigran". */
+  --fs-2xs: 0.75rem;                              /* 12px — Mikro-Labels     */
+  --fs-xs:  0.8125rem;                            /* 13px — dichte Metadaten */
+  --fs-sm:  0.875rem;                             /* 14px — Nav, Tabellen    */
+  --fs-base:1rem;                                 /* 16px — Fliesstext       */
+  --fs-md:  1.125rem;                             /* 18px — betonter Body    */
+  --fs-lg:  clamp(1.25rem, 0.9rem + 1.2vw, 1.5rem);   /* 20–24px Sub-Titel  */
+  --fs-xl:  clamp(1.5rem, 1rem + 2vw, 2rem);          /* 24–32px Abschnitt  */
+  --fs-2xl: clamp(2rem, 1.2rem + 3vw, 2.75rem);       /* 32–44px Section    */
+  --fs-3xl: clamp(2.5rem, 1.5rem + 4vw, 3.75rem);     /* 40–60px Hero       */
+
+  /* Gewichte (DM Sans) */
+  --w-reg: 400; --w-med: 500; --w-semi: 600; --w-bold: 700; --w-black: 900;
+
+  /* ── SPACING (rem-Raster, 4px-Basis) ── */
+  --sp-1: 0.25rem; --sp-2: 0.5rem;  --sp-3: 0.75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem;  --sp-6: 2rem;    --sp-8: 3rem;    --sp-10: 4rem;
+
+  /* ── FORM ── */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
+  --shadow-1: 0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-2: 0 8px 24px rgba(15,23,42,0.10);
+  --shadow-3: 0 24px 60px rgba(0,0,0,0.28);
+
+  /* ── STRUKTUR-HOEHEN (rem, damit Nav mitwaechst statt in vh zu kollabieren) */
+  --topbar-h: 3.5rem;   /* 56px — immer klickbar/lesbar */
+
+  --dur: 0.15s;
+}
+
+/* Beratungs-Basis: FLUIDER Root. Ersetzt die Deck-Eigenschaft "Schrift
+   waechst mit dem Screen" — aber mit hartem Lesbarkeits-Minimum (17px)
+   und Deckel (21px). Auf Full-HD ~19px, auf Laptop ~17px, auf 4K/gross 21px.
+   Ein einziger Regler fuer die gesamte Skala. */
+html { font-size: clamp(17px, 0.5vw + 9.5px, 21px); }
+
+/* ── 2. RESET / BASE ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--ink-2);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 { font-size: var(--fs-3xl); font-weight: var(--w-black); color: var(--ink); line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: var(--fs-2xl); font-weight: var(--w-bold);  color: var(--ink); line-height: 1.1; }
+h3 { font-size: var(--fs-xl);  font-weight: var(--w-bold);  color: var(--ink); }
+
+/* Wiederkehrende Rollen als Utility-Klassen (ersetzen die vh-Einzelwerte) */
+.t-subtitle { font-size: var(--fs-lg); font-weight: var(--w-reg);  color: var(--ink-3); }
+.t-label    { font-size: var(--fs-sm); font-weight: var(--w-semi); color: var(--ink-4); }
+.t-value    { font-size: var(--fs-xl); font-weight: var(--w-bold); color: var(--blue); }
+.t-quote    { font-size: var(--fs-md); font-weight: var(--w-med);  color: var(--red);
+              border-left: 3px solid var(--red); padding-left: var(--sp-4); }
+
+/* Marken-Verbote als erzwungene Defaults (Design-System) */
+.brand, .logo-name, h1, h2, h3 { text-transform: none !important; letter-spacing: -0.02em; }
+
+/* ── 3. APP-SHELL ─────────────────────────────────────────────────────────
+   ==== VARIANTE B (produktiv, EMPFOHLEN — aktiv) ====
+   Fuellt den Viewport, mit komfortabler Maximalbreite. Kein Letterboxing,
+   kein Hoehen-Deckel => Schriften kollabieren nicht mehr.                    */
+body.bbz-app {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: var(--topbar-h) 1fr;   /* Topbar + Nav | Inhalt        */
+}
+.bbz-shell {
+  width: 100%;
+  max-width: 1600px;      /* verhindert ueberlange Textzeilen auf Ultrawide  */
+  margin-inline: auto;
+  padding: var(--sp-6);
+  min-width: 0;
+}
+
+/* ==== VARIANTE A (16:9-Deck) — nur falls Praesentationsmodus gewuenscht ====
+   Body-Klasse "bbz-app" durch "bbz-deck" ersetzen und diesen Block aktivieren:
+   body.bbz-deck { display:flex; align-items:center; justify-content:center;
+     min-height:100dvh; background:var(--blue-dk); overflow:hidden; }
+   body.bbz-deck .bbz-canvas { width:min(95vw, calc(95vh * 16/9));
+     aspect-ratio:16/9; background:var(--bg); box-shadow:var(--shadow-3);
+     display:grid; grid-template-rows:var(--topbar-h) 1fr; overflow:hidden; }
+   Hinweis: Auch in A bleiben die Schriften in rem — das ist der Fix, der
+   unabhaengig vom Shell wirkt.                                              */
+
+/* ── 4. TOPBAR + UNIFIED NAV ──────────────────────────────────────────────
+   EINE Navigation fuer alle Module. Loest die drei konkurrierenden Konzepte
+   ab. Persistente Top-Leiste: immer sichtbar, immer in rem (=> lesbar).     */
+.bbz-topbar {
+  grid-row: 1;
+  background: var(--blue);
+  display: flex; align-items: center; gap: var(--sp-4);
+  padding-inline: var(--sp-5);
+  height: var(--topbar-h);
+}
+.bbz-logo { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; }
+.bbz-logo-mark {
+  width: 2rem; height: 2rem; border-radius: var(--r-sm);
+  background: #fff; color: var(--blue);
+  font-size: var(--fs-sm); font-weight: var(--w-black);
+  display: flex; align-items: center; justify-content: center;
+}
+.bbz-logo-name { color: #fff; font-size: var(--fs-md); font-weight: var(--w-bold); }
+
+/* Modul-Navigation: horizontal scrollbar statt zusammengequetscht */
+.bbz-nav {
+  display: flex; align-items: center; gap: var(--sp-1);
+  flex: 1; min-width: 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.bbz-nav::-webkit-scrollbar { display: none; }
+.bbz-nav-tab {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm); font-weight: var(--w-semi);
+  color: rgba(255,255,255,0.55); text-decoration: none;
+  white-space: nowrap; flex-shrink: 0;
+  transition: color var(--dur), background var(--dur);
+}
+.bbz-nav-tab:hover { color: #fff; background: rgba(255,255,255,0.10); }
+.bbz-nav-tab.active { background: #fff; color: var(--blue); font-weight: var(--w-bold); }
+.bbz-nav-num { font-size: var(--fs-2xs); font-weight: var(--w-black); opacity: 0.5; }
+
+.bbz-topbar-right { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; margin-left: auto; }
+.bbz-home-btn, .bbz-edit-btn {
+  display: flex; align-items: center; gap: var(--sp-2);
+  height: 2.25rem; padding-inline: var(--sp-3);
+  border: none; border-radius: var(--r-sm); cursor: pointer;
+  font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--w-semi);
+  color: #fff; background: rgba(255,255,255,0.14);
+  text-decoration: none; transition: background var(--dur);
+}
+.bbz-home-btn:hover, .bbz-edit-btn:hover { background: rgba(255,255,255,0.24); }
+.bbz-home-btn svg, .bbz-edit-btn svg { width: 1.1rem; height: 1.1rem; }
+
+/* ── 5. KOMPONENTEN-PRIMITIVE ─────────────────────────────────────────────
+   Konsistente Bausteine, damit Module nicht mehr je eigene Varianten bauen. */
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-1);
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 2.75rem; padding-inline: var(--sp-5);
+  border: none; border-radius: var(--r-md); cursor: pointer;
+  font-family: var(--font); font-size: var(--fs-base); font-weight: var(--w-semi);
+  background: var(--blue); color: #fff; transition: background var(--dur);
+}
+.btn:hover { background: var(--blue-md); }
+.btn--ghost { background: transparent; color: var(--blue); border: 1.5px solid var(--line); }
+.btn--ghost:hover { background: var(--blue-lt); }
+
+.field { display: flex; flex-direction: column; gap: var(--sp-2); }
+.field > label { font-size: var(--fs-sm); font-weight: var(--w-semi); color: var(--ink-3); }
+.input {
+  height: 2.75rem; padding-inline: var(--sp-3);
+  border: 1.5px solid var(--line); border-radius: var(--r-md);
+  font-family: var(--font); font-size: var(--fs-base); color: var(--ink);
+  background: var(--surface); transition: border-color var(--dur);
+}
+.input:focus { outline: none; border-color: var(--blue); }
+
+table.bbz { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+table.bbz th { text-align: left; font-weight: var(--w-bold); color: var(--ink-3);
+  padding: var(--sp-2) var(--sp-3); border-bottom: 2px solid var(--line); }
+table.bbz td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--line); color: var(--ink-2); }
+table.bbz tr:hover td { background: var(--blue-lt); }
+
+/* ── 6. CO-CREATION-ERGONOMIE ─────────────────────────────────────────────
+   Der Screen ist gemeinsame Arbeitsflaeche im Gespraech — evtl. Touch,
+   Kunde schaut mit. Deshalb:
+   a) Editierbares ist IMMER erkennbar, nie hover-only.
+   b) Klick-/Touch-Ziele >= 44px (Buttons/Inputs oben: 2.75rem ≈ 47px, ok). */
+[contenteditable="true"], .editable {
+  border-bottom: 1.5px dashed var(--ink-4);   /* dezent, aber sichtbar */
+  cursor: text; transition: border-color var(--dur), background var(--dur);
+}
+[contenteditable="true"]:hover, .editable:hover { background: var(--blue-lt); }
+[contenteditable="true"]:focus { outline: none; border-bottom-color: var(--blue); background: var(--blue-lt); }
+
+/* Bearbeitungsmodus-Schalter (Stift in Topbar) blendet Detail-Werkzeuge
+   (Bild-Upload, Loeschen, Umsortieren) global ein/aus: */
+body:not(.edit-mode) .edit-only { display: none !important; }
+body.edit-mode .edit-only { opacity: 1; }
+
+/* ── 7. A11Y / QUALITAETSBODEN ── */
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
