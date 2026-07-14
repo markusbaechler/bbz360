@@ -116,16 +116,24 @@ Kein Story-Styling. Export/Import (ADR-5) lebt hier + im index.
 
 ### G — GEFÜHRTER PROZESS (Wizard): 08 Vereinbarungen, 07b Anlegen
 Zweck: mehrstufige Entscheidungsstrecke, gemeinsam durchlaufen.
-- Einspaltig unter der Sticky-Topbar. IN-CONTENT-Phasen-Stepper
-  (z.B. Erfassen · Priorisieren · Planen · Abschluss) als roter
-  Faden — visuell KLAR UNTERSCHEIDBAR vom globalen Modul-Stepper
-  (Segmente/Pills statt nummerierter Chips).
-- Eine Phase sichtbar zugleich; freie Rück-Navigation über den
-  Phasen-Stepper; erledigte Phasen markiert.
+- Einspaltig unter der Sticky-Topbar. Roter Faden = horizontaler
+  **Prozess-Stepper**: Kreis je Phase, verbunden durch eine Linie; Linie
+  bis zur aktiven Phase gefüllt (Fortschritt).
+- Zustände eindeutig: **erledigt** = ✓ im gefüllten Kreis; **aktiv** =
+  gefüllter Kreis + Label fett/blau; **kommend** = Kreis mit Ziffer,
+  gedämpft (`--ink-4`).
+- Kurzes Label (1–2 Worte) UNTER jedem Kreis; Kontextzeile
+  „Phase 2 von 4 — Priorisieren" über/neben dem Stepper.
+- Abgrenzung zum globalen Modul-Stepper kommt aus Verbindungslinie +
+  Zustandssemantik + Grösse/Position — NICHT aus dem Verzicht auf Ziffern.
+- Eine Phase sichtbar zugleich. Navigation NICHT nur über den Stepper:
+  jede Phase endet mit klarer Primäraktion „Weiter zu <nächste Phase> →"
+  (btn); zurück via Stepper-Klick auf erledigte Phasen.
+- 1366×768: Labels dürfen auf `--fs-xs` fallen, Kreise bleiben ≥ 2rem (Touch).
 - Innerhalb der Phasen gelten die übrigen Archetyp-Primitive
   (B-Karten-Listen, Chip-Gruppen, Abschluss = Zusammenfassung).
-- Abnahme zusätzlich: Phasen-Roundtrip im Smoke (vor + zurück,
-  Zustand bleibt erhalten).
+- Abnahme zusätzlich: Phasen-Roundtrip im Smoke (vor + zurück, Zustand
+  bleibt; „Weiter"-Button navigiert).
 07b wird bei seiner Portierung nach DEMSELBEN Muster gebaut.
 
 ## 5. Co-Creation-Regeln (aus Brief v1, hier verbindlich)
