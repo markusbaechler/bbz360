@@ -54,7 +54,7 @@ export function buildNav(opts: NavOptions): HTMLElement {
     num.className = 'bbz-nav-num';
     num.textContent = m.id;
     a.appendChild(num);
-    a.appendChild(document.createTextNode(m.label));
+    a.appendChild(document.createTextNode(' ' + m.label));  // Abstand Nummer↔Label
     nav.appendChild(a);
   }
   return nav;

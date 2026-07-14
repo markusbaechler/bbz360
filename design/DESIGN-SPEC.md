@@ -3,6 +3,10 @@
 DEPRECATED markieren, nicht loeschen). Grundlage: vier vom Product Owner im
 Live-Browser abgenommene Referenz-Screens in `design/`.
 **Rangordnung bei Widerspruch: Referenz-HTML > diese Spec > Theme > alles andere.**
+Die Rangordnung gilt fuer Muster, Struktur und Hierarchie. Zahlenwerte (px) aus den
+Referenzen werden auf das naechstliegende Theme-Token gerundet — Tokens schlagen
+Einzelpixel. Fehlt ein passendes Token (Abweichung > 15%), wird das Token-Set
+ergaenzt statt hartcodiert.
 
 ## 0. Referenzdateien (eingefroren, nicht veraendern)
 | Datei | massgeblich fuer |

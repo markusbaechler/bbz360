@@ -1,80 +1,47 @@
 /* ============================================================================
-   01-agenda.css — Archetyp B (Liste mit Leben). Einspaltig, scrollbar, Token-Groessen.
-   Loest RESTSCHULD: kein fit-to-canvas-vh (feste --fs-*), kein .trak-col-Clipping (B1).
+   01-agenda.css — Gastgeber-Modul nach design/referenz-01-agenda.html.
+   Grammatik + Primitive aus theme.css v3; hier nur Modul-Spezifisches.
    ========================================================================== */
 
-.agenda {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-6);
-  padding-block: var(--sp-6);
-}
+/* ── SÄULE ───────────────────────────────────────────────────────────────── */
+.bbz-rail { padding: 36px 32px; gap: 26px; }
+.ag-meta { color: rgba(255, 255, 255, 0.55); font-size: var(--fs-sm); line-height: 1.5; }
+.bbz-rail .rail-title { font-size: var(--fs-title); line-height: 1.2; margin-top: 8px; white-space: pre-line; }
+.bbz-rail .rail-sub { font-size: var(--fs-base); color: rgba(255, 255, 255, 0.72); margin-top: 12px; }
+.ag-goal { color: #fff; font-size: var(--fs-md); line-height: 1.6; font-weight: var(--w-med); }
 
-/* ── Seitenkopf ─────────────────────────────────────────────────────────── */
-.ag-head { display: flex; flex-direction: column; gap: var(--sp-2); }
-.ag-head h1 { max-width: 24ch; }
-.ag-meta {
-  display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-8);
-  margin-top: var(--sp-3);
-}
-.ag-meta div { display: flex; flex-direction: column; gap: 2px; }
-.ag-meta dt { font-size: var(--fs-sm); font-weight: var(--w-semi); color: var(--ink-4); }
-.ag-meta dd { font-size: var(--fs-lg); font-weight: var(--w-bold); color: var(--blue); }
+/* ── BÜHNE: zwei Panels ──────────────────────────────────────────────────── */
+.ag-cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; min-height: 0; align-items: stretch; }
+.ag-cols .panel { padding: 24px 28px; display: flex; flex-direction: column; min-height: 0; max-height: 100%; }
+.ag-kicker-red { color: var(--red-kicker); }
+.ag-list { min-height: 0; }              /* bbz-scroll uebernimmt overflow */
 
-/* ── Section-Labels ─────────────────────────────────────────────────────── */
-.ag-label {
-  font-size: var(--fs-sm); font-weight: var(--w-bold);
-  color: var(--ink-4); letter-spacing: 0.02em;
-}
-.ag-label--on-blue { color: rgba(255, 255, 255, 0.6); }
-
-/* ── Gespraechsziel (Kernaussage) ───────────────────────────────────────── */
-.ag-goal {
-  background: var(--blue); color: #fff;
-  border-radius: var(--r-lg); padding: var(--sp-6);
-  display: flex; flex-direction: column; gap: var(--sp-2);
-}
-.ag-goal-text {
-  font-size: var(--fs-xl); font-weight: var(--w-bold);
-  line-height: 1.4; max-width: 46ch; color: #fff;
-}
-
-/* ── Listen-Sektionen ───────────────────────────────────────────────────── */
-.ag-list-sec { display: flex; flex-direction: column; gap: var(--sp-3); }
-.ag-sec-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
-.ag-add { height: 2.5rem; }
-
-.ag-list { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
-.ag-item {
-  display: flex; align-items: center; gap: var(--sp-3);
-  background: var(--surface); border: 1px solid var(--line);
-  border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4);
-  min-height: 3.25rem;
-}
-.ag-num {
-  font-size: var(--fs-sm); font-weight: var(--w-black); color: var(--blue);
-  opacity: 0.55; font-variant-numeric: tabular-nums; min-width: 1.9rem;
-}
-.ag-text {
-  flex: 1; font-size: var(--fs-md); color: var(--ink-2);
-  outline: none; border-radius: var(--r-sm);
-}
-.ag-grip { cursor: grab; color: var(--ink-4); font-size: var(--fs-lg); user-select: none; padding: 0 var(--sp-1); }
+/* Traktanden-Zeilen */
+.ag-tr { display: flex; align-items: center; gap: 16px; padding: 13px 2px; }
+.ag-tr + .ag-tr { border-top: 1px solid var(--line-soft); }
+.ag-tn { font-size: var(--fs-nav); font-weight: var(--w-black); color: var(--blue); min-width: 28px; font-variant-numeric: tabular-nums; }
+.ag-tt { flex: 1; font-size: var(--fs-md); color: var(--ink-2); outline: none; }
+.ag-grip { cursor: grab; color: var(--mut-3); user-select: none; }
 .ag-del {
-  border: none; background: none; cursor: pointer; color: var(--ink-4);
-  font-size: var(--fs-xl); line-height: 1; border-radius: var(--r-sm);
-  min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+  border: none; background: none; cursor: pointer; color: var(--mut-3);
+  font-size: var(--fs-md); line-height: 1; min-width: 44px; min-height: 44px;
+  display: flex; align-items: center; justify-content: center;
 }
-.ag-del:hover { color: var(--red); background: var(--bg); }
+.ag-del:hover { color: var(--red); }
 
-/* Erwartungen = Kundeninhalt -> Rot-Semantik (Border-Left + Farbe) */
-.ag-list--quote .ag-item { border-left: 3px solid var(--red); }
-.ag-list--quote .ag-text { color: var(--red); font-weight: var(--w-med); }
-
-.ag-empty {
-  color: var(--ink-3); font-style: italic; font-size: var(--fs-md);
-  padding: var(--sp-3) var(--sp-4);
-  border: 1px dashed var(--line); border-radius: var(--r-md);
+/* Erwartungen (Semantik ROT via theme .quote) */
+#expList .quote { margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px; }
+#expList .quote span { flex: 1; outline: none; }
+#expList .quote span::before { content: '«'; }
+#expList .quote span::after { content: '»'; }
+.ag-eadd {
+  border: none; background: none; cursor: pointer; text-align: left;
+  color: var(--red-kicker); font-size: var(--fs-nav); font-family: var(--font);
+  padding: 10px 4px 2px; min-height: 40px;
 }
+.ag-eadd:hover { color: var(--red-ink); }
+
+.ag-plink { border: none; background: none; cursor: pointer; color: var(--blue); font-size: var(--fs-xs); font-family: var(--font); font-weight: var(--w-bold); }
+.ag-empty { color: var(--mut); font-style: italic; font-size: var(--fs-base); padding: 8px 2px; }
 
 .sortable-ghost { opacity: 0.3; }
