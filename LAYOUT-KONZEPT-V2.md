@@ -88,8 +88,9 @@ Zweck: Gesamtbild auf einen Blick, Einstieg in Details.
   Detailpflege in Modals wie bisher.
 - index: Kundenliste als Karten-Grid mit klarer Primaeraktion «Gespraech starten».
 
-### D — RECHNER (Simulation): 07a Finanzieren, 07b Anlegen
+### D — RECHNER (Simulation): 07a Finanzieren
 Zweck: live gemeinsam rechnen — das Co-Creation-Kernstueck.
+(07b Anlegen wandert zu Archetyp G — mehrstufige Strecke.)
 ```
 [ EINGABEN links 40%          ][ ERGEBNIS rechts 60%, sticky        ]
 [ Slider/Inputs, gruppiert    ][ Ampel/Gauge gross + Kernzahl       ]
@@ -112,6 +113,20 @@ Zweck: Praeferenzen/Einschaetzungen des Kunden erfassen.
 ### F — VERWALTUNG: admin
 Zweck: Berater-Werkzeug ohne Kunde. Nuechtern, tabellarisch, `table.bbz`.
 Kein Story-Styling. Export/Import (ADR-5) lebt hier + im index.
+
+### G — GEFÜHRTER PROZESS (Wizard): 08 Vereinbarungen, 07b Anlegen
+Zweck: mehrstufige Entscheidungsstrecke, gemeinsam durchlaufen.
+- Einspaltig unter der Sticky-Topbar. IN-CONTENT-Phasen-Stepper
+  (z.B. Erfassen · Priorisieren · Planen · Abschluss) als roter
+  Faden — visuell KLAR UNTERSCHEIDBAR vom globalen Modul-Stepper
+  (Segmente/Pills statt nummerierter Chips).
+- Eine Phase sichtbar zugleich; freie Rück-Navigation über den
+  Phasen-Stepper; erledigte Phasen markiert.
+- Innerhalb der Phasen gelten die übrigen Archetyp-Primitive
+  (B-Karten-Listen, Chip-Gruppen, Abschluss = Zusammenfassung).
+- Abnahme zusätzlich: Phasen-Roundtrip im Smoke (vor + zurück,
+  Zustand bleibt erhalten).
+07b wird bei seiner Portierung nach DEMSELBEN Muster gebaut.
 
 ## 5. Co-Creation-Regeln (aus Brief v1, hier verbindlich)
 
