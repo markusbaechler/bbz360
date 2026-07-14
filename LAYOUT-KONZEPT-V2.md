@@ -46,9 +46,13 @@ drei Gesetze, an denen JEDES Modul-Layout gemessen wird:
 ## 3. Raster & Dichte
 
 - 12-Spalten-Grid, `gap: var(--sp-5)`, Inhalt in `.bbz-shell` (max 1600px).
+- **Einspaltige Archetypen (B, G):** Inhaltsspalte `max-width: 64rem`, zentriert
+  in der Shell. Volle Shell-Breite nur fuer mehrspaltige Archetypen (A, C, D).
 - **Zwei Dichtestufen**, mehr nicht:
   - `Gespraech` (Story-Module): grosszuegig, fs-lg-Fliesstext, viel Weissraum.
-  - `Arbeit` (Cockpit/Rechner): kompakter, fs-base/fs-sm, aber Klickziele ≥44px.
+    H1 = `--fs-3xl` (Hero-Typografie bleibt den Story-Modulen vorbehalten).
+  - `Arbeit` (Cockpit/Rechner/Wizard): kompakter, fs-base/fs-sm, Klickziele ≥44px.
+    H1 = `--fs-2xl` (nicht 3xl).
 - Zeilenlaenge Fliesstext: max ~70 Zeichen (Lesbarkeit auf Distanz).
 
 ## 4. Modul-Archetypen (das Herz des Konzepts)
