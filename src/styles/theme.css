@@ -1,238 +1,126 @@
 /* ============================================================================
-   bbz-theme.css — Single Source of Truth (v3.0 "produktiv")
-   ----------------------------------------------------------------------------
-   Ersetzt die inline-CSS-Duplikate + die vh/vw-Schriftlogik der Module.
-   Identitaet (Farben, DM Sans, Blau/Rot-System) bleibt unveraendert.
-   Geaendert wird nur die MECHANIK: Einheiten, Shell, Navigation.
-
-   Einbinden im <head> JEDES Moduls, NACH dem Font-Link, VOR bbz-data.js:
-     <link rel="stylesheet" href="bbz-theme.css">
+   theme.css v3.0 — bbz360 Single Source of Truth
+   Abgeleitet aus den eingefrorenen Referenzen in design/ (14.07.2026).
+   ERSETZT v2 vollstaendig. Wichtigste Korrekturen gegenueber v2:
+   - Root FIX 16px (fluider clamp-Root abgeschafft — Ursache der 60px-Titel)
+   - Typo-Deckel: nichts ueber 1.875rem/30px (Ausnahme .t-welcome 34px)
+   - Affordanzen NUR in body.edit-mode (dashed-ueberall abgeschafft)
+   - Buehnen-Grammatik als Klassen: .bbz-app/.bbz-rail/.bbz-stage/.bbz-bar
+   - Seite scrollt nie; Scroll nur in .bbz-scroll-Regionen
    ========================================================================== */
-
-/* ── 1. TOKENS ────────────────────────────────────────────────────────────
-   Farben 1:1 aus dem bestehenden Design-System uebernommen. Nicht aendern
-   ohne Ratifizierung — das Blau/Rot/Amber-System ist semantisch belegt.     */
-:root {
-  /* Marke / Struktur */
-  --blue:    #004078;   /* Primaer: Header, Zahlen, Akzente            */
-  --blue-dk: #002d57;   /* dunkle Flaechen, Hover                       */
-  --blue-md: #00528a;
-  --blue-lt: #dce8f4;   /* aktiver Nav-Tab, Zeilen-Hover                */
-
-  /* Semantische Farben (RESERVIERT — nicht fuer UI-Zustaende zweckentfremden) */
-  --red:     #950e13;   /* AUSSCHLIESSLICH client-generierter Inhalt    */
-  --green:   #15803d;   /* Kapitalzufluesse                             */
-  --amber:   #b45309;   /* AUSSCHLIESSLICH Zeithorizont "mittelfristig"  */
-  --slate:   #475569;   /* Zeithorizont "langfristig"                   */
-
-  /* Neutralschritte */
-  --ink:     #0f172a;   /* Hauptueberschriften  */
-  --ink-2:   #334155;   /* Fliesstext           */
-  --ink-3:   #64748b;   /* Untertitel           */
-  --ink-4:   #94a3b8;   /* Labels, Hints        */
-  --surface: #ffffff;
-  --bg:      #f1f5f9;
-  --line:    #e2e8f0;
-
-  --font:    'DM Sans', system-ui, sans-serif;
-
-  /* ── TYPO-SKALA (rem statt vw/vh) ──────────────────────────────────────
-     Basis: html { font-size } steuert alles zentral (siehe unten).
-     clamp(min, fluid, max) => waechst mit dem Fenster, faellt aber NIE
-     unter ein lesbares Minimum. Das ist die Kur gegen "zu klein / filigran". */
-  --fs-2xs: 0.75rem;                              /* 12px — Mikro-Labels     */
-  --fs-xs:  0.8125rem;                            /* 13px — dichte Metadaten */
-  --fs-sm:  0.875rem;                             /* 14px — Nav, Tabellen    */
-  --fs-base:1rem;                                 /* 16px — Fliesstext       */
-  --fs-md:  1.125rem;                             /* 18px — betonter Body    */
-  --fs-lg:  clamp(1.25rem, 0.9rem + 1.2vw, 1.5rem);   /* 20–24px Sub-Titel  */
-  --fs-xl:  clamp(1.5rem, 1rem + 2vw, 2rem);          /* 24–32px Abschnitt  */
-  --fs-2xl: clamp(2rem, 1.2rem + 3vw, 2.75rem);       /* 32–44px Section    */
-  --fs-3xl: clamp(2.5rem, 1.5rem + 4vw, 3.75rem);     /* 40–60px Hero       */
-
-  /* Gewichte (DM Sans) */
-  --w-reg: 400; --w-med: 500; --w-semi: 600; --w-bold: 700; --w-black: 900;
-
-  /* ── SPACING (rem-Raster, 4px-Basis) ── */
-  --sp-1: 0.25rem; --sp-2: 0.5rem;  --sp-3: 0.75rem; --sp-4: 1rem;
-  --sp-5: 1.5rem;  --sp-6: 2rem;    --sp-8: 3rem;    --sp-10: 4rem;
-
-  /* ── FORM ── */
-  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
-  --shadow-1: 0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
-  --shadow-2: 0 8px 24px rgba(15,23,42,0.10);
-  --shadow-3: 0 24px 60px rgba(0,0,0,0.28);
-
-  /* ── STRUKTUR-HOEHEN (rem, damit Nav mitwaechst statt in vh zu kollabieren) */
-  --topbar-h: 3.5rem;   /* 56px — immer klickbar/lesbar */
-
-  --dur: 0.15s;
+:root{
+  /* Farben (unveraendert, Semantik reserviert: red=Kundeninhalt, amber=mittelfristig) */
+  --blue:#004078; --blue-dk:#00335f; --blue-md:#2f6ea3; --blue-lt:#dce8f4;
+  --blue-soft:#f4f8fb; --blue-line:#c7d6e4;
+  --red:#950e13; --red-ink:#5a1518; --red-soft:#faf6f6; --red-kicker:#8a5a5d;
+  --green:#2e6b45; --green-soft:#e7efe9; --amber:#b45309; --slate:#475569;
+  --ink:#0f2a44; --ink-2:#1c2b3a; --ink-3:#3d4c5c; --ink-4:#5f7d99;
+  --mut:#8b98a5; --mut-2:#98a5b2; --mut-3:#b0bcc7;
+  --bg:#eef2f6; --surface:#fff; --line:#dde5ec; --line-soft:#edf1f5;
+  --font:'DM Sans',system-ui,sans-serif;
+  /* Typo-Skala (Root fix 16px). DECKEL: --fs-title. */
+  --fs-2xs:.6875rem; /*11 Kicker*/ --fs-xs:.75rem; /*12*/ --fs-sm:.8125rem; /*13*/
+  --fs-nav:.875rem; /*14*/ --fs-base:.9375rem; /*15 Zeilen*/ --fs-md:1rem; /*16*/
+  --fs-lg:1.1875rem; /*19 Quittungs-Wert*/ --fs-card:1.375rem; /*22 Karten-Titel*/
+  --fs-kpi:1.5rem; /*24*/ --fs-title:1.75rem; /*28 Saeulen-Titel*/
+  --fs-welcome:2.125rem; /*34 NUR Gastgeber-/Buehnen-Begruessung*/
+  --w-reg:400;--w-med:500;--w-bold:700;--w-black:900;
+  --sp-1:.25rem;--sp-2:.5rem;--sp-3:.75rem;--sp-4:1rem;--sp-5:1.375rem;--sp-6:1.75rem;
+  --r-sm:7px;--r-md:9px;--r-lg:13px;--r-xl:14px;--r-pill:999px;
+  --topbar-h:56px;--bar-h:68px;--rail-w:360px;
+  --stage-max:1560px;--stage-focus:1100px;
+  --dur:.15s;
 }
+html{font-size:16px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{font-family:var(--font);font-size:var(--fs-base);line-height:1.5;color:var(--ink-3);background:var(--bg);-webkit-font-smoothing:antialiased}
 
-/* Beratungs-Basis: FLUIDER Root. Ersetzt die Deck-Eigenschaft "Schrift
-   waechst mit dem Screen" — aber mit hartem Lesbarkeits-Minimum (17px)
-   und Deckel (21px). Auf Full-HD ~19px, auf Laptop ~17px, auf 4K/gross 21px.
-   Ein einziger Regler fuer die gesamte Skala. */
-html { font-size: clamp(17px, 0.5vw + 9.5px, 21px); }
+/* ── GRAMMATIK ── */
+body.bbz-app{height:100vh;height:100dvh;overflow:hidden;display:grid;grid-template-rows:var(--topbar-h) 1fr;grid-template-columns:minmax(0,1fr)}
+.bbz-main{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);min-height:0}
+.bbz-rail{background:var(--blue);padding:30px 28px;display:flex;flex-direction:column;gap:22px;overflow:hidden}
+.bbz-stage{display:grid;grid-template-rows:minmax(0,1fr) var(--bar-h);min-height:0}
+.bbz-work{max-width:var(--stage-max);width:100%;margin-inline:auto;padding:20px 36px;display:flex;flex-direction:column;justify-content:center;gap:14px;min-height:0}
+.bbz-work--focus{max-width:var(--stage-focus)}
+.bbz-scroll{overflow-y:auto;min-height:0}  /* EINZIGE erlaubte Scroll-Region */
+.bbz-bar{background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center}
+.bbz-bar-in{max-width:var(--stage-max);width:100%;margin-inline:auto;display:flex;align-items:center;justify-content:space-between;padding:0 36px}
+.bbz-work--focus~.bbz-bar .bbz-bar-in,.bbz-bar-in--focus{max-width:var(--stage-focus)}
 
-/* ── 2. RESET / BASE ──────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Topbar */
+.bbz-topbar{background:var(--blue-dk);display:flex;align-items:center;gap:16px;padding:0 24px}
+.bbz-logo{width:30px;height:30px;border-radius:6px;background:#fff;color:var(--blue);font-size:var(--fs-nav);font-weight:var(--w-black);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bbz-nav{display:flex;gap:4px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.bbz-nav::-webkit-scrollbar{display:none}
+.bbz-nav-tab{color:rgba(255,255,255,.5);font-size:var(--fs-nav);padding:6px 12px;white-space:nowrap;text-decoration:none;border-radius:var(--r-sm)}
+.bbz-nav-tab.active{background:rgba(255,255,255,.16);color:#fff;font-weight:var(--w-bold)}
+.bbz-edit-toggle{color:rgba(255,255,255,.8);font-size:var(--fs-nav);background:none;border:none;cursor:pointer;font-family:var(--font);flex-shrink:0}
 
-body {
-  font-family: var(--font);
-  font-size: var(--fs-base);
-  line-height: 1.5;
-  color: var(--ink-2);
-  background: var(--bg);
-  -webkit-font-smoothing: antialiased;
-}
+/* Saeulen-Bausteine */
+.rail-title{color:#fff;font-size:var(--fs-title);font-weight:var(--w-black);letter-spacing:-.01em}
+.rail-sub{color:rgba(255,255,255,.6);font-size:var(--fs-sm);line-height:1.5;margin-top:6px}
+.rail-sect{border-top:1px solid rgba(255,255,255,.18);padding-top:18px}
+.rail-kicker{color:rgba(255,255,255,.45);font-size:var(--fs-2xs);letter-spacing:.08em;font-weight:var(--w-bold)}
+.rail-foot{margin-top:auto;color:rgba(255,255,255,.45);font-size:var(--fs-xs);line-height:1.5}
+.rail-kpi-l{color:rgba(255,255,255,.5);font-size:.65625rem;letter-spacing:.07em;font-weight:var(--w-bold)}
+.rail-kpi-v{color:#fff;font-size:var(--fs-kpi);font-weight:var(--w-black);margin-top:1px}
+.rail-kpi-v small{font-size:var(--fs-sm);font-weight:var(--w-med);color:rgba(255,255,255,.5)}
+.rail-kpi-s{color:rgba(255,255,255,.45);font-size:var(--fs-2xs)}
+/* Phasenliste (Wizard) */
+.rail-phase{display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:8px;color:rgba(255,255,255,.6);font-size:var(--fs-nav)}
+.rail-phase .pc{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:var(--w-bold);flex-shrink:0;background:rgba(255,255,255,.22);color:#fff}
+.rail-phase.active{background:#fff;color:var(--blue);font-weight:var(--w-bold)}
+.rail-phase.active .pc{background:var(--blue);color:#fff}
+.rail-phase.next{color:rgba(255,255,255,.5)}
+.rail-phase.next .pc{background:none;border:1.5px solid rgba(255,255,255,.35);color:rgba(255,255,255,.55)}
 
-h1 { font-size: var(--fs-3xl); font-weight: var(--w-black); color: var(--ink); line-height: 1.05; letter-spacing: -0.02em; }
-h2 { font-size: var(--fs-2xl); font-weight: var(--w-bold);  color: var(--ink); line-height: 1.1; }
-h3 { font-size: var(--fs-xl);  font-weight: var(--w-bold);  color: var(--ink); }
+/* Buehnen-Bausteine */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 22px}
+.panel-kicker{font-size:var(--fs-2xs);letter-spacing:.08em;color:var(--mut);font-weight:var(--w-bold);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.card-focus{background:var(--surface);border:2px solid var(--blue);border-radius:var(--r-xl);padding:26px 32px}
+.card-title{font-size:var(--fs-card);font-weight:var(--w-bold);color:var(--ink);line-height:1.3;max-width:34ch}
+.kicker{font-size:var(--fs-xs);letter-spacing:.07em;color:var(--mut);font-weight:var(--w-bold)}
+/* Quittung — Regel "Wert schlaegt Label" */
+.receipt-label{font-size:var(--fs-2xs);letter-spacing:.08em;font-weight:var(--w-bold);color:var(--mut-2);text-transform:uppercase;margin-bottom:3px}
+.receipt-value{font-size:var(--fs-lg);font-weight:var(--w-black);color:var(--ink);letter-spacing:-.01em}
+/* Sequenz-Schritte */
+.seq-step{padding:16px 24px;display:flex;align-items:flex-start;gap:16px}
+.seq-step+.seq-step{border-top:1px solid var(--line-soft)}
+.seq-n{width:26px;height:26px;border-radius:50%;font-size:var(--fs-sm);font-weight:var(--w-bold);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.seq-step.done .seq-n{background:var(--green-soft);color:var(--green)}
+.seq-step.active{background:#f7fafc}
+.seq-step.active .seq-n{background:var(--blue);color:#fff}
+.seq-step.locked .seq-n{background:var(--bg);color:var(--mut-3)}
+.seq-step.locked{color:var(--mut-3)}
+/* Chips */
+.chip{font-size:var(--fs-sm);color:var(--ink-3);border:1.5px solid var(--blue-line);background:var(--surface);padding:9px 16px;border-radius:10px;font-weight:var(--w-med);cursor:pointer;font-family:var(--font);min-height:40px}
+.chip.on{background:var(--blue);color:#fff;font-weight:var(--w-bold);border-color:var(--blue)}
+.chip--sm{padding:6px 11px;font-size:var(--fs-xs);min-height:32px}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;font-size:var(--fs-nav);font-weight:var(--w-bold);padding:11px 20px;border-radius:var(--r-md);border:none;cursor:pointer;font-family:var(--font);min-height:44px}
+.btn:disabled,.btn.off{background:#c7d2dd;cursor:default}
+.btn small{font-weight:var(--w-reg);font-size:var(--fs-xs)}
+.btn--ghost{background:none;color:var(--ink-4);border:1px dashed var(--line)}
+.bar-pos{font-size:var(--fs-sm);color:var(--mut-2)}
+/* Kundenstimme (Semantik ROT) */
+.quote{border-left:3px solid var(--red);background:var(--red-soft);padding:11px 16px}
+.quote span{font-size:var(--fs-base);color:var(--red-ink);font-style:italic;line-height:1.45}
+/* Inputs */
+.input{font-family:var(--font);font-size:var(--fs-base);color:var(--ink-2);border:none;border-bottom:2px solid var(--blue-line);padding:9px 4px;background:none;min-height:40px}
+.input:focus{outline:none;border-bottom-color:var(--blue)}
+.input::placeholder{color:var(--mut-3)}
+select.input{border:1px solid var(--blue-line);background:var(--blue-soft);border-radius:var(--r-md);padding:9px 16px;font-weight:var(--w-bold);color:var(--blue)}
+/* Tabellen (admin) */
+table.bbz{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+table.bbz th{text-align:left;font-weight:var(--w-bold);color:var(--mut);padding:8px 12px;border-bottom:2px solid var(--line)}
+table.bbz td{padding:8px 12px;border-bottom:1px solid var(--line-soft);color:var(--ink-3)}
 
-/* Wiederkehrende Rollen als Utility-Klassen (ersetzen die vh-Einzelwerte) */
-.t-subtitle { font-size: var(--fs-lg); font-weight: var(--w-reg);  color: var(--ink-3); }
-.t-label    { font-size: var(--fs-sm); font-weight: var(--w-semi); color: var(--ink-4); }
-.t-value    { font-size: var(--fs-xl); font-weight: var(--w-bold); color: var(--blue); }
-.t-quote    { font-size: var(--fs-md); font-weight: var(--w-med);  color: var(--red);
-              border-left: 3px solid var(--red); padding-left: var(--sp-4); }
+/* ── EDIT-MODE (Regel 4): Werkzeuge & Affordanzen NUR hier ── */
+body:not(.edit-mode) .edit-only{display:none!important}
+body.edit-mode [contenteditable="true"]{border-bottom:1.5px dashed var(--mut);cursor:text}
+body.edit-mode [contenteditable="true"]:focus{outline:none;border-bottom-color:var(--blue);background:var(--blue-lt)}
 
-/* Marken-Verbote als erzwungene Defaults (Design-System) */
-.brand, .logo-name, h1, h2, h3 { text-transform: none !important; letter-spacing: -0.02em; }
-
-/* ── 3. APP-SHELL ─────────────────────────────────────────────────────────
-   ==== VARIANTE B (produktiv, EMPFOHLEN — aktiv) ====
-   Fuellt den Viewport, mit komfortabler Maximalbreite. Kein Letterboxing,
-   kein Hoehen-Deckel => Schriften kollabieren nicht mehr.                    */
-body.bbz-app {
-  min-height: 100dvh;
-  display: grid;
-  grid-template-rows: var(--topbar-h) 1fr;   /* Topbar + Nav | Inhalt        */
-  grid-template-columns: minmax(0, 1fr);     /* Spalte auf Viewport begrenzen,
-                                                sonst dehnt die Nav (max-content)
-                                                die Seite -> Horizontal-Overflow */
-}
-.bbz-shell {
-  width: 100%;
-  max-width: 1600px;      /* verhindert ueberlange Textzeilen auf Ultrawide  */
-  margin-inline: auto;
-  padding: var(--sp-6);
-  min-width: 0;
-}
-
-/* ==== VARIANTE A (16:9-Deck) — nur falls Praesentationsmodus gewuenscht ====
-   Body-Klasse "bbz-app" durch "bbz-deck" ersetzen und diesen Block aktivieren:
-   body.bbz-deck { display:flex; align-items:center; justify-content:center;
-     min-height:100dvh; background:var(--blue-dk); overflow:hidden; }
-   body.bbz-deck .bbz-canvas { width:min(95vw, calc(95vh * 16/9));
-     aspect-ratio:16/9; background:var(--bg); box-shadow:var(--shadow-3);
-     display:grid; grid-template-rows:var(--topbar-h) 1fr; overflow:hidden; }
-   Hinweis: Auch in A bleiben die Schriften in rem — das ist der Fix, der
-   unabhaengig vom Shell wirkt.                                              */
-
-/* ── 4. TOPBAR + UNIFIED NAV ──────────────────────────────────────────────
-   EINE Navigation fuer alle Module. Loest die drei konkurrierenden Konzepte
-   ab. Persistente Top-Leiste: immer sichtbar, immer in rem (=> lesbar).     */
-.bbz-topbar {
-  grid-row: 1;
-  position: sticky; top: 0; z-index: 20;   /* Layout §2: Topbar immer sichtbar */
-  background: var(--blue);
-  display: flex; align-items: center; gap: var(--sp-4);
-  padding-inline: var(--sp-5);
-  height: var(--topbar-h);
-}
-.bbz-logo { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; }
-.bbz-logo-mark {
-  width: 2rem; height: 2rem; border-radius: var(--r-sm);
-  background: #fff; color: var(--blue);
-  font-size: var(--fs-sm); font-weight: var(--w-black);
-  display: flex; align-items: center; justify-content: center;
-}
-.bbz-logo-name { color: #fff; font-size: var(--fs-md); font-weight: var(--w-bold); }
-
-/* Modul-Navigation: horizontal scrollbar statt zusammengequetscht */
-.bbz-nav {
-  display: flex; align-items: center; gap: var(--sp-1);
-  flex: 1; min-width: 0;
-  overflow-x: auto; scrollbar-width: none;
-}
-.bbz-nav::-webkit-scrollbar { display: none; }
-.bbz-nav-tab {
-  display: flex; align-items: center; gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-sm);
-  font-size: var(--fs-sm); font-weight: var(--w-semi);
-  color: rgba(255,255,255,0.55); text-decoration: none;
-  white-space: nowrap; flex-shrink: 0;
-  transition: color var(--dur), background var(--dur);
-}
-.bbz-nav-tab:hover { color: #fff; background: rgba(255,255,255,0.10); }
-.bbz-nav-tab.active { background: #fff; color: var(--blue); font-weight: var(--w-bold); }
-.bbz-nav-num { font-size: var(--fs-2xs); font-weight: var(--w-black); opacity: 0.5; }
-
-.bbz-topbar-right { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; margin-left: auto; }
-.bbz-home-btn, .bbz-edit-btn {
-  display: flex; align-items: center; gap: var(--sp-2);
-  height: 2.25rem; padding-inline: var(--sp-3);
-  border: none; border-radius: var(--r-sm); cursor: pointer;
-  font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--w-semi);
-  color: #fff; background: rgba(255,255,255,0.14);
-  text-decoration: none; transition: background var(--dur);
-}
-.bbz-home-btn:hover, .bbz-edit-btn:hover { background: rgba(255,255,255,0.24); }
-.bbz-home-btn svg, .bbz-edit-btn svg { width: 1.1rem; height: 1.1rem; }
-
-/* ── 5. KOMPONENTEN-PRIMITIVE ─────────────────────────────────────────────
-   Konsistente Bausteine, damit Module nicht mehr je eigene Varianten bauen. */
-.card {
-  background: var(--surface); border: 1px solid var(--line);
-  border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-1);
-}
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
-  height: 2.75rem; padding-inline: var(--sp-5);
-  border: none; border-radius: var(--r-md); cursor: pointer;
-  font-family: var(--font); font-size: var(--fs-base); font-weight: var(--w-semi);
-  background: var(--blue); color: #fff; transition: background var(--dur);
-}
-.btn:hover { background: var(--blue-md); }
-.btn--ghost { background: transparent; color: var(--blue); border: 1.5px solid var(--line); }
-.btn--ghost:hover { background: var(--blue-lt); }
-
-.field { display: flex; flex-direction: column; gap: var(--sp-2); }
-.field > label { font-size: var(--fs-sm); font-weight: var(--w-semi); color: var(--ink-3); }
-.input {
-  height: 2.75rem; padding-inline: var(--sp-3);
-  border: 1.5px solid var(--line); border-radius: var(--r-md);
-  font-family: var(--font); font-size: var(--fs-base); color: var(--ink);
-  background: var(--surface); transition: border-color var(--dur);
-}
-.input:focus { outline: none; border-color: var(--blue); }
-
-table.bbz { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
-table.bbz th { text-align: left; font-weight: var(--w-bold); color: var(--ink-3);
-  padding: var(--sp-2) var(--sp-3); border-bottom: 2px solid var(--line); }
-table.bbz td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--line); color: var(--ink-2); }
-table.bbz tr:hover td { background: var(--blue-lt); }
-
-/* ── 6. CO-CREATION-ERGONOMIE ─────────────────────────────────────────────
-   Der Screen ist gemeinsame Arbeitsflaeche im Gespraech — evtl. Touch,
-   Kunde schaut mit. Deshalb:
-   a) Editierbares ist IMMER erkennbar, nie hover-only.
-   b) Klick-/Touch-Ziele >= 44px (Buttons/Inputs oben: 2.75rem ≈ 47px, ok). */
-[contenteditable="true"], .editable {
-  border-bottom: 1.5px dashed var(--ink-4);   /* dezent, aber sichtbar */
-  cursor: text; transition: border-color var(--dur), background var(--dur);
-}
-[contenteditable="true"]:hover, .editable:hover { background: var(--blue-lt); }
-[contenteditable="true"]:focus { outline: none; border-bottom-color: var(--blue); background: var(--blue-lt); }
-
-/* Bearbeitungsmodus-Schalter (Stift in Topbar) blendet Detail-Werkzeuge
-   (Bild-Upload, Loeschen, Umsortieren) global ein/aus: */
-body:not(.edit-mode) .edit-only { display: none !important; }
-body.edit-mode .edit-only { opacity: 1; }
-
-/* ── 7. A11Y / QUALITAETSBODEN ── */
-:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+/* ── A11Y ── */
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

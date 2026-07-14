@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="de-CH"><head><meta charset="utf-8"><title>bbz360 Referenz — 08 Erfassen</title>
+<!-- REFERENZ-DESIGN, eingefroren 14.07.2026 — vom Product Owner im Live-Browser abgenommen.
+     Massgeblich fuer: Sequenzielle Freischaltung (alle mehrstufigen Eingaben app-weit). Bei Widerspruch Spec vs. Referenz gewinnt DIESE Datei. -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"><style>
+*{margin:0;padding:0;box-sizing:border-box}body{height:100vh;overflow:hidden;font-family:'DM Sans',sans-serif;background:#eef2f6;display:grid;grid-template-rows:56px 1fr}
+.tb{background:#00335f;display:flex;align-items:center;gap:16px;padding:0 24px}.logo{width:30px;height:30px;border-radius:6px;background:#fff;color:#004078;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.nav{display:flex;gap:4px;flex:1}.nt{color:rgba(255,255,255,.5);font-size:14px;padding:6px 12px}.nt.on{background:rgba(255,255,255,.16);color:#fff;font-weight:700;border-radius:7px}.edit{color:rgba(255,255,255,.8);font-size:14px}
+main{display:grid;grid-template-columns:360px 1fr;min-height:0}
+.rail{background:#004078;padding:30px 28px;display:flex;flex-direction:column;gap:22px}.rt{color:#fff;font-size:26px;font-weight:900}.rs{color:rgba(255,255,255,.6);font-size:13px;line-height:1.5;margin-top:6px}.rfoot{margin-top:auto;color:rgba(255,255,255,.45);font-size:12px;line-height:1.5}
+.stage{display:grid;grid-template-rows:1fr 68px;min-height:0}
+.bar{background:#fff;border-top:1px solid #dde5ec;display:flex;align-items:center}.bar-in{width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 40px}.pos{font-size:13px;color:#98a5b2}
+.fwd{background:#004078;color:#fff;font-size:14.5px;font-weight:700;padding:11px 20px;border-radius:9px}.fwd.off{background:#c7d2dd}.fwd small{font-weight:400;font-size:12px}
+.panel{background:#fff;border:1px solid #dde5ec;border-radius:13px;padding:18px 22px}
+.pl{font-size:11px;letter-spacing:.08em;color:#8b98a5;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}.pl .er{color:#5f7d99;font-weight:500;font-size:12px;letter-spacing:0}
+
+.ph{display:flex;flex-direction:column;gap:5px}.pr{display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:8px}
+.pc{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.pr.act{background:#fff}.pr.act .pc{background:#004078;color:#fff}.pr.act span:last-child{color:#004078;font-size:14.5px;font-weight:700}
+.pr.next .pc{border:1.5px solid rgba(255,255,255,.35);color:rgba(255,255,255,.55)}.pr.next span:last-child{color:rgba(255,255,255,.5);font-size:14px}
+.work{max-width:1100px;width:100%;margin:0 auto;padding:0 40px;display:flex;flex-direction:column;justify-content:center;gap:12px;min-height:0}
+.card{background:#fff;border:1px solid #dde5ec;border-radius:13px;overflow:hidden}
+.step{padding:16px 24px;display:flex;align-items:flex-start;gap:16px}.step+.step{border-top:1px solid #edf1f5}
+.sn{width:26px;height:26px;border-radius:50%;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.sb{flex:1}
+/* REGEL "Wert schlaegt Label": Quittungs-Label = Kicker, gewaehlter WERT = Headline */
+.done .sn{background:#e7efe9;color:#2e6b45}
+.done .sl{font-size:11px;letter-spacing:.08em;font-weight:700;color:#98a5b2;text-transform:uppercase;margin-bottom:3px}
+.done .sl::after{content:' · GEWÄHLT'}
+.done .sv{font-size:19px;font-weight:900;color:#0f2a44;letter-spacing:-.01em}
+.done .chg{font-size:12.5px;color:#5f7d99;flex-shrink:0;margin-top:4px}
+.act2{background:#f7fafc}.act2 .sn{background:#004078;color:#fff}.act2 .sl{font-size:15px;font-weight:700;color:#004078;margin-bottom:2px}
+.act2 .hint{font-size:13px;color:#5f7d99;margin-bottom:12px}
+.chips{display:flex;gap:7px;flex-wrap:wrap}.chip{font-size:13.5px;color:#3d4c5c;border:1.5px solid #c7d6e4;background:#fff;padding:9px 16px;border-radius:10px;font-weight:500}
+.lock .sn{background:#eef2f6;color:#b0bcc7}.lock .sl{font-size:14px;font-weight:700;color:#b0bcc7;margin-bottom:2px}.lock .sv{font-size:13px;color:#c3ccd5}
+.list{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dde5ec;border-radius:11px;padding:12px 20px}
+.ck{width:20px;height:20px;border-radius:50%;background:#e7efe9;color:#2e6b45;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lt{flex:1;font-size:13.5px;color:#5a6b7c}.lt b{color:#3a4a5a}.lc{font-size:12px;color:#98a5b2}.bar-in{max-width:1100px}</style></head><body>
+<div class="tb"><div class="logo">bbz</div><div class="nav"><span class="nt">01 Agenda</span><span class="nt">02 Bank</span><span class="nt">03 Berater:in</span><span class="nt">04 Philosophie</span><span class="nt">05 Cockpit</span><span class="nt">06 Ziele</span><span class="nt">07a Finanzieren</span><span class="nt">07b Anlegen</span><span class="nt on">08 Vereinbarungen</span><span class="nt">09 Feedback</span><span class="nt">10 Abschluss</span></div><span class="edit">&#9998; Bearbeiten</span></div>
+<main><div class="rail"><div><div class="rt">Vereinbarungen</div><div class="rs">Was wir heute gemeinsam festhalten — Schritt für Schritt.</div></div>
+<div class="ph"><div class="pr act"><span class="pc">1</span><span>Festhalten</span></div><div class="pr next"><span class="pc">2</span><span>Priorisieren</span></div><div class="pr next"><span class="pc">3</span><span>Nächste Schritte planen</span></div><div class="pr next"><span class="pc">4</span><span>Zusammenfassung</span></div></div>
+<div class="rfoot">1 Vereinbarung festgehalten</div></div>
+<div class="stage"><div class="work">
+<div class="card">
+<div class="step done"><span class="sn">&#10003;</span><div class="sb"><div class="sl">Thema</div><div class="sv">Vorsorgen</div></div><span class="chg">ändern</span></div>
+<div class="step act2"><span class="sn">2</span><div class="sb"><div class="sl">Fokus wählen</div><div class="hint">Worum geht es bei dieser Vereinbarung?</div><div class="chips"><span class="chip">Überblick schaffen</span><span class="chip">Optionen prüfen</span><span class="chip">Entscheidung treffen</span><span class="chip">Umsetzung starten</span><span class="chip">Bestehendes optimieren</span></div></div></div>
+<div class="step lock"><span class="sn">3</span><div class="sb"><div class="sl">Vereinbarung formulieren</div><div class="sv">Folgt nach der Fokus-Wahl — mit Formulierungsvorschlag.</div></div></div>
+</div>
+<div class="list"><span class="ck">&#10003;</span><span class="lt"><b>Sparen · Bestehendes optimieren</b> — Bestehende Sparlösung an das heutige Sparziel anpassen</span><span class="lc">&#9998; · &times;</span></div>
+</div><div class="bar"><div class="bar-in"><span class="pos">Phase 1 von 4 · Festhalten</span><span class="fwd off">Bereit zur Priorisierung &rarr; <small>ab 1 Vereinbarung</small></span></div></div></div></main></body></html>

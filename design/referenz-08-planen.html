@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="de-CH"><head><meta charset="utf-8"><title>bbz360 Referenz — 08 Planen</title>
+<!-- REFERENZ-DESIGN, eingefroren 14.07.2026 — vom Product Owner im Live-Browser abgenommen.
+     Massgeblich fuer: Wizard-Arbeitsphasen (08 P2/P3, 07b) — Fokus-Karte + Warteschlange. Bei Widerspruch Spec vs. Referenz gewinnt DIESE Datei. -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"><style>
+*{margin:0;padding:0;box-sizing:border-box}body{height:100vh;overflow:hidden;font-family:'DM Sans',sans-serif;background:#eef2f6;display:grid;grid-template-rows:56px 1fr}
+.tb{background:#00335f;display:flex;align-items:center;gap:16px;padding:0 24px}.logo{width:30px;height:30px;border-radius:6px;background:#fff;color:#004078;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.nav{display:flex;gap:4px;flex:1}.nt{color:rgba(255,255,255,.5);font-size:14px;padding:6px 12px}.nt.on{background:rgba(255,255,255,.16);color:#fff;font-weight:700;border-radius:7px}.edit{color:rgba(255,255,255,.8);font-size:14px}
+main{display:grid;grid-template-columns:360px 1fr;min-height:0}
+.rail{background:#004078;padding:30px 28px;display:flex;flex-direction:column;gap:22px}.rt{color:#fff;font-size:26px;font-weight:900}.rs{color:rgba(255,255,255,.6);font-size:13px;line-height:1.5;margin-top:6px}.rfoot{margin-top:auto;color:rgba(255,255,255,.45);font-size:12px;line-height:1.5}
+.stage{display:grid;grid-template-rows:1fr 68px;min-height:0}
+.bar{background:#fff;border-top:1px solid #dde5ec;display:flex;align-items:center}.bar-in{width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 40px}.pos{font-size:13px;color:#98a5b2}
+.fwd{background:#004078;color:#fff;font-size:14.5px;font-weight:700;padding:11px 20px;border-radius:9px}.fwd.off{background:#c7d2dd}.fwd small{font-weight:400;font-size:12px}
+.panel{background:#fff;border:1px solid #dde5ec;border-radius:13px;padding:18px 22px}
+.pl{font-size:11px;letter-spacing:.08em;color:#8b98a5;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}.pl .er{color:#5f7d99;font-weight:500;font-size:12px;letter-spacing:0}
+
+.ph{display:flex;flex-direction:column;gap:5px}.pr{display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:8px}
+.pc{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.pr.done .pc{background:rgba(255,255,255,.22);color:#fff}.pr.done span:last-child{color:rgba(255,255,255,.6);font-size:14px}
+.pr.act{background:#fff}.pr.act .pc{background:#004078;color:#fff}.pr.act span:last-child{color:#004078;font-size:14.5px;font-weight:700}
+.pr.next .pc{border:1.5px solid rgba(255,255,255,.35);color:rgba(255,255,255,.55)}.pr.next span:last-child{color:rgba(255,255,255,.5);font-size:14px}
+.plan{margin-top:auto;border-top:1px solid rgba(255,255,255,.15);padding-top:20px}.plt{color:rgba(255,255,255,.45);font-size:11.5px;letter-spacing:.08em;font-weight:700;margin-bottom:12px}
+.pli{display:flex;align-items:center;gap:10px;padding:7px 0;color:rgba(255,255,255,.75);font-size:14px}.pli.dim{color:rgba(255,255,255,.4)}
+.dot{width:18px;height:18px;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.dot.ok{background:rgba(255,255,255,.25);color:#fff}.dot.cur{background:#fff;color:#004078;font-weight:700}.dot.later{border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.5)}
+.work{max-width:1500px;width:100%;margin:0 auto;padding:0 40px;display:flex;flex-direction:column;justify-content:center;gap:14px;min-height:0}
+.mini{background:#fff;border:1px solid #dde5ec;border-radius:11px;padding:14px 22px;display:flex;align-items:center;gap:14px}
+.mini .ck{width:24px;height:24px;border-radius:50%;background:#e7efe9;color:#2e6b45;font-size:12px;display:flex;align-items:center;justify-content:center}
+.mini span.t{flex:1;font-size:15px;color:#5a6b7c}.mini span.t b{color:#3a4a5a;font-weight:700}.mini .st{font-size:13px;color:#98a5b2}
+.mini.q{opacity:.7}.mini.q .ck{background:#fff;border:1px solid #d5dde6;color:#98a5b2}
+.card{background:#fff;border:2px solid #004078;border-radius:14px;padding:26px 32px}
+.kick{font-size:12px;letter-spacing:.07em;color:#8b98a5;font-weight:700;margin-bottom:6px}.ct{font-size:22px;font-weight:700;color:#0f2a44;line-height:1.3;margin-bottom:22px;max-width:34ch}
+.step{display:flex;align-items:center;gap:14px;padding:10px 0}.step+.step{border-top:1px solid #edf1f5}.sl{font-size:12px;color:#98a5b2;min-width:64px;font-weight:700}
+.wer{font-size:15px;font-weight:700;color:#004078;border:1px solid #c7d6e4;background:#f4f8fb;padding:9px 16px;border-radius:9px;white-space:nowrap}
+.was{flex:1;font-size:15.5px;color:#1c2b3a;border-bottom:2px solid #c7d6e4;padding:9px 4px;max-width:720px}.was.ph2{color:#a5b1bd}
+.chips{display:flex;gap:6px}.chip{font-size:13px;color:#5f7d99;border:1px solid #dde5ec;background:#fff;padding:8px 14px;border-radius:11px}.chip.on{background:#004078;color:#fff;font-weight:700;border-color:#004078}
+.add{display:flex;align-items:center;gap:8px;color:#5f7d99;font-size:14px;padding:12px 0 4px 78px}
+.cfoot{display:flex;align-items:center;gap:9px;color:#98a5b2;font-size:13.5px;border-top:1px solid #edf1f5;margin-top:16px;padding-top:16px}.box{width:15px;height:15px;border:1.5px solid #c3ccd5;border-radius:4px}.bar-in{max-width:1500px}</style></head><body>
+<div class="tb"><div class="logo">bbz</div><div class="nav"><span class="nt">01 Agenda</span><span class="nt">02 Bank</span><span class="nt">03 Berater:in</span><span class="nt">04 Philosophie</span><span class="nt">05 Cockpit</span><span class="nt">06 Ziele</span><span class="nt">07a Finanzieren</span><span class="nt">07b Anlegen</span><span class="nt on">08 Vereinbarungen</span><span class="nt">09 Feedback</span><span class="nt">10 Abschluss</span></div><span class="edit">&#9998; Bearbeiten</span></div>
+<main><div class="rail"><div><div class="rt">Vereinbarungen</div><div class="rs">Was wir heute gemeinsam festhalten — und wer was bis wann übernimmt.</div></div>
+<div class="ph"><div class="pr done"><span class="pc">&#10003;</span><span>Festhalten</span></div><div class="pr done"><span class="pc">&#10003;</span><span>Priorisieren</span></div><div class="pr act"><span class="pc">3</span><span>Nächste Schritte planen</span></div><div class="pr next"><span class="pc">4</span><span>Zusammenfassung</span></div></div>
+<div class="plan"><div class="plt">HEUTE FESTGEHALTEN · 1 VON 3 GEPLANT</div><div class="pli"><span class="dot ok">&#10003;</span>Anlagemöglichkeiten prüfen</div><div class="pli"><span class="dot cur">2</span>Vorsorgelösung einrichten</div><div class="pli dim"><span class="dot later">3</span>Finanzierungsvariante festlegen</div></div></div>
+<div class="stage"><div class="work">
+<div class="mini"><span class="ck">&#10003;</span><span class="t"><b>Anlagemöglichkeiten prüfen</b> — Gemeinsam, bis 22. Juli</span><span class="st">geplant</span></div>
+<div class="card"><div class="kick">VEREINBARUNG 2 VON 3 · VORSORGEN · SOFORT</div><div class="ct">Vorsorgelösung konkret einrichten und ersten Einzahlungsauftrag auslösen</div>
+<div class="step"><span class="sl">Schritt 1</span><span class="wer">Gemeinsam &#9662;</span><span class="was">Unterlagen sichten und Eröffnung Säule 3a vorbereiten</span><span class="chips"><span class="chip">Woche</span><span class="chip on">Monat</span><span class="chip">15.08. &#9662;</span></span></div>
+<div class="step"><span class="sl">Schritt 2</span><span class="wer">Markus Bächler &#9662;</span><span class="was ph2">Offerte erstellen und Einzahlungsauftrag vorbereiten…</span><span class="chips"><span class="chip">Woche</span><span class="chip">Monat</span><span class="chip">Datum &#9662;</span></span></div>
+<div class="add">+ Dritten Schritt hinzufügen</div><div class="cfoot"><span class="box"></span>Kein Handlungsbedarf momentan</div></div>
+<div class="mini q"><span class="ck">3</span><span class="t"><b>Finanzierungsvariante festlegen</b></span><span class="st">als Nächstes</span></div>
+</div><div class="bar"><div class="bar-in"><span class="pos">Phase 3 von 4 · Planen</span><span style="display:flex;gap:20px;align-items:center"><span class="pos">&larr; Zurück zur Priorisierung</span><span class="fwd">Weiter zur Zusammenfassung &rarr;</span></span></div></div></div></main></body></html>

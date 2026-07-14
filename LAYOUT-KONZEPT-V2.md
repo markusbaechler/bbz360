@@ -1,3 +1,5 @@
+﻿> **DEPRECATED (14.07.2026):** Vollstaendig ersetzt durch design/DESIGN-SPEC.md + Referenz-HTMLs in design/. Nicht mehr anwenden.
+
 # LAYOUT-KONZEPT v2 — bbz-Dialog
 
 **Status:** Verbindliche Leitplanke fuer den v2-Umbau. Ergaenzt CC-ARCHITEKTUR-BRIEF-V2.
