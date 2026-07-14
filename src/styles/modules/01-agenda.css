@@ -1,0 +1,80 @@
+/* ============================================================================
+   01-agenda.css — Archetyp B (Liste mit Leben). Einspaltig, scrollbar, Token-Groessen.
+   Loest RESTSCHULD: kein fit-to-canvas-vh (feste --fs-*), kein .trak-col-Clipping (B1).
+   ========================================================================== */
+
+.agenda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  padding-block: var(--sp-6);
+}
+
+/* ── Seitenkopf ─────────────────────────────────────────────────────────── */
+.ag-head { display: flex; flex-direction: column; gap: var(--sp-2); }
+.ag-head h1 { max-width: 24ch; }
+.ag-meta {
+  display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-8);
+  margin-top: var(--sp-3);
+}
+.ag-meta div { display: flex; flex-direction: column; gap: 2px; }
+.ag-meta dt { font-size: var(--fs-sm); font-weight: var(--w-semi); color: var(--ink-4); }
+.ag-meta dd { font-size: var(--fs-lg); font-weight: var(--w-bold); color: var(--blue); }
+
+/* ── Section-Labels ─────────────────────────────────────────────────────── */
+.ag-label {
+  font-size: var(--fs-sm); font-weight: var(--w-bold);
+  color: var(--ink-4); letter-spacing: 0.02em;
+}
+.ag-label--on-blue { color: rgba(255, 255, 255, 0.6); }
+
+/* ── Gespraechsziel (Kernaussage) ───────────────────────────────────────── */
+.ag-goal {
+  background: var(--blue); color: #fff;
+  border-radius: var(--r-lg); padding: var(--sp-6);
+  display: flex; flex-direction: column; gap: var(--sp-2);
+}
+.ag-goal-text {
+  font-size: var(--fs-xl); font-weight: var(--w-bold);
+  line-height: 1.4; max-width: 46ch; color: #fff;
+}
+
+/* ── Listen-Sektionen ───────────────────────────────────────────────────── */
+.ag-list-sec { display: flex; flex-direction: column; gap: var(--sp-3); }
+.ag-sec-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.ag-add { height: 2.5rem; }
+
+.ag-list { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
+.ag-item {
+  display: flex; align-items: center; gap: var(--sp-3);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4);
+  min-height: 3.25rem;
+}
+.ag-num {
+  font-size: var(--fs-sm); font-weight: var(--w-black); color: var(--blue);
+  opacity: 0.55; font-variant-numeric: tabular-nums; min-width: 1.9rem;
+}
+.ag-text {
+  flex: 1; font-size: var(--fs-md); color: var(--ink-2);
+  outline: none; border-radius: var(--r-sm);
+}
+.ag-grip { cursor: grab; color: var(--ink-4); font-size: var(--fs-lg); user-select: none; padding: 0 var(--sp-1); }
+.ag-del {
+  border: none; background: none; cursor: pointer; color: var(--ink-4);
+  font-size: var(--fs-xl); line-height: 1; border-radius: var(--r-sm);
+  min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+}
+.ag-del:hover { color: var(--red); background: var(--bg); }
+
+/* Erwartungen = Kundeninhalt -> Rot-Semantik (Border-Left + Farbe) */
+.ag-list--quote .ag-item { border-left: 3px solid var(--red); }
+.ag-list--quote .ag-text { color: var(--red); font-weight: var(--w-med); }
+
+.ag-empty {
+  color: var(--ink-3); font-style: italic; font-size: var(--fs-md);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px dashed var(--line); border-radius: var(--r-md);
+}
+
+.sortable-ghost { opacity: 0.3; }

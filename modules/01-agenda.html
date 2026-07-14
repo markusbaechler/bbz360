@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Agenda</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/01-agenda.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">
+      <span class="bbz-logo-mark">bbz</span>
+      <span class="bbz-logo-name">bbz360</span>
+    </div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <div class="bbz-topbar-right">
+      <button id="editToggle" class="bbz-edit-btn" type="button" aria-pressed="false">
+        <span aria-hidden="true">✎</span> Bearbeiten
+      </button>
+      <a href="../index.html" class="bbz-home-btn" title="Zur Übersicht" aria-label="Zur Übersicht">
+        <span aria-hidden="true">⌂</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="bbz-shell agenda">
+    <header class="ag-head">
+      <h1 id="welcomeName" contenteditable="true" spellcheck="false">Herzlich willkommen</h1>
+      <p id="welcomeSub" class="t-subtitle" contenteditable="true" spellcheck="false">Schön, dass Sie heute bei uns sind.</p>
+      <dl class="ag-meta">
+        <div><dt>Datum</dt><dd id="metaDate" contenteditable="true"></dd></div>
+        <div><dt>Uhrzeit</dt><dd id="metaTime" contenteditable="true"></dd></div>
+        <div><dt>Dauer</dt><dd id="metaDuration" contenteditable="true">60 Min.</dd></div>
+      </dl>
+    </header>
+
+    <section class="ag-goal">
+      <span class="ag-label ag-label--on-blue">Gesprächsziel</span>
+      <p id="goalText" class="ag-goal-text" contenteditable="true" spellcheck="false">Im heutigen Dialog entsteht ein gutes Gefühl bei Ihrer finanziellen Situation. So haben Sie Orientierung und im besten Fall eine passende Lösung.</p>
+    </section>
+
+    <section class="ag-list-sec">
+      <div class="ag-sec-head">
+        <h2 class="ag-label">Traktanden</h2>
+        <button class="btn btn--ghost edit-only ag-add" data-list="agenda" type="button">+ Punkt hinzufügen</button>
+      </div>
+      <ol id="trakList" class="ag-list"></ol>
+    </section>
+
+    <section class="ag-list-sec">
+      <div class="ag-sec-head">
+        <h2 class="ag-label">Erwartungen</h2>
+        <button class="btn btn--ghost edit-only ag-add" data-list="expect" type="button">+ Erwartung hinzufügen</button>
+      </div>
+      <ul id="expList" class="ag-list ag-list--quote"></ul>
+    </section>
+  </main>
+</body>
+</html>

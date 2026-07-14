@@ -109,6 +109,9 @@ body.bbz-app {
   min-height: 100dvh;
   display: grid;
   grid-template-rows: var(--topbar-h) 1fr;   /* Topbar + Nav | Inhalt        */
+  grid-template-columns: minmax(0, 1fr);     /* Spalte auf Viewport begrenzen,
+                                                sonst dehnt die Nav (max-content)
+                                                die Seite -> Horizontal-Overflow */
 }
 .bbz-shell {
   width: 100%;
@@ -133,6 +136,7 @@ body.bbz-app {
    ab. Persistente Top-Leiste: immer sichtbar, immer in rem (=> lesbar).     */
 .bbz-topbar {
   grid-row: 1;
+  position: sticky; top: 0; z-index: 20;   /* Layout §2: Topbar immer sichtbar */
   background: var(--blue);
   display: flex; align-items: center; gap: var(--sp-4);
   padding-inline: var(--sp-5);

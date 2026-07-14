@@ -60,7 +60,8 @@ export function buildNav(opts: NavOptions): HTMLElement {
   return nav;
 }
 
-// Montiert die Nav in ein vorhandenes Element (z.B. .bbz-topbar Platzhalter).
+// Fuellt ein vorhandenes `.bbz-nav`-Element (flex:1-Kind der Topbar) mit den Tabs.
 export function mountNav(target: Element, opts: NavOptions): void {
-  target.replaceChildren(buildNav(opts));
+  const nav = buildNav(opts);
+  target.replaceChildren(...Array.from(nav.childNodes));
 }
