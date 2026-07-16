@@ -1,63 +1,78 @@
 import { test, expect } from '@playwright/test';
 
-// Smoke 08 Vereinbarungen (Archetyp G): laedt, Console-clean, Nav 11 Tabs,
-// Erfassen->Priorisieren->Planen->Abschluss durchlaufen, Phasen-Roundtrip
-// (vor + zurueck, Zustand bleibt), Persistenz nach Reload.
-test('08 Vereinbarungen — Smoke (Wizard-Roundtrip)', async ({ page }) => {
+// Smoke 08 Vereinbarungen (Wizard, Grammatik v3):
+//  - Erfassen (sequenzielle Freischaltung): Thema→Fokus→Formulieren→Festhalten
+//  - Priorisieren-Roundtrip: einordnen → umentscheiden → Gate erst bei voller Einordnung
+//  - Planen: Fokus-Karte; Persistenz nach Reload; Regel 1 (kein Seiten-Scroll)
+test('08 Vereinbarungen — Smoke (Wizard)', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', (m) => { if (m.type() === 'error' && !/favicon/i.test(m.text())) errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(String(e)));
 
   await page.goto('modules/08-vereinbarungen.html');
-  await expect(page.locator('h1')).toHaveText('Vereinbarungen');
+  await expect(page.locator('.rail-title')).toHaveText('Vereinbarungen');
   await expect(page.locator('#bbzNav .bbz-nav-tab')).toHaveCount(11);
-  await expect(page.locator('#bbzNav .bbz-nav-tab.active')).toContainText('Vereinbarungen');
+  const noScroll = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1);
+  expect(noScroll, 'Regel 1').toBe(true);
 
-  // ── Phase 1: Erfassen ──
-  await page.locator('#sparteChips .wz-chip', { hasText: 'Anlegen' }).click();
-  await expect(page.locator('#reifegradWrap')).toBeVisible();
-  await page.locator('#reifegradChips .wz-chip', { hasText: 'Optionen prüfen' }).click();
-  // Vorschlag uebernehmen
-  await expect(page.locator('#hintText.has-hint')).toBeVisible();
-  await page.locator('#hintText').click();
-  await expect(page.locator('#vereinbarungText')).not.toHaveValue('');
-  await page.locator('#addBtn').click();
-  await expect(page.locator('#agreementList .wz-card')).toHaveCount(1);
+  // ── Erfassen: eine Vereinbarung sequenziell festhalten ──
+  async function capture(sparte: string, fokus: string) {
+    await page.locator(`.wz-chip[data-cap="sparte"][data-v="${sparte}"]`).click();
+    await page.locator(`.wz-chip[data-cap="reifegrad"][data-v="${fokus}"]`).click();
+    await page.locator('#capSug').click(); // Vorschlag übernehmen
+    await page.locator('#capSave').click();
+  }
+  await capture('Anlegen', 'optionen');
+  await expect(page.locator('.wz-listrow')).toHaveCount(1);
 
-  // ── Weiter-Button navigiert (Archetyp G) ──
-  await expect(page.locator('#btnForward')).toContainText('Weiter zu Priorisieren');
-  await page.locator('#btnForward').click();
-  await expect(page.locator('#phase2')).toBeVisible();
-  await expect(page.locator('#phase1')).toBeHidden(); // [hidden] wirkt wirklich
-  await expect(page.locator('.wz-step[data-phase="2"]')).toHaveClass(/active/);
-  await expect(page.locator('.wz-step[data-phase="1"]')).toHaveClass(/done/);
-  await page.locator('.wz-prio--sofort').first().click();
-  await expect(page.locator('.wz-prio--sofort').first()).toHaveClass(/sel/);
+  // Queue-Roundtrip: erfasste Zeile editieren
+  await page.locator('.wz-listrow [data-act="edit"]').first().click();
+  await expect(page.locator('#capText')).not.toHaveValue('');
+  await page.locator('#capText').fill('Editierte Vereinbarung');
+  await page.locator('#capSave').click();
+  await expect(page.locator('.wz-listrow')).toHaveCount(1);
+  await expect(page.locator('.wz-listrow').first()).toContainText('Editierte Vereinbarung');
+  // ... und löschen
+  await page.locator('.wz-listrow [data-act="del"]').first().click();
+  await expect(page.locator('.wz-listrow')).toHaveCount(0);
 
-  // ── Phase 3: Planen ──
-  await page.locator('#btnForward').click();
-  await expect(page.locator('#phase3')).toBeVisible();
-  await expect(page.locator('#stepsList select')).toHaveCount(1);
-  // Extra-Schritt hinzufuegen (edit-only Werkzeug -> Edit-Modus)
-  await page.locator('#editToggle').click();
-  await page.locator('.wz-add-step').first().click();
-  await expect(page.locator('#stepsList select')).toHaveCount(2);
-
-  // ── Phase 4: Abschluss ──
-  await page.locator('#btnForward').click();
-  await expect(page.locator('#phase4')).toBeVisible();
-  await expect(page.locator('#abschlussGrid')).toContainText('Anlagemöglichkeiten');
-
-  // ── Roundtrip: zurueck zu Phase 2 ueber den Stepper, Zustand bleibt ──
-  await page.locator('.wz-step[data-phase="2"]').click();
-  await expect(page.locator('#phase2')).toBeVisible();
-  await expect(page.locator('.wz-prio--sofort').first()).toHaveClass(/sel/);
-
-  // ── Persistenz nach Reload ──
+  // zwei Vereinbarungen für die weiteren Phasen
+  await capture('Anlegen', 'optionen');
+  await capture('Vorsorgen', 'umsetzung');
+  await expect(page.locator('.wz-listrow')).toHaveCount(2);
+  // Queue-Persistenz nach Reload (bleibt Phase 1)
   await page.reload();
-  await expect(page.locator('#phase2')).toBeVisible(); // phase=2 persistiert
-  await expect(page.locator('#prioList .wz-card')).toHaveCount(1);
-  await expect(page.locator('.wz-prio--sofort').first()).toHaveClass(/sel/);
+  await expect(page.locator('.wz-listrow')).toHaveCount(2);
+
+  // Forward-Gate: ab 1 Vereinbarung aktiv
+  await expect(page.locator('#btnFwd')).toBeEnabled();
+  await page.locator('#btnFwd').click();
+  await expect(page.locator('.rail-phase.active')).toContainText('Priorisieren');
+
+  // ── Priorisieren-Roundtrip ──
+  await expect(page.locator('.wz-todo .wz-prow')).toHaveCount(2);
+  await expect(page.locator('#btnFwd')).toBeDisabled(); // Gate: noch nicht alle eingeordnet
+  // erste einordnen -> SOFORT
+  await page.locator('.wz-todo .wz-prow').first().locator('.wz-chip[data-prio="sofort"]').click();
+  await expect(page.locator('.wz-todo .wz-prow')).toHaveCount(1);
+  // umentscheiden: Quittungszeile klicken -> Chips wieder da
+  await page.locator('.wz-group .wz-qrow').first().click();
+  await expect(page.locator('.wz-prow.reopen')).toHaveCount(1);
+  await page.locator('.wz-prow.reopen .wz-chip[data-prio="demnaechst"]').click();
+  // zweite einordnen
+  await page.locator('.wz-todo .wz-prow').first().locator('.wz-chip[data-prio="sofort"]').click();
+  await expect(page.locator('.wz-todo .wz-prow')).toHaveCount(0);
+  await expect(page.locator('#btnFwd')).toBeEnabled(); // Gate offen
+
+  // ── Planen ──
+  await page.locator('#btnFwd').click();
+  await expect(page.locator('.rail-phase.active')).toContainText('planen');
+  await expect(page.locator('.card-focus')).toHaveCount(1);
+
+  // ── Persistenz ──
+  await page.reload();
+  await expect(page.locator('.rail-phase.active')).toContainText('planen');
+  await expect(page.locator('.card-focus')).toHaveCount(1);
 
   expect(errors, 'keine Console-Errors').toEqual([]);
 });

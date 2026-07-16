@@ -4,101 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>bbz360 — Vereinbarungen</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
   <script type="module" src="/src/modules/08-vereinbarungen.ts"></script>
 </head>
 <body class="bbz-app">
   <header class="bbz-topbar">
-    <div class="bbz-logo">
-      <span class="bbz-logo-mark">bbz</span>
-      <span class="bbz-logo-name">bbz360</span>
-    </div>
+    <div class="bbz-logo">bbz</div>
     <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
-    <div class="bbz-topbar-right">
-      <button id="editToggle" class="bbz-edit-btn" type="button" aria-pressed="false">
-        <span aria-hidden="true">✎</span> Bearbeiten
-      </button>
-      <a href="../index.html" class="bbz-home-btn" title="Zur Übersicht" aria-label="Zur Übersicht">
-        <span aria-hidden="true">⌂</span>
-      </a>
-    </div>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
   </header>
 
-  <main class="bbz-shell wizard">
-    <header class="wz-head">
-      <h1>Vereinbarungen</h1>
-      <p class="t-subtitle">Gemeinsam festhalten, priorisieren und die nächsten Schritte planen.</p>
-    </header>
-
-    <!-- Prozess-Stepper (Archetyp G): Kreise + Fortschrittslinie, klar unterscheidbar vom Modul-Stepper -->
-    <div class="wz-stepper">
-      <p class="wz-stepper-ctx" id="wzCtx">Phase 1 von 4 — Erfassen</p>
-      <div class="wz-steps" id="wzPhases" role="list" aria-label="Prozess-Phasen">
-        <div class="wz-steps-track" aria-hidden="true"></div>
-        <div class="wz-steps-fill" id="wzFill" aria-hidden="true"></div>
-        <button class="wz-step" data-phase="1" type="button" role="listitem"><span class="wz-step-circle">1</span><span class="wz-step-label">Erfassen</span></button>
-        <button class="wz-step" data-phase="2" type="button" role="listitem"><span class="wz-step-circle">2</span><span class="wz-step-label">Priorisieren</span></button>
-        <button class="wz-step" data-phase="3" type="button" role="listitem"><span class="wz-step-circle">3</span><span class="wz-step-label">Planen</span></button>
-        <button class="wz-step" data-phase="4" type="button" role="listitem"><span class="wz-step-circle">4</span><span class="wz-step-label">Abschluss</span></button>
+  <div class="bbz-main">
+    <!-- SÄULE: Erzähler = Phasenliste + Arbeitsstand -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-title">Vereinbarungen</div>
+        <div class="rail-sub" id="railSub">Was wir heute gemeinsam festhalten — Schritt für Schritt.</div>
       </div>
+      <div class="wz-phaselist" id="railPhases"></div>
+      <div class="wz-status" id="railStatus"></div>
+    </aside>
+
+    <!-- BÜHNE -->
+    <div class="bbz-stage">
+      <div class="bbz-work" id="work"></div>
+      <div class="bbz-bar"><div class="bbz-bar-in" id="barIn"></div></div>
     </div>
-
-    <!-- ── PHASE 1: ERFASSEN ─────────────────────────────────────────── -->
-    <section class="wz-panel" id="phase1" hidden>
-      <figure class="wz-hero">
-        <img id="phaseImg" src="../img/vereinbarungen/vereinbarungen.jpg" alt="Vereinbarungen" />
-        <button class="wz-hero-upload edit-only" id="phaseImgBtn" type="button">Bild ändern</button>
-        <input type="file" id="phaseImgInput" accept="image/*" hidden />
-      </figure>
-
-      <div class="wz-capture card">
-        <div class="field">
-          <label>Thema</label>
-          <div class="chip-row" id="sparteChips"></div>
-        </div>
-        <div class="field" id="reifegradWrap" hidden>
-          <label>Fokus</label>
-          <div class="chip-row" id="reifegradChips"></div>
-        </div>
-        <div class="field">
-          <label>Vereinbarung <span class="wz-hint" id="hintText">Thema und Fokus wählen für einen Vorschlag.</span></label>
-          <textarea id="vereinbarungText" class="input wz-textarea" rows="2" placeholder="Vereinbarung formulieren…"></textarea>
-        </div>
-        <div class="wz-capture-actions">
-          <span class="wz-editing-badge" id="editingBadge" hidden>Bearbeitung</span>
-          <button class="btn btn--ghost" id="resetBtn" type="button">Verwerfen</button>
-          <button class="btn" id="addBtn" type="button" disabled>Festhalten</button>
-        </div>
-      </div>
-
-      <div class="wz-list" id="agreementList"></div>
-      <p class="ag-empty" id="emptyState">Noch keine Vereinbarungen festgehalten.</p>
-    </section>
-
-    <!-- ── PHASE 2: PRIORISIEREN ─────────────────────────────────────── -->
-    <section class="wz-panel" id="phase2" hidden>
-      <div class="wz-list" id="prioList"></div>
-    </section>
-
-    <!-- ── PHASE 3: PLANEN ───────────────────────────────────────────── -->
-    <section class="wz-panel" id="phase3" hidden>
-      <div class="wz-list" id="stepsList"></div>
-    </section>
-
-    <!-- ── PHASE 4: ABSCHLUSS ────────────────────────────────────────── -->
-    <section class="wz-panel" id="phase4" hidden>
-      <div class="wz-abschluss">
-        <div class="wz-abschluss-name" id="abschlussName">Beratungsgespräch</div>
-        <div class="wz-abschluss-grid" id="abschlussGrid"></div>
-        <button class="btn btn--ghost" id="resetAllBtn" type="button">Neues Gespräch starten</button>
-      </div>
-    </section>
-
-    <!-- Vor/Zurück -->
-    <div class="wz-nav-actions">
-      <button class="btn btn--ghost" id="btnBack" type="button" hidden>← Zurück</button>
-      <button class="btn" id="btnForward" type="button">Weiter →</button>
-    </div>
-  </main>
+  </div>
 </body>
 </html>
