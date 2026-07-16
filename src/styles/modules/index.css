@@ -1,0 +1,77 @@
+/* ============================================================================
+   index.css — Beratercockpit (Grammatik v3, 05-Grammatik). Nur Seiten-Spezifisches.
+   ========================================================================== */
+
+/* Topbar: Name + Datum + Admin-Link (keine Modul-Nav auf dem Hub) */
+.ix-topname { color: #fff; font-size: var(--fs-nav); font-weight: var(--w-bold); }
+.ix-topdate { margin-left: auto; color: rgba(255, 255, 255, 0.5); font-size: var(--fs-sm); }
+.ix-adminlink { color: rgba(255, 255, 255, 0.65); font-size: var(--fs-sm); text-decoration: none; padding: 6px 10px; border-radius: var(--r-sm); }
+.ix-adminlink:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+
+/* ── SÄULE: Berater-Picker + Datum + Session ─────────────────────────────── */
+.bbz-rail { padding: 30px 26px; gap: 20px; }
+.ix-picker { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.ix-bopt {
+  display: grid; grid-template-columns: 40px 1fr 20px; gap: 12px; align-items: center;
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--r-md); padding: 9px 12px; cursor: pointer; font-family: var(--font); text-align: left;
+  color: #fff; min-height: 44px;
+}
+.ix-bopt:hover { background: rgba(255, 255, 255, 0.14); }
+.ix-bopt.active { background: #fff; color: var(--blue); border-color: #fff; }
+.ix-bavatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); font-weight: var(--w-black); }
+.ix-bopt.active .ix-bavatar { background: var(--blue-lt); color: var(--blue); }
+.ix-bavatar img { width: 100%; height: 100%; object-fit: cover; }
+.ix-binfo { display: flex; flex-direction: column; min-width: 0; }
+.ix-bname { font-size: var(--fs-nav); font-weight: var(--w-bold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ix-btitel { font-size: var(--fs-xs); opacity: 0.65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ix-bcheck { font-weight: var(--w-black); }
+.ix-date { font-family: var(--font); font-size: var(--fs-base); color: #fff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: var(--r-md); padding: 9px 12px; margin-top: 10px; width: 100%; min-height: 44px; color-scheme: dark; }
+.ix-actions { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+.ix-act { display: block; text-align: left; font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--w-med); color: rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--r-md); padding: 9px 12px; cursor: pointer; min-height: 40px; }
+.ix-act:hover { background: rgba(255, 255, 255, 0.15); }
+.ix-act--warn { color: #ffd9d9; }
+
+/* ── BÜHNE: Kunden-Karte + Modul-Karten ──────────────────────────────────── */
+.ix-work { justify-content: center; gap: 16px; }
+.ix-kunde { flex: 0 0 auto; }
+.ix-kgrid { display: grid; grid-template-columns: 1.4fr 1fr 1.4fr 1fr; gap: 18px; }
+.ix-kg { display: flex; flex-direction: column; gap: 2px; }
+.ix-lbl { font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: var(--w-bold); color: var(--mut); }
+.ix-lbl small { font-weight: var(--w-reg); text-transform: none; letter-spacing: 0; }
+.ix-module { flex: 0 0 auto; }
+.ix-modcols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.ix-sec { font-size: var(--fs-xs); letter-spacing: 0.06em; font-weight: var(--w-bold); color: var(--ink-4); text-transform: uppercase; margin-bottom: 10px; }
+.ix-sec small { font-weight: var(--w-reg); text-transform: none; letter-spacing: 0; color: var(--mut); }
+.ix-grid { display: flex; flex-direction: column; gap: 8px; }
+.ix-mod {
+  position: relative; display: grid; grid-template-columns: 34px 1fr 20px; grid-template-areas: "num name check" "num desc check";
+  gap: 0 10px; align-items: center; background: var(--blue-soft); border: 1.5px solid var(--blue-line);
+  border-radius: var(--r-md); padding: 9px 12px; min-height: 52px;
+}
+.ix-mod.tog { cursor: pointer; }
+.ix-mod.tog:hover { border-color: var(--blue); }
+.ix-mod.off { background: var(--bg); border-color: var(--line); opacity: 0.55; }
+.ix-mnum { grid-area: num; font-size: var(--fs-nav); font-weight: var(--w-black); color: var(--blue); font-variant-numeric: tabular-nums; }
+.ix-mod.off .ix-mnum { color: var(--mut-2); }
+.ix-mname { grid-area: name; font-size: var(--fs-nav); font-weight: var(--w-bold); color: var(--ink); }
+.ix-mdesc { grid-area: desc; font-size: var(--fs-xs); color: var(--ink-4); }
+.ix-mcheck { grid-area: check; font-weight: var(--w-black); color: var(--blue); }
+.ix-mod.off .ix-mcheck { color: var(--mut-2); }
+.ix-branchhint { font-size: var(--fs-xs); color: var(--ink-4); margin-top: 8px; line-height: 1.5; }
+
+#btnStart small { display: block; font-size: var(--fs-2xs); opacity: 0.85; }
+
+/* ── Reset-Modal ─────────────────────────────────────────────────────────── */
+.ix-modal-bg { position: fixed; inset: 0; background: rgba(0, 20, 55, 0.55); backdrop-filter: blur(3px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 4%; }
+.ix-modal { background: var(--surface); width: 480px; max-width: 100%; border-radius: var(--r-lg); padding: 26px 28px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+.ix-mtitle { font-size: var(--fs-card); font-weight: var(--w-black); color: var(--ink); margin-bottom: 10px; }
+.ix-mbody { font-size: var(--fs-base); color: var(--ink-3); line-height: 1.55; }
+.ix-mwarn { font-size: var(--fs-sm); font-weight: var(--w-bold); color: var(--ink); margin-top: 10px; } /* Regel 6: neutral, kein Alarm-Rot/-Amber */
+.ix-mactions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.ix-mconfirm { background: var(--ink); }
+
+@media (max-height: 820px) {
+  .ix-modcols { gap: 16px; }
+  .ix-mod { min-height: 46px; padding: 7px 10px; }
+}

@@ -4,24 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>bbz360 — Beratercockpit</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
   <script type="module" src="/src/main.ts"></script>
 </head>
 <body class="bbz-app">
   <header class="bbz-topbar">
-    <div class="bbz-logo">
-      <span class="bbz-logo-mark">bbz</span>
-      <span class="bbz-logo-name">bbz360</span>
-    </div>
+    <div class="bbz-logo">bbz</div>
+    <span class="ix-topname">Beratercockpit</span>
+    <span class="ix-topdate" id="topbarDate"></span>
+    <a class="ix-adminlink" href="admin.html">⚙ Beraterprofile verwalten</a>
   </header>
-  <main class="bbz-shell">
-    <h1>bbz360</h1>
-    <p class="t-subtitle">Scaffold live — der v2-Umbau startet hier.</p>
-    <div class="card" style="margin-top: var(--sp-5); max-width: 640px;">
-      <p>Build-Pipeline steht: <strong>Vite + TypeScript</strong>, Tests (Vitest),
-      Deploy via GitHub&nbsp;Actions → Pages. Theme als Single Source of Truth geladen.</p>
-      <p class="t-label" style="margin-top: var(--sp-3);">Nächste Schritte: Datenschicht (data/schema/finance/nav) → Module nach Archetyp.</p>
+
+  <div class="bbz-main">
+    <!-- SÄULE: Beraterprofil (Spec §4) -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">BERATER:IN WÄHLEN</div>
+        <div class="ix-picker" id="beraterPicker"></div>
+      </div>
+      <div class="rail-sect">
+        <div class="rail-kicker">BERATUNGSDATUM</div>
+        <input type="date" class="ix-date" id="beratungsdatum">
+      </div>
+      <div class="rail-sect">
+        <div class="rail-kicker">SESSION</div>
+        <div class="ix-actions">
+          <button class="ix-act" id="btnExport" type="button">⇩ Session exportieren</button>
+          <label class="ix-act" for="importFile">⇪ Session importieren</label>
+          <input type="file" id="importFile" accept="application/json" hidden>
+          <button class="ix-act ix-act--warn" id="btnReset" type="button">↺ Neue Beratung (Daten zurücksetzen)</button>
+        </div>
+      </div>
+      <div class="rail-foot">bbz bank st.gallen ag © 2026 · <span id="footerDataInfo">Keine aktiven Beratungsdaten</span></div>
+    </aside>
+
+    <!-- BÜHNE: Kunden-Karten + Modul-Konfiguration -->
+    <div class="bbz-stage">
+      <div class="bbz-work ix-work" id="work">
+        <section class="panel ix-kunde">
+          <div class="panel-kicker">KUNDE · HEUTIGES GESPRÄCH</div>
+          <div class="ix-kgrid">
+            <div class="ix-kg"><label class="ix-lbl" for="p1name">Person 1</label><input type="text" class="input" id="p1name" placeholder="Vorname Nachname"></div>
+            <div class="ix-kg"><label class="ix-lbl" for="p1geb">Geburtsdatum</label><input type="date" class="input" id="p1geb"></div>
+            <div class="ix-kg"><label class="ix-lbl" for="p2name">Person 2 <small>(optional)</small></label><input type="text" class="input" id="p2name" placeholder="Vorname Nachname"></div>
+            <div class="ix-kg"><label class="ix-lbl" for="p2geb">Geburtsdatum</label><input type="date" class="input" id="p2geb"></div>
+          </div>
+        </section>
+        <section class="panel ix-module">
+          <div class="panel-kicker">MODULE DES GESPRÄCHS</div>
+          <div class="ix-modcols">
+            <div><div class="ix-sec">Gesprächseinstieg</div><div class="ix-grid" id="gridEinstieg"></div></div>
+            <div><div class="ix-sec">Kundenbild</div><div class="ix-grid" id="gridKundenbild"></div></div>
+            <div><div class="ix-sec">Vertiefung <small>(mindestens eine)</small></div><div class="ix-grid" id="gridVertiefung"></div><div class="ix-branchhint" id="branchHint"></div></div>
+            <div><div class="ix-sec">Gesprächsabschluss</div><div class="ix-grid" id="gridAbschluss"></div></div>
+          </div>
+        </section>
+      </div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos" id="readinessText">Daten unvollständig</span>
+          <button class="btn" id="btnStart" type="button">Gespräch starten →</button>
+        </div>
+      </div>
     </div>
-  </main>
+  </div>
+
+  <!-- Neue Beratung: Bestätigung (v1) -->
+  <div class="ix-modal-bg" id="resetModal" hidden>
+    <div class="ix-modal" role="dialog" aria-modal="true">
+      <div class="ix-mtitle">Neue Beratung starten?</div>
+      <p class="ix-mbody">Alle erfassten Kundendaten, Ziele, Cockpit-Eingaben und Gesprächsnotizen werden unwiderruflich gelöscht. Beraterprofil und Modulauswahl bleiben erhalten.</p>
+      <p class="ix-mwarn">⚠ Diese Aktion kann nicht rückgängig gemacht werden.</p>
+      <div class="ix-mactions">
+        <button class="btn btn--ghost" id="resetCancel" type="button">Abbrechen</button>
+        <button class="btn ix-mconfirm" id="resetConfirm" type="button">Ja, zurücksetzen</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

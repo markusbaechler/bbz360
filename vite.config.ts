@@ -11,6 +11,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: 'index.html',
+        admin: 'admin.html',
         '01-agenda': 'modules/01-agenda.html',
         '02-bank': 'modules/02-bank.html',
         '03-berater': 'modules/03-berater.html',

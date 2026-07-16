@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Administration</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/admin.ts"></script>
+</head>
+<body class="ad-body">
+  <header class="ad-topbar">
+    <div class="bbz-logo">bbz</div>
+    <span class="ad-topname">Administration · Beraterprofile</span>
+    <a class="ad-backlink" href="index.html">← Zurück zum Beratercockpit</a>
+  </header>
+
+  <main class="ad-main">
+    <aside class="ad-side">
+      <div class="ad-sidetitle">Profile</div>
+      <div class="ad-list" id="sidebarList"></div>
+    </aside>
+
+    <section class="ad-editor">
+      <div class="ad-edhead">
+        <div>
+          <div class="ad-edtitle" id="chTitle">–</div>
+          <div class="ad-edsub" id="chSubtitle">–</div>
+        </div>
+        <button class="btn" id="btnSave" type="button">✓ Speichern</button>
+      </div>
+
+      <div class="ad-grid">
+        <div class="ad-col">
+          <div class="ad-block">
+            <div class="ad-blocktitle">Stammdaten</div>
+            <div class="ad-formrow">
+              <div class="ad-fg"><label class="ad-lbl" for="fieldName">Vor- / Nachname</label><input type="text" class="ad-input" id="fieldName" placeholder="Vorname Nachname"></div>
+              <div class="ad-fg"><label class="ad-lbl" for="fieldTitel">Berufsbezeichnung</label><input type="text" class="ad-input" id="fieldTitel" placeholder="Kundenberater:in"></div>
+            </div>
+          </div>
+          <div class="ad-block">
+            <div class="ad-blocktitle">Porträtfotos <small>— Klick zum Bearbeiten</small></div>
+            <div class="ad-fotorow" id="fotoRow"></div>
+          </div>
+        </div>
+        <div class="ad-col">
+          <div class="ad-tabs" id="kachelTabs"></div>
+          <div class="ad-kachelwrap" id="kachelEditorWrap"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ad-foot">
+    <span>bbz bank st.gallen ag © 2026</span>
+    <span>Änderungen werden lokal im Browser gespeichert · bbzAdmin</span>
+  </footer>
+
+  <!-- Foto-Modal (v1) -->
+  <div class="ad-modal-bg" id="fotoModalBg" hidden>
+    <div class="ad-modal" role="dialog" aria-modal="true">
+      <div class="ad-mhead"><span id="fmTitle">Foto</span><button class="ad-mclose" id="fmClose" type="button" aria-label="Schliessen">✕</button></div>
+      <div class="ad-mbody">
+        <div class="ad-preview" id="fmPreview">
+          <div class="ad-previewempty" id="fmEmpty"><span>Noch kein Foto hinterlegt</span></div>
+          <img id="fmImg" alt="" hidden>
+        </div>
+        <div class="ad-mactions">
+          <button class="btn" id="fmUpload" type="button">⇪ Foto hochladen</button>
+          <button class="btn btn--ghost" id="fmBtnRemove" type="button">Entfernen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="fotoFileInput" accept="image/*" hidden>
+  <div class="ad-toast" id="toast"></div>
+</body>
+</html>
