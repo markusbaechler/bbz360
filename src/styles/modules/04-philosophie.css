@@ -1,0 +1,53 @@
+/* ============================================================================
+   04-philosophie.css — Bühnen-Modul "Beratungsphilosophie" (Grammatik v3,
+   Prozess-Flow mit 4 Phasen-Karten). Nur Modul-Spezifisches.
+   ========================================================================== */
+
+/* ── SÄULE ───────────────────────────────────────────────────────────────── */
+.bbz-rail { padding: 36px 32px; gap: 26px; }
+.ph-title { margin-top: 10px; line-height: 1.25; outline: none; }
+.ph-message { color: #fff; font-size: var(--fs-md); line-height: 1.65; font-weight: var(--w-med); margin-top: 10px; }
+
+/* ── BÜHNE: Prozess-Flow ─────────────────────────────────────────────────── */
+.ph-work { justify-content: center; }
+.ph-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; gap: 10px; align-items: stretch; min-height: 0; max-height: 720px; flex: 1 1 auto; }
+.ph-arrow { align-self: center; color: var(--mut-3); font-size: var(--fs-kpi); font-weight: var(--w-black); padding: 0 2px; }
+.ph-card {
+  display: grid; grid-template-rows: 38% 1fr; min-height: 0; overflow: hidden; cursor: pointer;
+  background: var(--phc); border-radius: var(--r-lg); border: 1px solid rgba(0, 0, 0, 0.06);
+  color: #fff; text-align: left; transition: transform 0.2s, box-shadow 0.2s;
+}
+.ph-card:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(0, 30, 60, 0.22); }
+.ph-imgpanel { position: relative; overflow: hidden; background: rgba(255, 255, 255, 0.08); }
+.ph-imgpanel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph-imgtools { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 2; }
+.ph-imgbtn { min-width: 32px; min-height: 32px; border-radius: 50%; border: none; cursor: pointer; background: rgba(0, 20, 55, 0.65); color: #fff; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; }
+.ph-imgbtn:hover { background: rgba(0, 20, 55, 0.9); }
+.ph-cbody { padding: 16px 20px 18px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.ph-num { font-size: var(--fs-2xs); letter-spacing: 0.1em; font-weight: var(--w-bold); color: rgba(255, 255, 255, 0.55); }
+.ph-icon { width: 44px; height: 44px; flex-shrink: 0; }
+.ph-ctitle { font-size: var(--fs-card); font-weight: var(--w-black); letter-spacing: -0.02em; line-height: 1.1; }
+.ph-tagline { font-size: var(--fs-sm); color: rgba(255, 255, 255, 0.75); line-height: 1.5; }
+
+/* ── MODAL: Haltungssatz + Nutzen ────────────────────────────────────────── */
+.ph-modal-bg { position: fixed; inset: 0; background: rgba(0, 20, 55, 0.55); backdrop-filter: blur(3px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 4%; }
+.ph-modal { background: var(--surface); width: 640px; max-width: 100%; max-height: 88vh; border-radius: var(--r-lg); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+.ph-modal-hd { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 24px 14px; border-bottom: 1px solid var(--line); }
+.ph-badge { display: inline-block; font-size: var(--fs-2xs); font-weight: var(--w-bold); color: #fff; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 5px; margin-bottom: 8px; }
+.ph-modal-title { font-size: var(--fs-card); font-weight: var(--w-black); color: var(--ink); letter-spacing: -0.02em; }
+.ph-mclose { border: none; background: none; cursor: pointer; color: var(--mut); font-size: var(--fs-md); min-width: 40px; min-height: 40px; }
+.ph-modal-body { padding: 18px 24px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; }
+.ph-seclabel { display: block; font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: var(--w-bold); color: var(--mut); margin-bottom: 6px; }
+.ph-quoteblock { border-left: 3px solid var(--blue); background: var(--blue-soft); padding: 12px 16px; border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.ph-quotetext { font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--ink); font-style: italic; line-height: 1.45; outline: none; }
+.ph-benefitblock { background: var(--bg); border-radius: var(--r-md); padding: 14px 16px; }
+.ph-benefittext { font-size: var(--fs-base); color: var(--ink-2); line-height: 1.6; outline: none; }
+body.edit-mode .ph-quotetext:focus, body.edit-mode .ph-benefittext:focus { outline: 2px solid rgba(0, 64, 120, 0.25); border-radius: 3px; }
+.ph-edithint { font-size: var(--fs-xs); color: var(--mut); font-style: italic; text-align: center; }
+.ph-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 24px 18px; border-top: 1px solid var(--line-soft); }
+
+@media (max-height: 820px) {
+  .ph-cbody { padding: 12px 16px 14px; gap: 6px; }
+  .ph-icon { width: 36px; height: 36px; }
+  .ph-tagline { font-size: var(--fs-xs); }
+}

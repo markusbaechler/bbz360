@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Beratungsphilosophie</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/04-philosophie.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <!-- SÄULE: Kernbotschaft (v1 headline-block) -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">04 · UNSER ANSATZ</div>
+        <h1 class="rail-title ph-title" id="moduleTitle" contenteditable="false" spellcheck="false">Wir schaffen Klarheit, damit Sie sicher entscheiden können.</h1>
+      </div>
+      <div class="rail-sect">
+        <div class="rail-kicker">VIER PHASEN</div>
+        <p class="ph-message">Verstehen → Klarheit gewinnen → Entscheiden → Begleiten. Jede Karte zeigt, was das für Sie bedeutet.</p>
+      </div>
+      <div class="rail-foot">bbz bank · Beratung mit Haltung</div>
+    </aside>
+
+    <!-- BÜHNE: Prozess-Flow mit 4 Phasen-Karten -->
+    <div class="bbz-stage">
+      <div class="bbz-work ph-work" id="work">
+        <div class="ph-flow" id="flow"></div>
+      </div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos">04 von 10 · Beratungsphilosophie</span>
+          <a class="btn" href="05-cockpit.html">Weiter: Ihr Finanz-Cockpit →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phasen-Detail: Haltungssatz + Nutzen (editierbar im edit-mode, v1-Persistenz) -->
+  <div class="ph-modal-bg" id="modalBg" hidden>
+    <div class="ph-modal" role="dialog" aria-modal="true">
+      <div class="ph-modal-hd">
+        <div>
+          <span class="ph-badge" id="modalBadge"></span>
+          <div class="ph-modal-title" id="modalTitle"></div>
+        </div>
+        <button class="ph-mclose" id="modalClose" type="button" aria-label="Schliessen">✕</button>
+      </div>
+      <div class="ph-modal-body">
+        <div>
+          <span class="ph-seclabel">Haltungssatz</span>
+          <div class="ph-quoteblock" id="modalQuoteBlock"><div class="ph-quotetext" id="modalQuote" contenteditable="false" spellcheck="false"></div></div>
+        </div>
+        <div>
+          <span class="ph-seclabel">Was das für Sie bedeutet</span>
+          <div class="ph-benefitblock"><div class="ph-benefittext" id="modalBenefit" contenteditable="false" spellcheck="false"></div></div>
+        </div>
+        <div class="ph-edithint edit-only">Texte direkt anklicken und bearbeiten.</div>
+      </div>
+      <div class="ph-modal-foot">
+        <button class="btn btn--ghost" id="modalCloseBtn" type="button">Schliessen</button>
+        <button class="btn edit-only" id="modalSave" type="button">Speichern</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
