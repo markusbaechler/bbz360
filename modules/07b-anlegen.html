@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Anlegen</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/07b-anlegen.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <!-- SÄULE: Phasenliste + Stand (Spec §4, referenz-08) -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">07b · ANLEGEN</div>
+        <h1 class="rail-title" id="railTitle">Anlegerprofilierung</h1>
+      </div>
+      <div class="an-phases" id="phaseList"></div>
+      <button class="an-pricebtn edit-only" id="btnPrices" type="button">✎ Preisparameter anpassen</button>
+      <div class="rail-foot" id="railFoot">Profil → Empfehlung → Umsetzung. Ihr anlagefähiges Kapital fliesst aus dem Cockpit ein.</div>
+    </aside>
+
+    <!-- BÜHNE: ein Screen als Fokus -->
+    <div class="bbz-stage">
+      <div class="bbz-work bbz-work--focus an-work" id="work"></div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in bbz-bar-in--focus">
+          <span class="bar-pos" id="barPos">07b von 10 · Anlegen</span>
+          <div class="an-baractions">
+            <button class="an-back" id="btnBack" type="button" hidden>← Zurück</button>
+            <button class="btn" id="btnNext" type="button">Weiter →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preisparameter (v1 Admin-Modal; edit-mode-Werkzeug) -->
+  <div class="an-modal-bg" id="adminModal" hidden>
+    <div class="an-modal" role="dialog" aria-modal="true">
+      <div class="an-mhead">Admin – Preisparameter<button class="an-mclose" data-close="adminModal" type="button" aria-label="Schliessen">✕</button></div>
+      <div class="an-mgrid">
+        <div class="an-mpanel"><h3>Beratungsdepot</h3>
+          <div class="an-fgrid">
+            <div class="an-fld"><label>Depotgebühr %</label><input id="adminDepotPct" data-v1-field="adminDepotPct" type="number" step="0.01"></div>
+            <div class="an-fld"><label>Mindestgebühr CHF</label><input id="adminDepotMin" data-v1-field="adminDepotMin" type="number" step="1"></div>
+            <div class="an-fld"><label>TA-Kosten %</label><input id="adminTaPct" data-v1-field="adminTaPct" type="number" step="0.01"></div>
+            <div class="an-fld"><label>Steuerauszug CHF</label><input id="adminTax" data-v1-field="adminTax" type="number" step="1"></div>
+          </div>
+        </div>
+        <div class="an-mpanel"><h3>Vermögensverwaltung</h3>
+          <div class="an-fgrid">
+            <div class="an-fld"><label>Bis Betrag 1 CHF</label><input id="adminVvLimit1" data-v1-field="adminVvLimit1" type="number" step="1"></div>
+            <div class="an-fld"><label>Fee 1 %</label><input id="adminVvPct1" data-v1-field="adminVvPct1" type="number" step="0.01"></div>
+            <div class="an-fld"><label>Bis Betrag 2 CHF</label><input id="adminVvLimit2" data-v1-field="adminVvLimit2" type="number" step="1"></div>
+            <div class="an-fld"><label>Fee 2 %</label><input id="adminVvPct2" data-v1-field="adminVvPct2" type="number" step="0.01"></div>
+            <div class="an-fld"><label>Ab Betrag 3 CHF</label><input id="adminVvLimit3" data-v1-field="adminVvLimit3" type="number" step="1"></div>
+            <div class="an-fld"><label>Fee 3 %</label><input id="adminVvPct3" data-v1-field="adminVvPct3" type="number" step="0.01"></div>
+          </div>
+        </div>
+      </div>
+      <div class="an-mactions"><button class="btn btn--ghost" data-close="adminModal" type="button">Schliessen</button><button class="btn" id="adminSave" type="button">Speichern</button></div>
+    </div>
+  </div>
+
+  <!-- Kostenvergleich (v1 Calc-Modal) -->
+  <div class="an-modal-bg" id="calcModal" hidden>
+    <div class="an-modal" role="dialog" aria-modal="true">
+      <div class="an-mhead">Kostenvergleich<button class="an-mclose" data-close="calcModal" type="button" aria-label="Schliessen">✕</button></div>
+      <div class="an-mgrid">
+        <div class="an-mpanel"><h3>Eingaben</h3>
+          <div class="an-fgrid">
+            <div class="an-fld"><label>Anlagebetrag CHF</label><input id="calcAmount" data-v1-field="calcAmount" type="number" step="1"></div>
+            <div class="an-fld"><label>Transaktionen pro Jahr</label><input id="calcTrades" data-v1-field="calcTrades" type="number" step="1"></div>
+            <div class="an-fld an-f2"><label>Ø Betrag pro Transaktion CHF</label><input id="calcAvgTradeAmount" data-v1-field="calcAvgTradeAmount" type="number" step="1"></div>
+          </div>
+          <button class="btn an-calcbtn" id="calcRun" type="button">Berechnen</button>
+        </div>
+        <div class="an-mpanel"><h3>Vergleich</h3>
+          <div class="an-results">
+            <div class="an-rescard"><span>Beratungsdepot</span><b id="resAdvisoryTotal">CHF –</b><small id="resAdvisorySub">Depotgebühr, Transaktionskosten und Zusatzleistungen</small></div>
+            <div class="an-rescard"><span>Vermögensverwaltung</span><b id="resVvTotal">CHF –</b><small id="resVvSub">All-in-Fee gemäss Staffel</small></div>
+          </div>
+          <div class="an-bars">
+            <div class="an-barrow"><div class="an-barhead"><span>Beratungsdepot</span><b id="barValueAdv">–</b></div><div class="an-barbg"><div class="an-barfill" id="barAdv"></div></div></div>
+            <div class="an-barrow"><div class="an-barhead"><span>Vermögensverwaltung</span><b id="barValueVv">–</b></div><div class="an-barbg"><div class="an-barfill alt" id="barVv"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
