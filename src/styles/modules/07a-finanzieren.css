@@ -1,0 +1,134 @@
+/* ============================================================================
+   07a-finanzieren.css — Eigenheimfinanzierung (Grammatik v3, 05-Simulations-
+   Muster: Regler rechts, Ergebnis gross). Nur Modul-Spezifisches.
+   ========================================================================== */
+
+/* ── SÄULE: KPIs ─────────────────────────────────────────────────────────── */
+.bbz-rail { padding: 30px 28px; gap: 18px; }
+.bbz-rail .rail-title { margin-top: 8px; line-height: 1.25; font-size: var(--fs-card); }
+.fz-kpis { display: flex; flex-direction: column; gap: 14px; border-top: 1px solid rgba(255, 255, 255, 0.18); padding-top: 16px; }
+.fz-kpi .kl { color: rgba(255, 255, 255, 0.5); font-size: 10.5px; letter-spacing: 0.07em; font-weight: var(--w-bold); }
+.fz-kpi .kv { color: #fff; font-size: var(--fs-kpi); font-weight: var(--w-black); margin-top: 1px; white-space: nowrap; }
+.fz-kpi .kv.warn { color: #ffd9a8; }
+.fz-kpi .kv.crit { color: #ffb3b8; }
+.fz-kpi .ks { color: rgba(255, 255, 255, 0.45); font-size: var(--fs-2xs); margin-top: 1px; }
+.fz-ratesbtn { width: 100%; text-align: left; font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--w-med); color: rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--r-md); padding: 9px 12px; cursor: pointer; min-height: 40px; }
+.fz-ratesbtn:hover { background: rgba(255, 255, 255, 0.15); }
+
+/* ── BÜHNE ───────────────────────────────────────────────────────────────── */
+.fz-work { justify-content: center; gap: 12px; }
+.fz-tabs { display: flex; gap: 8px; flex: 0 0 auto; }
+.fz-row { display: grid; grid-template-columns: 1fr 280px; gap: 16px; min-height: 0; flex: 1 1 auto; max-height: 760px; }
+.fz-result { display: flex; flex-direction: column; gap: 14px; min-height: 0; padding: 20px 24px; }
+.fz-banner { display: flex; align-items: center; gap: 10px; border-radius: var(--r-md); padding: 10px 16px; font-size: var(--fs-base); font-weight: var(--w-bold); }
+.fz-banner.s-idle { background: var(--bg); color: var(--mut); }
+.fz-banner.s-ok { background: var(--green-soft); color: var(--green); }
+.fz-banner.s-warn { background: #f6ecdd; color: var(--amber); }
+.fz-banner.s-crit { background: var(--bg); color: var(--ink); border: 1.5px solid var(--ink-4); } /* Regel 6: kritisch neutral, nicht rot */
+
+.fz-vizrow { display: grid; grid-template-columns: 220px 200px 1fr; gap: 20px; min-height: 0; flex: 1; }
+.fz-viz { display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 14px; }
+.fz-viztitle { font-size: var(--fs-2xs); letter-spacing: 0.07em; font-weight: var(--w-bold); color: var(--mut); align-self: flex-start; }
+.fz-vizbig { font-size: var(--fs-kpi); font-weight: var(--w-black); color: var(--ink); }
+.fz-gauge { width: 85%; max-width: 170px; }
+#gaugePath { transition: stroke-dashoffset 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.fz-gaugelbl { display: flex; justify-content: space-between; width: 85%; max-width: 170px; font-size: var(--fs-2xs); color: var(--ink-4); }
+.fz-house { width: 62%; max-width: 120px; }
+#houseFill { transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.fz-housebadge { min-height: 18px; text-align: center; }
+.fz-badge { font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--amber); background: #f6ecdd; border-radius: var(--r-pill); padding: 3px 10px; }
+.fz-amort { position: relative; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 14px; min-width: 0; }
+.fz-amorttop { display: flex; gap: 22px; flex-wrap: wrap; }
+.fz-akv { display: flex; flex-direction: column; }
+.fz-akv .al { font-size: var(--fs-2xs); color: var(--mut); font-weight: var(--w-bold); }
+.fz-akv .av { font-size: var(--fs-base); font-weight: var(--w-black); color: var(--ink); font-variant-numeric: tabular-nums; }
+.fz-amortbars { flex: 1; display: flex; align-items: flex-end; gap: 5px; min-height: 90px; }
+.fz-acol { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; cursor: pointer; min-width: 0; }
+.fz-aseg-p { background: var(--blue-lt); border-radius: 3px 3px 0 0; }
+.fz-aseg-h { background: var(--blue); opacity: 0.55; }
+.fz-albl { font-size: 9.5px; color: var(--mut-2); text-align: center; padding-top: 3px; white-space: nowrap; }
+.fz-noamort { display: flex; align-items: center; justify-content: center; width: 100%; font-size: var(--fs-sm); color: var(--mut); font-style: italic; }
+.fz-tip { position: absolute; z-index: 50; background: var(--blue); color: #fff; font-size: var(--fs-xs); font-weight: var(--w-med); padding: 6px 10px; border-radius: 6px; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); line-height: 1.45; }
+.fz-warnings { display: flex; flex-wrap: wrap; gap: 8px; min-height: 0; }
+.fz-warn { font-size: var(--fs-xs); font-weight: var(--w-med); color: var(--ink-3); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 5px 12px; }
+
+/* Regler rechts */
+.fz-ctrl { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; min-height: 0; padding: 16px 18px; }
+.fz-seclbl { font-size: var(--fs-2xs); letter-spacing: 0.08em; font-weight: var(--w-bold); color: var(--mut); text-transform: uppercase; margin-top: 6px; }
+.fz-seclbl:first-child { margin-top: 0; }
+.fz-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fz-2col > .fz-field { min-width: 0; }
+.fz-field { display: flex; flex-direction: column; gap: 3px; }
+.fz-field label { font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--ink-4); }
+.fz-frow { display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--blue-line); border-radius: var(--r-md); padding: 0 10px; background: var(--surface); }
+.fz-frow:focus-within { border-color: var(--blue); }
+.fz-frow input { flex: 1; min-width: 0; border: none; background: none; font-family: var(--font); font-size: var(--fs-sm); color: var(--ink-2); min-height: 36px; outline: none; font-variant-numeric: tabular-nums; }
+.fz-frow span { font-size: var(--fs-2xs); color: var(--mut); font-weight: var(--w-bold); flex-shrink: 0; }
+.fz-pkinfo { font-size: var(--fs-2xs); color: var(--mut-2); }
+
+/* Varianten */
+.fz-variants { display: grid; grid-template-columns: 0.75fr 1fr 1fr 1fr; gap: 14px; min-height: 0; }
+.fz-vcard { display: flex; flex-direction: column; gap: 10px; min-height: 0; padding: 16px 18px; cursor: pointer; }
+.fz-vref { cursor: default; background: var(--blue-soft); }
+.fz-vhead { font-size: var(--fs-sm); font-weight: var(--w-black); color: var(--blue); letter-spacing: 0.02em; }
+.fz-refitems { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.fz-refitem { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-xs); color: var(--ink-4); }
+.fz-refitem b { font-size: var(--fs-sm); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.fz-vtranches { display: flex; flex-direction: column; gap: 8px; }
+.fz-tbox { border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 7px 9px; display: flex; flex-direction: column; gap: 5px; }
+.fz-tbox.inactive { opacity: 0.45; pointer-events: none; }
+.fz-tlbl { display: flex; justify-content: space-between; font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--mut); }
+.fz-tinputs { display: grid; grid-template-columns: 76px 1fr; gap: 6px; }
+.fz-tinputs select, .fz-tinputs input { font-family: var(--font); font-size: var(--fs-xs); color: var(--ink-2); border: 1px solid var(--blue-line); border-radius: var(--r-sm); padding: 4px 7px; min-height: 30px; background: var(--surface); font-variant-numeric: tabular-nums; }
+.fz-tbox input[type='range'] { accent-color: var(--blue); min-height: 20px; }
+.fz-vchart { position: relative; flex: 1; min-height: 110px; }
+.fz-vsvg { width: 100%; height: calc(100% - 16px); display: block; }
+.fz-vlbls { display: flex; justify-content: space-around; font-size: 9.5px; font-weight: var(--w-bold); color: var(--mut-2); }
+.fz-vdiff { position: absolute; top: 0; transform: translateX(-50%); font-size: var(--fs-2xs); font-weight: var(--w-black); text-align: center; line-height: 1.2; }
+.fz-vdiff small { display: block; font-weight: var(--w-bold); color: var(--mut); }
+.fz-vdiff.extra { color: var(--ink); }          /* Mehrkosten neutral (Regel 6) */
+.fz-vdiff.saving { color: var(--green); }
+.fz-vfoot { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line-soft); padding-top: 8px; }
+.fz-vfl { font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--mut); display: flex; flex-direction: column; }
+.v-diff { font-size: var(--fs-2xs); font-weight: var(--w-bold); }
+.v-diff.extra { color: var(--ink-3); }
+.v-diff.saving { color: var(--green); }
+.fz-vtotal { font-size: var(--fs-lg); font-weight: var(--w-black); color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* Modals */
+.fz-modal-bg { position: fixed; inset: 0; background: rgba(0, 20, 55, 0.55); backdrop-filter: blur(3px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 4%; }
+.fz-modal { background: var(--surface); width: 520px; max-width: 100%; max-height: 88vh; border-radius: var(--r-lg); padding: 20px 24px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); overflow-y: auto; }
+.fz-modal-detail { width: 620px; }
+.fz-mhead { display: flex; align-items: flex-start; justify-content: space-between; font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--ink); margin-bottom: 14px; }
+.fz-mclose { border: none; background: none; cursor: pointer; color: var(--mut); font-size: var(--fs-md); min-width: 36px; min-height: 36px; }
+.fz-dtitle { font-size: var(--fs-sm); font-weight: var(--w-black); color: var(--blue); }
+.fz-dsub { font-size: var(--fs-xs); color: var(--mut); font-weight: var(--w-reg); }
+.fz-ratesgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+.fz-rfield label { display: block; font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--ink-4); margin-bottom: 3px; }
+.fz-rrow { display: flex; align-items: center; gap: 4px; border: 1.5px solid var(--blue-line); border-radius: var(--r-sm); padding: 0 8px; }
+.fz-rrow input { flex: 1; min-width: 0; border: none; background: none; font-family: var(--font); font-size: var(--fs-sm); min-height: 34px; outline: none; }
+.fz-rrow span { font-size: var(--fs-2xs); color: var(--mut); }
+.fz-mbtn { width: 100%; justify-content: center; }
+.fz-dt { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+.fz-dt .dl { font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--mut); }
+.fz-dt .dv { font-size: var(--fs-sm); font-weight: var(--w-black); color: var(--ink); font-variant-numeric: tabular-nums; }
+.fz-dt .dv2 { font-size: var(--fs-sm); font-weight: var(--w-bold); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.fz-dtr { text-align: right; }
+.fz-dsep { height: 1px; background: var(--line); margin: 14px 0; }
+.fz-dcomph { font-size: var(--fs-xs); font-weight: var(--w-black); color: var(--ink-4); margin-bottom: 8px; }
+.fz-dcomp { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.fz-dbox { background: var(--bg); border-radius: var(--r-sm); padding: 10px 12px; border-left: 3px solid var(--blue-lt); display: flex; flex-direction: column; gap: 2px; }
+.fz-dbox span { font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--ink-4); }
+.fz-dbox b { font-size: var(--fs-sm); font-weight: var(--w-black); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.fz-dbox-neu { background: var(--blue-lt); border-left-color: var(--blue); }
+.fz-dbox-neu span, .fz-dbox-neu b { color: var(--blue); }
+.fz-pos { color: var(--green); font-weight: var(--w-black); }
+.fz-neg { color: var(--ink); font-weight: var(--w-black); }
+.fz-mut { color: var(--mut); }
+
+@media (max-height: 820px) {
+  .fz-kpis { gap: 9px; }
+  .fz-result { gap: 10px; padding: 14px 18px; }
+  .fz-vizrow { gap: 12px; }
+  .fz-viz, .fz-amort { padding: 10px; }
+}

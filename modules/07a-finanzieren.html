@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Eigenheimfinanzierung</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/07a-finanzieren.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <!-- SÄULE: KPI-Set (Spec §4) -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">07a · EIGENHEIMFINANZIERUNG</div>
+        <h1 class="rail-title">Tragbarkeit &amp; Belehnung</h1>
+      </div>
+      <div class="fz-kpis" id="railKpis">
+        <div class="fz-kpi"><div class="kl">TRAGBARKEIT (KALK.)</div><div class="kv" id="kpiAfford">–</div><div class="ks">Limit 33.5%</div></div>
+        <div class="fz-kpi"><div class="kl">BELEHNUNG</div><div class="kv" id="kpiLTV">–</div><div class="ks">Loan-to-Value · max 80%</div></div>
+        <div class="fz-kpi"><div class="kl">HARTE EIGENMITTEL</div><div class="kv" id="kpiEquity">–</div><div class="ks">Cash + Vorbezug · min 10%</div></div>
+        <div class="fz-kpi"><div class="kl">MONATSKOSTEN KALK.</div><div class="kv" id="kpiMonthly">–</div><div class="ks">CHF / Monat</div></div>
+        <div class="fz-kpi"><div class="kl">HYPOTHEK</div><div class="kv" id="kpiHypo">–</div><div class="ks">Kreditbedarf CHF</div></div>
+      </div>
+      <button class="fz-ratesbtn edit-only" id="btnRates" type="button">✎ Marktzinsen anpassen</button>
+      <div class="rail-foot">Werte fliessen aus Cockpit (05) und Zielen (06) ein.</div>
+    </aside>
+
+    <!-- BÜHNE: Ergebnis + Regler rechts (05-Simulations-Muster) -->
+    <div class="bbz-stage">
+      <div class="bbz-work fz-work" id="work">
+        <div class="fz-tabs">
+          <button class="chip on" id="tabAnalysis" type="button">Analyse &amp; Tragbarkeit</button>
+          <button class="chip" id="tabComparison" type="button">Variantenvergleich</button>
+        </div>
+        <div class="fz-row">
+          <!-- ANALYSE -->
+          <section class="panel fz-result" id="viewAnalysis">
+            <div class="fz-banner s-idle" id="statusBanner"><span id="statusIcon">○</span><span id="statusText">Bitte Kaufpreis und Eigenmittel erfassen</span></div>
+            <div class="fz-vizrow">
+              <div class="fz-viz">
+                <div class="fz-viztitle">TRAGBARKEITS-INDIKATOR</div>
+                <div class="fz-vizbig" id="gaugeVal">–</div>
+                <svg class="fz-gauge" viewBox="0 0 220 120">
+                  <path d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke="#e2e8f0" stroke-width="16" stroke-linecap="round"/>
+                  <path id="gaugePath" d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke="var(--blue)" stroke-width="16" stroke-linecap="round" stroke-dasharray="282" stroke-dashoffset="282"/>
+                  <line x1="124.6" y1="31.3" x2="128.6" y2="9.7" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.6"/>
+                </svg>
+                <div class="fz-gaugelbl"><span>0%</span><span><b>Limit 33.5%</b></span><span>60%</span></div>
+              </div>
+              <div class="fz-viz">
+                <div class="fz-viztitle">BELEHNUNGSGRAD</div>
+                <div class="fz-vizbig" id="houseVal">–</div>
+                <svg class="fz-house" viewBox="0 0 100 100">
+                  <path d="M 10 90 L 10 40 L 50 10 L 90 40 L 90 90 Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+                  <clipPath id="houseClip"><path d="M 10 90 L 10 40 L 50 10 L 90 40 L 90 90 Z"/></clipPath>
+                  <rect id="houseFill" x="0" y="90" width="100" height="0" fill="var(--blue)" clip-path="url(#houseClip)" opacity="0.85"/>
+                  <line x1="8" y1="36.6" x2="92" y2="36.6" stroke="#b45309" stroke-width="1" stroke-dasharray="3,2" opacity="0.6" clip-path="url(#houseClip)"/>
+                  <line x1="8" y1="26" x2="92" y2="26" stroke="#64748b" stroke-width="1" stroke-dasharray="3,2" opacity="0.6" clip-path="url(#houseClip)"/>
+                </svg>
+                <div class="fz-housebadge" id="houseBadge"></div>
+              </div>
+              <div class="fz-amort">
+                <div class="fz-viztitle">AMORTISATIONSVERLAUF</div>
+                <div class="fz-amorttop">
+                  <div class="fz-akv"><span class="al">1. Hypothek (bis 66.7%)</span><span class="av" id="h1Val">–</span></div>
+                  <div class="fz-akv" id="h2Box"><span class="al" id="h2Lbl">2. Hypothek / amortisationspflichtig</span><span class="av" id="h2Val">–</span></div>
+                  <div class="fz-akv" id="amortRateBox" hidden><span class="al">Amortisation p.a.</span><span class="av" id="amortRateVal">–</span></div>
+                </div>
+                <div class="fz-amortbars" id="amortChart"></div>
+                <div class="fz-tip" id="amortTooltip" hidden></div>
+              </div>
+            </div>
+            <div class="fz-warnings" id="warningBox"></div>
+          </section>
+
+          <!-- VARIANTEN -->
+          <section class="fz-variants" id="viewComparison" hidden>
+            <div class="panel fz-vcard fz-vref">
+              <div class="fz-vhead">Kalkulatorisch</div>
+              <div class="fz-refitems">
+                <div class="fz-refitem"><span>Zinssatz</span><b class="kalk-rate-disp">5.00 %</b></div>
+                <div class="fz-refitem"><span>Amortisation / Monat</span><b id="refAmort">CHF –</b></div>
+                <div class="fz-refitem"><span>Nebenkosten / Monat</span><b id="refSide">CHF –</b></div>
+              </div>
+              <div class="fz-vfoot"><span>Total Monatlich</span><span class="fz-vtotal" id="refTotal">–</span></div>
+            </div>
+            <div id="variantsContainer" style="display:contents"></div>
+          </section>
+
+          <!-- REGLER RECHTS (v1 Sidebar-Inputs) -->
+          <aside class="panel fz-ctrl">
+            <div class="fz-seclbl">PARAMETER</div>
+            <div class="fz-2col">
+              <div class="fz-field"><label for="calcRate">Kalk. Zins</label><div class="fz-frow"><input type="text" id="calcRate" data-v1-field="calcRate" value="5.00"><span>%</span></div></div>
+              <div class="fz-field"><label for="sideRate">Nebenkosten</label><div class="fz-frow"><input type="text" id="sideRate" data-v1-field="sideRate" value="0.75"><span>%</span></div></div>
+            </div>
+            <div class="fz-seclbl">KUNDE &amp; EINKOMMEN</div>
+            <div class="fz-field"><label for="income">Bruttoeinkommen p.a.</label><div class="fz-frow"><input type="text" id="income" data-v1-field="income" class="ni" placeholder="aus Finanzcockpit"><span>CHF</span></div></div>
+            <div class="fz-field"><label for="obligations">Verpflichtungen p.a.</label><div class="fz-frow"><input type="text" id="obligations" data-v1-field="obligations" class="ni" placeholder="aus Finanzcockpit"><span>CHF</span></div></div>
+            <div class="fz-field"><label for="currentRent">Aktuelle Wohnkosten (mtl.)</label><div class="fz-frow"><input type="text" id="currentRent" data-v1-field="currentRent" class="ni" placeholder="hier erfassen"><span>CHF</span></div></div>
+            <div class="fz-field"><label for="age">Alter</label><div class="fz-frow"><input type="text" id="age" data-v1-field="age" placeholder="aus Stammdaten"><span>Jahre</span></div></div>
+            <div class="fz-seclbl">OBJEKT &amp; EIGENMITTEL</div>
+            <div class="fz-field"><label for="price">Kaufpreis</label><div class="fz-frow"><input type="text" id="price" data-v1-field="price" class="ni" placeholder="aus Ziele &amp; Wünsche"><span>CHF</span></div></div>
+            <div class="fz-field"><label for="cashEquity">Barmittel</label><div class="fz-frow"><input type="text" id="cashEquity" data-v1-field="cashEquity" class="ni" placeholder="hier erfassen"><span>CHF</span></div></div>
+            <div class="fz-field"><label for="pensionWithdraw">2. Säule (Vorbezug)</label><div class="fz-frow"><input type="text" id="pensionWithdraw" data-v1-field="pensionWithdraw" class="ni" placeholder="hier erfassen"><span>CHF</span></div></div>
+            <div class="fz-field"><label for="pensionPledge">2. Säule (Verpfändung)</label><div class="fz-frow"><input type="text" id="pensionPledge" data-v1-field="pensionPledge" class="ni" value="0"><span>CHF</span></div></div>
+            <div class="fz-pkinfo" id="pk-info-label" hidden></div>
+          </aside>
+        </div>
+      </div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos">07a von 10 · Finanzieren</span>
+          <a class="btn" href="08-vereinbarungen.html">Weiter: Vereinbarungen →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Marktzinsen (v1 Admin-Modal; edit-mode-Werkzeug nach Regel 4) -->
+  <div class="fz-modal-bg" id="ratesModal" hidden>
+    <div class="fz-modal" role="dialog" aria-modal="true">
+      <div class="fz-mhead">Marktzinsen anpassen<button class="fz-mclose" id="ratesClose" type="button" aria-label="Schliessen">✕</button></div>
+      <div class="fz-ratesgrid" id="adminRatesGrid"></div>
+      <button class="btn fz-mbtn" id="ratesApply" type="button">Übernehmen</button>
+    </div>
+  </div>
+
+  <!-- Varianten-Detail (v1 Detail-Modal) -->
+  <div class="fz-modal-bg" id="detailModal" hidden>
+    <div class="fz-modal fz-modal-detail" role="dialog" aria-modal="true">
+      <div class="fz-mhead">
+        <div><div class="fz-dtitle" id="detailTitle">Detail</div><div class="fz-dsub">Effektive Belastung pro Monat</div></div>
+        <button class="fz-mclose" id="detailClose" type="button" aria-label="Schliessen">✕</button>
+      </div>
+      <div id="detailBody"></div>
+      <div class="fz-dsep"></div>
+      <div class="fz-dcomph">Gegenüberstellung Monatliche Kosten</div>
+      <div class="fz-dcomp">
+        <div class="fz-dbox"><span>Kalkulatorisch</span><b id="dtKalk">–</b></div>
+        <div class="fz-dbox" id="dtAktuellBox"><span>Aktuelle Wohnkosten</span><b id="dtAktuell">–</b></div>
+        <div class="fz-dbox fz-dbox-neu"><span>Diese Variante</span><b id="dtNeu">–</b><span id="dtNeuPct"></span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
