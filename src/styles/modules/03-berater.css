@@ -1,0 +1,61 @@
+/* ============================================================================
+   03-berater.css — Bühnen-Modul "Berater:in" (Grammatik v3).
+   Bühne = 3 Vorstellungs-Kacheln (Foto oben, Rich-Text unten). Modal = Foto-
+   Panel links + Editor rechts (v1-Muster). Nur Modul-Spezifisches.
+   ========================================================================== */
+
+/* ── SÄULE ───────────────────────────────────────────────────────────────── */
+.bbz-rail { padding: 36px 32px; gap: 26px; }
+.bbz-rail .rail-title { margin-top: 10px; line-height: 1.15; }
+.bbz-rail .rail-sub { font-size: var(--fs-base); color: rgba(255, 255, 255, 0.72); margin-top: 12px; }
+.br-message { color: #fff; font-size: var(--fs-md); line-height: 1.65; font-weight: var(--w-med); margin-top: 10px; }
+
+/* ── BÜHNE: 3 Kacheln ────────────────────────────────────────────────────── */
+.br-work { justify-content: center; }
+.br-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; min-height: 0; max-height: 780px; flex: 1 1 auto; }
+.br-card {
+  display: grid; grid-template-rows: 42% 1fr; min-height: 0; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  overflow: hidden; transition: border-color var(--dur), box-shadow var(--dur);
+}
+.br-card:hover { border-color: var(--blue-line); box-shadow: 0 10px 30px rgba(0, 40, 80, 0.1); }
+.br-cimg { position: relative; overflow: hidden; background: linear-gradient(135deg, #002d57, #00528a); }
+.br-photo { position: absolute; inset: 0; background-size: cover; background-position: center top; }
+.br-cgrad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 20, 55, 0) 40%, rgba(0, 20, 55, 0.72) 100%); }
+.br-ctitle { position: absolute; left: 20px; right: 20px; bottom: 14px; color: #fff; font-size: var(--fs-card); font-weight: var(--w-black); letter-spacing: -0.02em; line-height: 1.15; }
+.br-ctext { position: relative; padding: 18px 22px; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.br-content { font-size: var(--fs-base); color: var(--ink-3); line-height: 1.55; min-height: 0; overflow: hidden; }
+.br-content h3 { font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--ink); margin: 10px 0 4px; }
+.br-content h3:first-child { margin-top: 0; }
+.br-content b, .br-content strong { color: var(--ink); }
+.br-content ul { padding-left: 20px; margin: 6px 0; }
+.br-content.empty::before { content: attr(data-placeholder); color: var(--mut-3); font-style: italic; }
+.br-chint { margin-top: auto; padding-top: 10px; font-size: var(--fs-xs); font-weight: var(--w-bold); color: var(--blue); }
+
+/* ── MODAL: Foto + Editor ────────────────────────────────────────────────── */
+.br-modal-bg { position: fixed; inset: 0; background: rgba(0, 20, 55, 0.55); backdrop-filter: blur(3px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 4%; }
+.br-modal { background: var(--surface); width: 980px; max-width: 100%; height: min(620px, 88vh); border-radius: var(--r-lg); display: grid; grid-template-columns: 38% 1fr; overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+.br-modal-img { position: relative; background: linear-gradient(135deg, #002d57, #00528a); overflow: hidden; }
+.br-modal-photo { position: absolute; inset: 0; background-size: cover; background-position: center top; }
+.br-modal-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 20, 55, 0.05) 30%, rgba(0, 20, 55, 0.78) 100%); }
+.br-modal-pikt { position: absolute; left: 24px; bottom: 20px; display: flex; align-items: center; gap: 12px; color: #fff; }
+.br-modal-pikt svg { width: 40px; height: 40px; flex-shrink: 0; }
+.br-modal-pikt span { font-size: var(--fs-md); font-weight: var(--w-bold); line-height: 1.25; }
+.br-modal-editor { display: flex; flex-direction: column; min-height: 0; }
+.br-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 12px; }
+.br-modal-nr { font-size: var(--fs-xs); font-weight: var(--w-bold); color: var(--mut-2); margin-right: 10px; font-variant-numeric: tabular-nums; }
+.br-modal-ttl { font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--ink); }
+.br-mclose { border: none; background: none; cursor: pointer; color: var(--mut); font-size: var(--fs-md); min-width: 40px; min-height: 40px; }
+.br-toolbar { display: flex; gap: 6px; padding: 0 24px 10px; border-bottom: 1px solid var(--line-soft); }
+.br-tb { font-family: var(--font); font-size: var(--fs-xs); font-weight: var(--w-med); color: var(--ink-3); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 6px 12px; cursor: pointer; min-height: 32px; }
+.br-tb:hover { background: var(--blue-lt); color: var(--blue); }
+.br-editor-wrap { flex: 1; overflow-y: auto; min-height: 0; padding: 16px 24px; }
+.br-editor { font-size: var(--fs-md); color: var(--ink-2); line-height: 1.65; outline: none; min-height: 100%; }
+.br-editor h3 { font-size: var(--fs-lg); font-weight: var(--w-bold); color: var(--ink); margin: 12px 0 5px; }
+.br-editor h3:first-child { margin-top: 0; }
+.br-editor ul { padding-left: 22px; margin: 8px 0; }
+.br-editor:empty::before { content: attr(data-placeholder); color: var(--mut-3); font-style: italic; }
+body.edit-mode .br-editor { border: 1.5px dashed var(--line); border-radius: var(--r-md); padding: 12px 14px; cursor: text; }
+body.edit-mode .br-editor:focus { border-color: var(--blue); background: var(--blue-soft); }
+.br-modal-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px 18px; border-top: 1px solid var(--line-soft); }
+.br-hint { font-size: var(--fs-xs); color: var(--mut); }

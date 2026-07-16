@@ -13,6 +13,7 @@ export default defineConfig({
         index: 'index.html',
         '01-agenda': 'modules/01-agenda.html',
         '02-bank': 'modules/02-bank.html',
+        '03-berater': 'modules/03-berater.html',
         '05-cockpit': 'modules/05-cockpit.html',
         '08-vereinbarungen': 'modules/08-vereinbarungen.html',
       },

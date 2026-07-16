@@ -104,6 +104,23 @@ export const BBZ = {
     }
   },
 
+  // ── Berater-Profile aus data/berater.json (v1 BBZ.getProfile/getAllProfiles) ──
+  async getAllProfiles(): Promise<Berater[]> {
+    try {
+      const res = await fetch(import.meta.env.BASE_URL + 'data/berater.json');
+      if (!res.ok) return [];
+      return (await res.json()) as Berater[];
+    } catch {
+      return [];
+    }
+  },
+
+  async getProfile(id?: number): Promise<Berater | null> {
+    const activeId = id || (this.get('aktiverBerater') as number | null) || 1;
+    const profiles = await this.getAllProfiles();
+    return profiles.find((p) => p.id === activeId) || profiles[0] || null;
+  },
+
   // ── Berater-Profile (bbzAdmin) ────────────────────────────────────────────
   getBeraterProfiles(): Berater[] {
     try {

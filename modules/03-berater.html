@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Ihre Beraterin, Ihr Berater</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/03-berater.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <!-- SÄULE: Kernbotschaft (aktives Berater-Profil) -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">03 · IHRE BERATERIN, IHR BERATER</div>
+        <h1 class="rail-title" id="beraterName">Vorstellung</h1>
+        <p class="rail-sub" id="beraterTitel">Kundenberater:in · bbz bank</p>
+      </div>
+      <div class="rail-sect">
+        <div class="rail-kicker">WARUM DIESE SEITE</div>
+        <p class="br-message">Gute Beratung ist Vertrauenssache. Damit Sie wissen, mit wem Sie es zu tun haben — drei Dinge über mich.</p>
+      </div>
+      <div class="rail-foot">bbz bank · persönlich und auf Augenhöhe</div>
+    </aside>
+
+    <!-- BÜHNE: drei Vorstellungs-Kacheln -->
+    <div class="bbz-stage">
+      <div class="bbz-work br-work" id="work">
+        <div class="br-cards" id="cards"></div>
+      </div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos">03 von 10 · Berater:in</span>
+          <a class="btn" href="04-philosophie.html">Weiter: Unsere Beratungsphilosophie →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kachel-Detail: Foto + Rich-Text (Toolbar/Speichern nur im edit-mode, Regel 4) -->
+  <div class="br-modal-bg" id="modalBg" hidden>
+    <div class="br-modal" role="dialog" aria-modal="true">
+      <div class="br-modal-img">
+        <div class="br-modal-photo" id="modalPhoto"></div>
+        <div class="br-modal-grad"></div>
+        <div class="br-modal-pikt"><svg id="modalPikt" viewBox="0 0 48 48" fill="none"></svg><span id="modalPiktLabel"></span></div>
+      </div>
+      <div class="br-modal-editor">
+        <div class="br-modal-head">
+          <div><span class="br-modal-nr" id="modalNr"></span><span class="br-modal-ttl" id="modalTtl"></span></div>
+          <button class="br-mclose" id="modalClose" type="button" aria-label="Schliessen">✕</button>
+        </div>
+        <div class="br-toolbar edit-only" id="toolbar">
+          <button class="br-tb" type="button" data-fmt="h3">H Titel</button>
+          <button class="br-tb" type="button" data-fmt="bold"><b>B</b> Fett</button>
+          <button class="br-tb" type="button" data-fmt="normal">T Normal</button>
+          <button class="br-tb" type="button" data-fmt="list">≔ Liste</button>
+        </div>
+        <div class="br-editor-wrap"><div class="br-editor" id="editor" contenteditable="false" spellcheck="false"></div></div>
+        <div class="br-modal-foot edit-only">
+          <span class="br-hint">Klicke in den Text zum Bearbeiten</span>
+          <button class="btn" id="modalSave" type="button">Übernehmen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
