@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Feedback</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/09-feedback.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <!-- SÄULE: Kontext (v1 Step-1-Intro) -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">09 · GESPRÄCHSABSCHLUSS</div>
+        <h1 class="rail-title">Wie haben wir Ihre Erwartungen erfüllt?</h1>
+        <p class="rail-sub">Sie haben zu Beginn etwas von sich geteilt. Jetzt ist der Moment, ehrlich Bilanz zu ziehen.</p>
+      </div>
+      <div class="rail-sect">
+        <div class="rail-kicker">GESAMTEINDRUCK</div>
+        <div class="rail-kpi-v" id="railAvg">–</div>
+        <div class="rail-kpi-s" id="railAdj">Bewerten Sie links jede Erwartung</div>
+      </div>
+      <div class="rail-foot">Ihr Feedback ist ein Geschenk — es fliesst in jede künftige Begegnung ein.</div>
+    </aside>
+
+    <!-- BÜHNE: Slider-Zeilen + grosse Daumen + Abschluss-Fragen -->
+    <div class="bbz-stage">
+      <div class="bbz-work fb-work" id="work">
+        <div class="fb-cols">
+          <section class="panel fb-panel">
+            <div class="panel-kicker">IHRE ERWARTUNGEN ZU BEGINN · BILANZ</div>
+            <div class="bbz-scroll fb-rows" id="fbRows"></div>
+          </section>
+          <div class="fb-side">
+            <section class="panel fb-thumbpanel">
+              <div class="fb-thumb" id="fbThumb">👍</div>
+              <div class="fb-avg"><span id="fbAvg">–</span><small> von 10</small></div>
+              <div class="fb-avgadj" id="fbAvgAdj">–</div>
+              <div class="fb-titleimg" id="s1img"><label class="fb-imgbtn edit-only" for="s1file">⇪ Bild</label><input type="file" id="s1file" accept="image/*" hidden></div>
+            </section>
+            <section class="panel fb-qpanel">
+              <div class="panel-kicker">ZWEI FRAGEN ZUM SCHLUSS</div>
+              <div class="fb-q" id="q-0">
+                <div class="fb-qimg" id="qimg-0"><label class="fb-imgbtn edit-only" for="qfile-0">⇪ Bild</label><input type="file" id="qfile-0" accept="image/*" hidden></div>
+                <div>
+                  <div class="fb-qnum">Frage 1 von 2</div>
+                  <div class="fb-qtext" id="q-text-0" contenteditable="false" spellcheck="false">Was hat Sie in diesem Gespräch am meisten überrascht?</div>
+                  <div class="fb-qsub">Ihr erster Gedanke zählt. Nehmen Sie sich einen Moment.</div>
+                </div>
+              </div>
+              <div class="fb-q" id="q-1">
+                <div class="fb-qimg" id="qimg-1"><label class="fb-imgbtn edit-only" for="qfile-1">⇪ Bild</label><input type="file" id="qfile-1" accept="image/*" hidden></div>
+                <div>
+                  <div class="fb-qnum">Frage 2 von 2</div>
+                  <div class="fb-qtext" id="q-text-1" contenteditable="false" spellcheck="false">Was geben Sie mir mit auf den Weg?</div>
+                  <div class="fb-qsub">Ihr Feedback ist ein Geschenk – ich nehme es mit in jede künftige Begegnung.</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos">09 von 10 · Feedback</span>
+          <a class="btn" href="10-abschluss.html">Weiter: Abschluss →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

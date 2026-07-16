@@ -1,0 +1,56 @@
+/* ============================================================================
+   09-feedback.css — Feedback (Grammatik v3): Slider-Zeilen im 01-Panel-Muster,
+   grosse Daumen, Abschluss-Fragen. Nur Modul-Spezifisches.
+   ========================================================================== */
+
+/* ── SÄULE ───────────────────────────────────────────────────────────────── */
+.bbz-rail { padding: 36px 32px; gap: 26px; }
+.bbz-rail .rail-title { margin-top: 10px; line-height: 1.25; }
+.bbz-rail .rail-sub { font-size: var(--fs-base); color: rgba(255, 255, 255, 0.72); margin-top: 12px; }
+#railAvg { margin-top: 6px; }
+#railAdj { margin-top: 2px; }
+
+/* ── BÜHNE ───────────────────────────────────────────────────────────────── */
+.fb-work { justify-content: center; }
+.fb-cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; align-items: stretch; min-height: 0; max-height: 820px; flex: 1 1 auto; }
+.fb-panel { display: flex; flex-direction: column; min-height: 0; padding: 24px 28px; }
+/* Regel 5c: Panels bündig, Inhalt verteilt (wie 05 .ck-body) */
+.fb-rows { min-height: 0; flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; }
+.fb-row { padding: 16px 2px 14px; }
+.fb-row + .fb-row { border-top: 1px solid var(--line-soft); }
+/* Erwartung = Kundeninhalt (Regel 6: rote Kante + kursiv) */
+.fb-ew { display: flex; align-items: baseline; gap: 12px; border-left: 3px solid var(--red); padding-left: 12px; }
+.fb-ewnum { font-size: var(--fs-nav); font-weight: var(--w-black); color: var(--red-kicker); font-variant-numeric: tabular-nums; }
+.fb-ewtext { font-size: var(--fs-md); color: var(--red-ink); font-style: italic; line-height: 1.4; }
+.fb-sliderrow { display: grid; grid-template-columns: 1fr 150px; gap: 18px; align-items: center; margin-top: 12px; }
+.fb-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 5px; background: var(--line); outline: none; cursor: pointer; }
+.fb-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: var(--thumbc, var(--blue)); border: 3px solid #fff; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3); cursor: pointer; }
+.fb-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--thumbc, var(--blue)); border: 3px solid #fff; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3); cursor: pointer; }
+.fb-val { display: flex; align-items: baseline; gap: 8px; justify-content: flex-end; white-space: nowrap; }
+.fb-num { font-size: var(--fs-kpi); font-weight: var(--w-black); font-variant-numeric: tabular-nums; }
+.fb-adj { font-size: var(--fs-sm); font-weight: var(--w-bold); }
+.fb-scale { display: flex; justify-content: space-between; font-size: var(--fs-2xs); color: var(--mut-2); margin-top: 4px; padding-right: 168px; }
+
+/* Rechte Spalte: Daumen + Fragen */
+.fb-side { display: grid; grid-template-rows: auto 1fr; gap: 16px; min-height: 0; }
+.fb-thumbpanel { display: flex; align-items: center; gap: 18px; padding: 18px 24px; }
+.fb-thumb { font-size: 64px; line-height: 1; transition: transform 0.2s, opacity 0.2s; }
+.fb-avg { font-size: var(--fs-kpi); font-weight: var(--w-black); color: var(--ink); }
+.fb-avg small { font-size: var(--fs-sm); font-weight: var(--w-med); color: var(--mut); }
+.fb-avgadj { margin-left: auto; font-size: var(--fs-md); font-weight: var(--w-bold); }
+.fb-titleimg { position: relative; width: 96px; height: 64px; border-radius: var(--r-md); background-size: cover; background-position: center; overflow: hidden; flex-shrink: 0; }
+.fb-qpanel { display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; padding: 20px 24px; justify-content: space-evenly; }
+.fb-q { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: start; }
+.fb-q + .fb-q { border-top: 1px solid var(--line-soft); padding-top: 14px; }
+.fb-qimg { position: relative; width: 96px; height: 76px; border-radius: var(--r-md); background-size: cover; background-position: center; overflow: hidden; }
+.fb-imgbtn { position: absolute; inset: auto 4px 4px 4px; text-align: center; font-size: var(--fs-2xs); font-weight: var(--w-bold); color: #fff; background: rgba(0, 20, 55, 0.7); border-radius: 5px; padding: 3px 4px; cursor: pointer; }
+.fb-qnum { font-size: var(--fs-2xs); letter-spacing: 0.08em; font-weight: var(--w-bold); color: var(--mut); text-transform: uppercase; }
+.fb-qtext { font-size: var(--fs-lg); font-weight: var(--w-black); color: var(--ink); line-height: 1.3; margin-top: 3px; outline: none; }
+.fb-qsub { font-size: var(--fs-sm); color: var(--ink-4); line-height: 1.5; margin-top: 5px; }
+
+@media (max-height: 820px) {
+  .fb-row { padding: 11px 2px 9px; }
+  .fb-sliderrow { margin-top: 8px; }
+  .fb-thumb { font-size: 48px; }
+  .fb-qimg { height: 60px; }
+}
