@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Finanz-Cockpit</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/05-cockpit.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-title">Finanz-Cockpit</div>
+        <div class="rail-sub">Ihre Zahlen auf einen Blick — die Basis für Finanzierung und Anlage.</div>
+      </div>
+      <div class="ck-kpis" id="railKpis"></div>
+      <div class="rail-foot">Fliesst direkt in 07a Finanzieren und 07b Anlegen ein.</div>
+    </aside>
+
+    <div class="bbz-stage">
+      <div class="bbz-work ck-work" id="work"></div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos">05 von 10 · Finanz-Cockpit</span>
+          <a class="btn" href="06-ziele.html">Weiter: Ziele &amp; Wünsche →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kategorie-Erfassung (edit-mode-Modal, ausserhalb der Shell gegen Clipping) -->
+  <div class="ck-modal-bg" id="modalBg" hidden>
+    <div class="ck-modal" role="dialog" aria-modal="true">
+      <div class="ck-modal-hd"><span id="modalTitle">Erfassung</span><button class="ck-mclose" id="modalClose" type="button" aria-label="Schliessen">✕</button></div>
+      <div class="ck-modal-body" id="modalBody"></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,131 @@
+/* ============================================================================
+   05-cockpit.css — Finanz-Cockpit, Grammatik v3 (design/referenz-05-cockpit.html).
+   ========================================================================== */
+
+/* ── SÄULE: KPIs ─────────────────────────────────────────────────────────── */
+.ck-kpis { display: flex; flex-direction: column; gap: 15px; border-top: 1px solid rgba(255, 255, 255, 0.18); padding-top: 18px; }
+.ck-kpi .kl { color: rgba(255, 255, 255, 0.5); font-size: 10.5px; letter-spacing: 0.07em; font-weight: var(--w-bold); }
+.ck-kpi .kv { color: #fff; font-size: var(--fs-kpi); font-weight: var(--w-black); margin-top: 1px; white-space: nowrap; }
+.ck-kpi .kv.pos { color: #7fe0a8; }              /* Zufluss (+) grün */
+.ck-kpi .kv.neg { color: #fff; }                 /* Regel 6: negativ NEUTRAL (ink), niemals rot */
+.ck-kpi .kv.dim { color: rgba(255, 255, 255, 0.4); }
+.ck-kpi .ks { color: rgba(255, 255, 255, 0.45); font-size: var(--fs-2xs); margin-top: 1px; }
+
+/* ── BÜHNE ───────────────────────────────────────────────────────────────── */
+/* Korrektur 05.2b: Bühne höher als Inhalt → vertikal zentrieren (Grammatik),
+   Chart nicht die Fläche füllen lassen (.ck-simp deckelt sich). */
+.ck-work { display: flex; flex-direction: column; justify-content: center; gap: 16px; }
+.ck-row1 { flex: 0 0 auto; display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; align-items: stretch; }
+.ck-panel { display: flex; flex-direction: column; }
+.ck-body { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; min-height: 0; }
+/* Verbesserung 05.4a: Zeile = vollflaechiges Klickziel, ✎ immer sichtbar
+   (Regel-4-Ausnahme: Erfassen ist Kernfunktion dieses Moduls). */
+.ck-brow, .ck-cf { cursor: pointer; border-radius: var(--r-sm); transition: background var(--dur); }
+.ck-brow:hover, .ck-cf:hover { background: var(--blue-lt); }
+.ck-pen { font-size: var(--fs-xs); color: var(--ink-4); text-align: right; }
+.ck-brow:hover .ck-pen, .ck-cf:hover .ck-pen { color: var(--blue); }
+
+/* Wertspalte minmax(96px, max-content): lange Werte ("CHF 48'000 (3a)") laufen nie über (Korrektur 05.3). */
+.ck-brow { display: grid; grid-template-columns: 130px 1fr minmax(96px, max-content) 16px; gap: 12px; align-items: center; padding: 6px 8px; margin: 0 -8px; }
+.bic { font-size: var(--fs-sm); color: var(--ink-3); white-space: nowrap; }
+.trk { height: 11px; background: var(--bg); border-radius: 6px; overflow: hidden; }
+.fl { height: 100%; border-radius: 6px; }
+/* Korrektur 05.3: Wertspalten nie umbrechen ("48'000 (3a)", "CHF 12'100 / mtl."). */
+.bv { font-size: var(--fs-sm); font-weight: var(--w-bold); color: var(--ink); text-align: right; white-space: nowrap; }
+.ck-cf { display: grid; grid-template-columns: 96px 1fr 120px 16px; gap: 12px; align-items: center; padding: 7px 8px; margin: 0 -8px; }
+.cfl { font-size: var(--fs-sm); color: var(--ink-3); white-space: nowrap; }
+.cft { height: 14px; background: var(--bg); border-radius: 7px; overflow: hidden; }
+.ck-note { font-size: var(--fs-xs); color: var(--ink-4); padding-top: 4px; line-height: 1.5; }
+.ck-spar { display: flex; align-items: center; gap: 7px; font-size: var(--fs-sm); color: var(--green); padding-top: 6px; }
+.spdot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+
+/* ── Simulation ──────────────────────────────────────────────────────────── */
+/* Korrektur 05.2b: Chart-Panel deckeln (Chart-Fläche ≈ 480px); wächst die Bühne,
+   bleibt das Panel bei max-height stehen und .ck-work zentriert stattdessen. */
+.ck-simp { display: grid; grid-template-rows: auto 1fr; min-height: 0; flex: 1 1 auto; max-height: 540px; }
+.ck-simhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 16px; flex-wrap: wrap; }
+.ck-leg { display: flex; gap: 16px; align-items: center; font-size: var(--fs-xs); color: var(--ink-4); }
+.lg1::before { content: ''; display: inline-block; width: 18px; height: 3px; background: var(--blue); border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.lg2::before { content: ''; display: inline-block; width: 18px; height: 0; border-top: 2.5px dashed #a9c3d8; margin-right: 6px; vertical-align: middle; }
+.ck-legstart { color: var(--mut-2); }
+.ck-sim { display: grid; grid-template-columns: 1fr 250px; gap: 22px; min-height: 0; }
+.ck-chartwrap { display: grid; grid-template-rows: 1fr auto; min-height: 0; }
+.ck-chart { position: relative; min-height: 0; }
+.ck-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ck-grid line { stroke: var(--line); stroke-width: 1; }
+/* Korrektur 05.2c: Y-Tick-Labels links INNEN, auf der Gitterlinie zentriert. */
+.ck-ylab { position: absolute; left: 8px; font-size: 11px; color: var(--mut-3); transform: translateY(-50%); background: rgba(255, 255, 255, 0.82); padding: 0 3px; border-radius: 3px; }
+.ck-end1 { position: absolute; right: 0; font-size: 12.5px; font-weight: var(--w-bold); color: var(--blue); background: rgba(255, 255, 255, 0.85); padding: 2px 6px; border-radius: 5px; transform: translateY(-50%); }
+.ck-end2 { position: absolute; right: 0; font-size: 11.5px; color: var(--mut); background: rgba(255, 255, 255, 0.85); padding: 2px 6px; border-radius: 5px; transform: translateY(-50%); }
+.ck-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--mut-2); padding: 6px 8px 0 0; }
+.ck-ctrl { border-left: 2px solid var(--line); padding-left: 22px; display: flex; flex-direction: column; gap: 14px; }
+.cg .cl { font-size: 10.5px; letter-spacing: 0.07em; color: var(--mut); font-weight: var(--w-bold); margin-bottom: 6px; }
+.ck-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.ck-chip { font-size: var(--fs-xs); color: var(--ink-4); border: 1px solid var(--line); background: var(--surface); padding: 6px 11px; border-radius: 9px; cursor: pointer; font-family: var(--font); display: flex; flex-direction: column; align-items: flex-start; line-height: 1.3; }
+.ck-chip small { font-size: 10px; color: var(--mut-2); font-weight: var(--w-med); }
+.ck-chip.on { background: var(--blue); color: #fff; font-weight: var(--w-bold); border-color: var(--blue); }
+.ck-chip.on small { color: rgba(255, 255, 255, 0.7); }
+.ck-badge { background: var(--blue-soft); border: 1px solid var(--blue-line); border-radius: 9px; padding: 10px 13px; font-size: 12.5px; color: var(--ink); line-height: 1.5; }
+.ck-badge b { font-size: var(--fs-md); font-weight: var(--w-black); color: var(--blue); }
+/* Verbesserung 05.4c (ADR-11): Inline-Zahlenfeld fuer eigene Rendite. */
+.ck-yldin { display: inline-flex; align-items: center; gap: 4px; }
+.ck-yldin input { width: 62px; min-height: 32px; font-family: var(--font); font-size: var(--fs-sm); color: var(--ink-2); border: 1.5px solid var(--blue); border-radius: 9px; padding: 4px 7px; }
+.ck-yldin input:focus { outline: none; }
+.ck-yldin .pct { font-size: var(--fs-xs); color: var(--mut); }
+.ck-yldok { min-width: 32px; min-height: 32px; border: 1px solid var(--blue-line); background: var(--blue-soft); color: var(--blue); border-radius: 9px; cursor: pointer; font-size: var(--fs-sm); font-weight: var(--w-bold); }
+
+/* ── Modal (Kategorie-Erfassung) ─────────────────────────────────────────── */
+.ck-modal-bg { position: fixed; inset: 0; background: rgba(0, 20, 55, 0.55); backdrop-filter: blur(3px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 4%; }
+.ck-modal { background: var(--surface); width: 640px; max-width: 100%; max-height: 88vh; border-radius: var(--r-lg); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-3, 0 24px 60px rgba(0, 0, 0, 0.28)); }
+.ck-modal-hd { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--line); font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--ink); }
+.ck-mclose { border: none; background: none; cursor: pointer; color: var(--mut); font-size: var(--fs-md); min-width: 40px; min-height: 40px; }
+.ck-modal-body { overflow-y: auto; padding: 20px 24px; }
+.ck-fg { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ck-ig { display: flex; flex-direction: column; gap: 5px; }
+.ck-ig.f2 { grid-column: 1 / -1; }
+/* Verbesserung 05.4b: Theme-Groessen — Label = Kicker (11px Versalien, Regel 3),
+   Eingabewerte --fs-base 15px, Inputs/Klickziele >= 44px. */
+.ck-ig label { font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: var(--w-bold); color: var(--mut); }
+.ck-ig input, .ck-ig select, .ck-ig textarea { font-family: var(--font); font-size: var(--fs-base); color: var(--ink-2); border: 1.5px solid var(--blue-line); border-radius: var(--r-md); padding: 10px 12px; background: var(--surface); min-height: 44px; }
+.ck-ig input:focus, .ck-ig select:focus, .ck-ig textarea:focus { outline: none; border-color: var(--blue); }
+.ck-hint { font-size: var(--fs-2xs); color: var(--mut); }
+/* Sequenz-Klarheit (Regel 2): nummerierte Abschnitte in mehrstufigen Modals. */
+.ck-sec { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: var(--w-bold); color: var(--blue); border-bottom: 1px solid var(--line); padding-bottom: 5px; margin-top: 6px; }
+.ck-secn { width: 20px; height: 20px; border-radius: 50%; background: var(--blue); color: #fff; font-size: var(--fs-2xs); font-weight: var(--w-bold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ck-rbg { display: flex; gap: 6px; flex-wrap: wrap; }
+.ck-rb { font-size: var(--fs-base); color: var(--ink-3); border: 1.5px solid var(--blue-line); background: var(--surface); padding: 8px 14px; border-radius: 9px; cursor: pointer; font-family: var(--font); min-height: 44px; }
+.ck-rb.on { background: var(--blue); color: #fff; font-weight: var(--w-bold); border-color: var(--blue); }
+/* Kanäle-Tags (v1 tTag): mehrfach wählbar, eigener An-Zustand. */
+.ck-tag { font-size: var(--fs-sm); color: var(--ink-3); border: 1.5px solid var(--blue-line); background: var(--surface); padding: 8px 14px; border-radius: 9px; cursor: pointer; font-family: var(--font); min-height: 44px; }
+.ck-tag.on { background: var(--blue); color: #fff; font-weight: var(--w-bold); border-color: var(--blue); }
+/* Live-Cashflow-Vorschau im Ausgaben-Modal (v1 calc-box / prevCF). */
+.ck-calcbox { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; background: var(--blue-soft); border: 1px solid var(--blue-line); border-radius: var(--r-md); padding: 12px 14px; }
+.ck-calclbl { font-size: var(--fs-2xs); letter-spacing: 0.06em; text-transform: uppercase; font-weight: var(--w-bold); color: var(--mut); }
+.ck-calcval { font-size: var(--fs-lg); font-weight: var(--w-black); color: var(--ink); font-variant-numeric: tabular-nums; }
+.ck-calcval.pos { color: var(--green); }
+.ck-calcval.neg { color: var(--ink); }   /* Regel 6: negativer Cashflow neutral, nicht rot */
+.ck-calcrow { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--blue-line); }
+.ck-calcsub { font-size: var(--fs-xs); font-weight: var(--w-bold); color: var(--ink-3); }
+.ck-calceff { font-size: var(--fs-sm); font-weight: var(--w-bold); font-variant-numeric: tabular-nums; }
+.ck-save { margin-top: 18px; width: 100%; justify-content: center; }
+/* Finanzierung: erreichbares Klickziel auf der Bühne (v1 Finanzierungs-Karte). */
+.ck-finrow { display: grid; grid-template-columns: 1fr auto 16px; gap: 12px; align-items: center; padding: 7px 8px; margin: 2px -8px 0; border-top: 1px solid var(--line-soft); cursor: pointer; border-radius: var(--r-sm); transition: background var(--dur); }
+.ck-finrow:hover { background: var(--blue-lt); }
+.ck-finrow:hover .ck-pen { color: var(--blue); }
+
+@media (max-width: 1200px) { .ck-sim { grid-template-columns: 1fr; } .ck-ctrl { border-left: none; padding-left: 0; border-top: 2px solid var(--line); padding-top: 14px; } }
+
+/* Verbesserung 05.4c: Ctrl-Spalte traegt eine Chip-Zeile + Badge mehr — bei
+   niedrigen Viewports (1366x768) kompaktes Spacing, sonst schneidet das
+   Panel den Badge ab (Regel 1: nichts darf aus der Flaeche laufen). */
+@media (max-height: 820px) {
+  .ck-work { gap: 12px; }
+  .ck-simhead { margin-bottom: 4px; }
+  .ck-ctrl { gap: 6px; padding-left: 16px; }
+  .cg .cl { margin-bottom: 3px; }
+  .ck-chip { padding: 3px 8px; font-size: 11px; }
+  .ck-chip small { font-size: 9.5px; }
+  .ck-badge { padding: 6px 9px; font-size: var(--fs-2xs); }
+  .ck-badge b { font-size: var(--fs-sm); }
+  .ck-axis { padding-top: 2px; }
+}

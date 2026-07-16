@@ -94,6 +94,13 @@ NICHTS ueber 30px ausser Begruessungs-Momenten in Gastgeber-/Buehnen-Modulen
 3. Diese Tabelle ist Teil des Checkpoints. Ohne vollstaendiges Inventar
    kein Bau. Abnahme je Modul zusaetzlich: Regel-1-Check automatisch,
    Screenshot beide Aufloesungen, Build-Identitaets-Probe VOR Screenshot.
+4. **Vereinfachung von v1-Funktionalitaet ist NIE eine zulaessige Design-
+   Entscheidung.** Modal-Inhalte, Felder, Optionen, konditionale Logik und
+   Live-Vorschauen sind Funktionsumfang, nicht Dekor — "Funktionsumfang
+   identisch" ist nicht verhandelbar. Weglassen NUR via dokumentiertes ADR
+   nach expliziter PO-Freigabe (wie ADR-10). Fuer Module mit Erfassungs-
+   modalen ist das automatische Gate MODAL-PARITAET (ADR-12) Teil des
+   Modul-Gates: fehlt ein v1-Feld/eine Option → roter Test → kein Commit.
 
 ## 6. Checkpoint-Regel (unveraendert)
 Nach dem ersten Modul je Vorlagen-Typ stoppen: Screenshots 1920x1080 +
