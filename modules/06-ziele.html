@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Ziele &amp; Wünsche</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/06-ziele.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <!-- SÄULE: Stand der Erfassung -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">06 · ZIELE &amp; WÜNSCHE</div>
+        <h1 class="rail-title">Welche Themen bewegen Sie — heute und in Zukunft?</h1>
+        <p class="rail-sub">Lebensthemen wählen, Ereignisse erfassen, auf der Zeitachse einordnen.</p>
+      </div>
+      <div class="rail-sect">
+        <div class="rail-kicker">ARBEITSSTAND</div>
+        <div class="zl-stand">
+          <div class="zl-st"><span class="zl-stv" id="stZiele">0</span><span class="zl-stl">Ziele</span></div>
+          <div class="zl-st"><span class="zl-stv zl-g" id="stZufluss">0</span><span class="zl-stl">Geldeingänge</span></div>
+          <div class="zl-st"><span class="zl-stv zl-r" id="stWuensche">0</span><span class="zl-stl">Wünsche</span></div>
+        </div>
+        <button class="zl-recapbtn" id="btnRecap" type="button">☰ Zusammenfassung anzeigen</button>
+      </div>
+      <div class="rail-foot">Ereignisse fliessen in Vereinbarungen (08) und den Abschluss (10) ein.</div>
+    </aside>
+
+    <!-- BÜHNE: Lebensthemen + Zeitachse + Sammelspalte -->
+    <div class="bbz-stage">
+      <div class="bbz-work zl-work" id="work">
+        <div class="zl-kacheln" id="kachelnGrid"></div>
+        <div class="zl-mainrow">
+          <section class="panel zl-timeline">
+            <div class="zl-bubbles" id="bubblesArea">
+              <div class="zl-empty" id="emptyHint">
+                <div class="zl-empty-eyebrow">IHRE ZIELE &amp; WÜNSCHE</div>
+                <div class="zl-empty-text">«Welche Themen bewegen Sie –<br>heute und in Zukunft?»</div>
+                <div class="zl-empty-sub">Welche Lebensthemen, Ziele, Wünsche und Geldeingänge sind für Sie von Bedeutung?</div>
+              </div>
+            </div>
+            <div class="zl-axisrow">
+              <div class="zl-axisline"></div>
+              <div class="zl-ticks" id="axisTicks"></div>
+              <div class="zl-zoom">
+                <button class="chip chip--sm on" id="zoom-10" type="button">Kurzfristig</button>
+                <button class="chip chip--sm" id="zoom-25" type="button">Mittelfristig</button>
+                <button class="chip chip--sm" id="zoom-all" type="button">Langfristig</button>
+              </div>
+            </div>
+          </section>
+          <aside class="zl-rightcol" id="rightCol">
+            <div class="zl-rcsec" id="rc-mittel" hidden>
+              <div class="zl-rchead"><span class="zl-rctitle zl-amber">Mittelfristig</span><span class="zl-rchint" id="rc-mittel-hint"></span></div>
+              <div class="zl-rcbody" id="rc-mittel-body"></div>
+            </div>
+            <div class="zl-rcsec" id="rc-lang" hidden>
+              <div class="zl-rchead"><span class="zl-rctitle zl-slate">Langfristig</span><span class="zl-rchint" id="rc-lang-hint"></span></div>
+              <div class="zl-rcbody" id="rc-lang-body"></div>
+            </div>
+            <div class="zl-rcsec" id="rc-offen">
+              <div class="zl-rchead"><span class="zl-rctitle">Zeitpunkt offen</span></div>
+              <div class="zl-rcbody" id="rc-offen-body"><span class="zl-rcempty">–</span></div>
+            </div>
+            <div class="zl-rcsec zl-rcwunsch">
+              <div class="zl-rchead"><span class="zl-rctitle zl-red">♥ Wunschliste</span><button class="zl-wadd" id="btnWunsch" type="button">+ Hinzufügen</button></div>
+              <div class="zl-rcbody" id="wunschItems"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos">06 von 10 · Ziele &amp; Wünsche</span>
+          <a class="btn" href="07a-finanzieren.html">Weiter: Vertiefung →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ZIEL / GELDEINGANG (v1 buildZielBody) -->
+  <div class="zl-modal-bg" id="modalZiel" hidden>
+    <div class="zl-modal" role="dialog" aria-modal="true">
+      <div class="zl-mhead">
+        <div class="zl-mheadl"><span class="zl-micon" id="mz-icon"></span><span><span class="zl-mtitle" id="mz-title">Ziel</span><span class="zl-msub" id="mz-sub"></span></span></div>
+        <button class="zl-mclose" data-close="modalZiel" type="button" aria-label="Schliessen">✕</button>
+      </div>
+      <div class="zl-mbody" id="mz-body"></div>
+      <div class="zl-mfoot">
+        <button class="zl-del" id="mz-del" data-v1-field="mz-del" type="button" hidden>Löschen</button>
+        <div class="zl-mfr">
+          <button class="btn btn--ghost" data-close="modalZiel" type="button">Abbrechen</button>
+          <button class="btn" id="mz-save" type="button">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL WUNSCH (v1) -->
+  <div class="zl-modal-bg" id="modalWunsch" hidden>
+    <div class="zl-modal" role="dialog" aria-modal="true">
+      <div class="zl-mhead">
+        <div class="zl-mheadl"><span class="zl-micon zl-micon-red">♥</span><span><span class="zl-mtitle zl-red" id="mw-title">Wunsch erfassen</span><span class="zl-msub">Was träumen Sie sich – auch wenn es noch weit weg scheint?</span></span></div>
+        <button class="zl-mclose" data-close="modalWunsch" type="button" aria-label="Schliessen">✕</button>
+      </div>
+      <div class="zl-mbody">
+        <div><div class="zl-fsec">Kategorie</div><div class="zl-inspgrid" id="mw-kat"></div></div>
+        <div class="zl-fg"><label>Bezeichnung</label><input type="text" class="zl-inp zl-inp-red" id="w-name" data-v1-field="w-name" placeholder="Was wünschen Sie sich?"></div>
+        <div class="zl-frow">
+          <div class="zl-fg"><label>Ungefähres Jahr <small>(optional)</small></label><input type="number" class="zl-inp zl-inp-red" id="w-jahr" data-v1-field="w-jahr" placeholder="z.B. 2035"></div>
+          <div class="zl-fg"><label>Ungefährer Betrag CHF <small>(optional)</small></label><input type="text" class="zl-inp zl-inp-red" id="w-betrag" data-v1-field="w-betrag" placeholder="z.B. 50 000"></div>
+        </div>
+        <div class="zl-fg"><label>Notiz</label><input type="text" class="zl-inp zl-inp-red" id="w-notiz" data-v1-field="w-notiz" placeholder="Was steckt dahinter?"></div>
+      </div>
+      <div class="zl-mfoot">
+        <button class="zl-del" id="mw-del" data-v1-field="mw-del" type="button" hidden>Löschen</button>
+        <div class="zl-mfr">
+          <button class="btn btn--ghost" data-close="modalWunsch" type="button">Abbrechen</button>
+          <button class="btn zl-btnred" id="mw-save" type="button">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RECAP (v1 Übersicht) -->
+  <div class="zl-modal-bg" id="modalRecap" hidden>
+    <div class="zl-modal zl-modal-wide" role="dialog" aria-modal="true">
+      <div class="zl-mhead">
+        <div class="zl-mheadl"><span class="zl-micon zl-micon-amber">☰</span><span><span class="zl-mtitle">Übersicht Ziele &amp; Wünsche</span><span class="zl-msub" id="recap-sub">Alle erfassten Ereignisse</span></span></div>
+        <button class="zl-mclose" data-close="modalRecap" type="button" aria-label="Schliessen">✕</button>
+      </div>
+      <div class="zl-recapcols" id="recapCols"></div>
+      <div class="zl-rclegend">
+        <span class="zl-leg"><span class="zl-legdot" style="background:var(--blue)"></span>Benötigtes Kapital</span>
+        <span class="zl-leg"><span class="zl-legdot" style="background:var(--green)"></span>Erwartete Geldeingänge</span>
+        <span class="zl-leg"><span class="zl-legdot" style="background:var(--red)"></span>Wunsch</span>
+        <span class="zl-leghint">Auf Eintrag klicken zum Bearbeiten</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

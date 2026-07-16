@@ -17,6 +17,7 @@ export default defineConfig({
         '03-berater': 'modules/03-berater.html',
         '04-philosophie': 'modules/04-philosophie.html',
         '05-cockpit': 'modules/05-cockpit.html',
+        '06-ziele': 'modules/06-ziele.html',
         '08-vereinbarungen': 'modules/08-vereinbarungen.html',
         '09-feedback': 'modules/09-feedback.html',
       },

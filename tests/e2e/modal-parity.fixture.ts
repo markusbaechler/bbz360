@@ -20,6 +20,28 @@ export interface ModalSpec {
   extras: string[];                      // Pflicht-Element-ids (prevCF, Konditionale)
 }
 
+// ── 06 Ziele (v1 06_ziele.html buildZielBody/buildJahrSlider/Wunsch-Modal) ───
+// Ziel-Modal: Inspirations-Chips je Kategorie (KATS verbatim), Bezeichnung,
+// Zeithorizont (4 Wege, konditional Jahr-Kacheln bzw. Slider), Betrag, Prob
+// (nur Ziele), Notiz, Löschen im Edit. Wunsch-Modal: 7 Kategorie-Chips,
+// Name/Jahr/Betrag/Notiz, Löschen.
+export const MODAL_PARITY_06 = {
+  zielCommon: ['mz-nm', 'mz-bt', 'mz-nt', 'horizon|kurz', 'horizon|mittel', 'horizon|lang', 'horizon|offen'],
+  zielProb: ['prob|moeglich', 'prob|wahrscheinlich', 'prob|sicher'],   // entfällt bei Zufluss (v1)
+  inspProKat: {
+    familie: ['Heirat / Hochzeit', 'Familienplanung / Nachwuchs', 'Ausbildung Kind', 'Scheidungsvorsorge', 'Erbschaftsplanung', 'Sonstiges'],
+    wohnen: ['Erstwohnung kaufen', 'Renovation / Umbau', 'Zweitwohnung / Ferienhaus', 'Liegenschaft verkaufen', 'Umzug / Verkleinerung', 'Sonstiges'],
+    karriere: ['Selbständigkeit / Firmengründung', 'Frühpensionierung', 'Teilzeitanstellung', 'Sabbatical', 'Weiterbildung / Studium', 'Sonstiges'],
+    freizeit: ['Weltreise', 'Reisen & Ferien', 'Boot / Segelschiff', 'Ferienwohnung', 'Hobby vertiefen', 'Sonstiges'],
+    vermoegen: ['Liquidität aufbauen (Sparziel)', 'Anlageziel Wertschriften', 'Schulden abbauen', 'Vorsorgelücke schliessen', 'Vermögen strukturieren', 'Sonstiges'],
+    vorsorge: ['BVG-Einkauf', 'Säule 3a aufbauen', 'Testament / Vorsorgeauftrag', 'Lebensversicherung', 'Invaliditätsschutz', 'Todesfallkapital sichern', 'Kinderrente', 'Pflegevorsorge', 'Sonstiges'],
+    anschaffungen: ['Auto / Fahrzeug', 'Einrichtung / Möbel', 'Elektromobilität', 'Luxusobjekt', 'Technologie / Ausrüstung', 'Sonstiges'],
+    zufluss: ['Erbschaft / Legat', 'Schenkung', 'Kapitalleistung BVG', 'Auszahlung Säule 3a / 3b', 'Verkauf (Liegenschaft, Firma, Depot)', 'Versicherungsleistung', 'Sonstiges'],
+  } as Record<string, string[]>,
+  wunsch: ['w-name', 'w-jahr', 'w-betrag', 'w-notiz',
+    'wkat|familie', 'wkat|wohnen', 'wkat|karriere', 'wkat|freizeit', 'wkat|vermoegen', 'wkat|vorsorge', 'wkat|anschaffungen'],
+};
+
 export const MODAL_PARITY: Record<string, ModalSpec> = {
   zahlen: {
     trigger: '#br-zahlen',
