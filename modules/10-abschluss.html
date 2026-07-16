@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Abschluss</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/10-abschluss.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <!-- SÄULE: Dank / Botschaft (Spec §4, Begrüssungs-Moment) -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">10 · GESPRÄCHSABSCHLUSS</div>
+        <h1 class="rail-title ab-thanks">Vielen Dank für das offene Gespräch.</h1>
+        <p class="rail-sub">Wir freuen uns auf die gemeinsame Umsetzung und begleiten Sie auf dem Weg zu Ihren Zielen.</p>
+      </div>
+      <div class="rail-sect">
+        <div class="rail-kicker">PERSÖNLICHE NOTIZ</div>
+        <p class="ab-notiz" id="schlussNotiz" contenteditable="false" spellcheck="false" data-placeholder="Im Bearbeiten-Modus eine persönliche Schlussnotiz erfassen …"></p>
+      </div>
+      <div class="rail-foot">bbz bank st.gallen · Persönliches Gespräch</div>
+    </aside>
+
+    <!-- BÜHNE: Abschluss-Moment + Zusammenfassung aus der Datenschicht -->
+    <div class="bbz-stage">
+      <div class="bbz-work ab-work" id="work">
+        <div class="ab-cols">
+          <section class="ab-hero" id="hero">
+            <div class="ab-herobg" id="heroBg"></div>
+            <div class="ab-heroovl"></div>
+            <label class="ab-bgbtn edit-only" for="bgUploadInput">⇪ Hintergrundbild ändern</label>
+            <input type="file" id="bgUploadInput" accept="image/*" hidden>
+            <div class="ab-pill"><span class="ab-pillname" id="stageName">–</span><span class="ab-pilldate" id="stageDate"></span></div>
+          </section>
+          <section class="panel ab-summary">
+            <div class="panel-kicker">HEUTE BESPROCHEN · ZUSAMMENFASSUNG</div>
+            <div class="bbz-scroll ab-sumbody" id="summary"></div>
+          </section>
+        </div>
+      </div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos">10 von 10 · Abschluss</span>
+          <div class="ab-baractions">
+            <select class="input ab-scope" id="printScope" aria-label="Berichtsumfang">
+              <option value="total">Bericht total</option>
+              <option value="finanzieren">Bericht Finanzieren</option>
+              <option value="anlegen">Bericht Anlegen</option>
+            </select>
+            <button class="btn" id="btnPrint" type="button">Bericht drucken →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Druckbericht (nur @media print sichtbar) -->
+  <div id="printReport"></div>
+</body>
+</html>

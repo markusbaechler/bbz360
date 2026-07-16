@@ -22,6 +22,7 @@ export default defineConfig({
         '07b-anlegen': 'modules/07b-anlegen.html',
         '08-vereinbarungen': 'modules/08-vereinbarungen.html',
         '09-feedback': 'modules/09-feedback.html',
+        '10-abschluss': 'modules/10-abschluss.html',
       },
     },
   },
