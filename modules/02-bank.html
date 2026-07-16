@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bbz360 — Wer wir sind</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script type="module" src="/src/modules/02-bank.ts"></script>
+</head>
+<body class="bbz-app">
+  <header class="bbz-topbar">
+    <div class="bbz-logo">bbz</div>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+    <button class="bbz-edit-toggle" id="editToggle" type="button" aria-pressed="false">✎ Bearbeiten</button>
+  </header>
+
+  <div class="bbz-main">
+    <!-- SÄULE: Kernbotschaft (v1: hero-eyebrow/-title/-sub + Mission) -->
+    <aside class="bbz-rail">
+      <div>
+        <div class="rail-kicker">02 · WER WIR SIND</div>
+        <h1 class="rail-title bk-title">bbz bank<br>st.gallen</h1>
+        <p class="rail-sub" id="heroSub" contenteditable="false" spellcheck="false">Seit 1974 verwurzelt in der Ostschweiz.</p>
+      </div>
+      <div class="rail-sect">
+        <div class="rail-kicker">UNSERE MISSION</div>
+        <p class="bk-mission">Bankdienstleistungen <strong>digitaler</strong> und gleichzeitig wieder <strong>menschlicher</strong> machen – nah am Kunden, unabhängig von Konzerninteressen, verwurzelt in der Ostschweiz.</p>
+      </div>
+      <div class="rail-foot">bbz bank · die digitalste Regionalbank der Schweiz</div>
+    </aside>
+
+    <!-- BÜHNE: Bild/Story-Panel + vier Pfeiler -->
+    <div class="bbz-stage">
+      <div class="bbz-work bk-work" id="work">
+        <div class="bk-cols">
+          <section class="bk-imgpanel">
+            <img class="bk-img" id="heroImg" alt="bbz bank st.gallen" src="../img/bank/bbzbank.jpg">
+            <div class="bk-imgfallback" id="imgFallback" hidden><span>img/bank/bbzbank.jpg</span></div>
+          </section>
+          <div class="bk-pillars" id="pillars"></div>
+        </div>
+      </div>
+      <div class="bbz-bar">
+        <div class="bbz-bar-in">
+          <span class="bar-pos">02 von 10 · Wer wir sind</span>
+          <a class="btn" href="03-berater.html">Weiter: Ihre Beraterin, Ihr Berater →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pfeiler-Story (Text editierbar im edit-mode, persistiert wie v1 in bankTexts) -->
+  <div class="bk-modal-bg" id="modalBg" hidden>
+    <div class="bk-modal" role="dialog" aria-modal="true">
+      <div class="bk-modal-band">
+        <button class="bk-mclose" id="modalClose" type="button" aria-label="Schliessen">✕</button>
+        <div>
+          <div class="bk-modal-eyebrow" id="modalEyebrow"></div>
+          <div class="bk-modal-title" id="modalTitle"></div>
+        </div>
+        <div class="bk-modal-icon"><svg id="modalIcon" viewBox="0 0 40 40" fill="none"></svg></div>
+      </div>
+      <div class="bk-modal-body">
+        <div class="bk-edit-hint edit-only">✎ Text direkt bearbeiten – wird automatisch gespeichert</div>
+        <div class="bk-modal-text" id="modalText" contenteditable="false" spellcheck="false"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

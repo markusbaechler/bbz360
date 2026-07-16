@@ -1,0 +1,52 @@
+/* ============================================================================
+   02-bank.css — Bühnen-Modul "Wer wir sind" (Grammatik v3).
+   Säule = Kernbotschaft, Bühne = Bild-Panel + 4 Pfeiler. Nur Modul-Spezifisches.
+   ========================================================================== */
+
+/* ── SÄULE ───────────────────────────────────────────────────────────────── */
+.bbz-rail { padding: 36px 32px; gap: 26px; }
+.bk-title { margin-top: 10px; line-height: 1.15; }
+.bbz-rail .rail-sub { font-size: var(--fs-base); color: rgba(255, 255, 255, 0.72); margin-top: 12px; outline: none; }
+.bk-mission { color: #fff; font-size: var(--fs-md); line-height: 1.65; font-weight: var(--w-med); margin-top: 10px; }
+.bk-mission strong { color: #fff; font-weight: var(--w-black); text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.4); text-underline-offset: 3px; }
+
+/* ── BÜHNE: Bild + Pfeiler ───────────────────────────────────────────────── */
+.bk-work { justify-content: center; }
+.bk-cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: stretch; min-height: 0; max-height: 780px; flex: 1 1 auto; }
+.bk-imgpanel { position: relative; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--line); background: var(--blue-dk); min-height: 0; }
+.bk-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.bk-imgfallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.35); font-size: var(--fs-sm); font-weight: var(--w-med); background: linear-gradient(135deg, #002d57 0%, #004078 60%, #00528a 100%); }
+
+.bk-pillars { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 16px; min-height: 0; }
+.bk-pillar {
+  position: relative; overflow: hidden; text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 22px 24px; display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  font-family: var(--font); transition: background var(--dur), border-color var(--dur);
+}
+.bk-pillar:hover { background: var(--blue-soft); border-color: var(--blue-line); }
+.bk-deco {
+  position: absolute; right: 6px; bottom: -14px; font-size: 7.5rem; font-weight: var(--w-black);
+  line-height: 1; color: var(--blue); opacity: 0.05; user-select: none; pointer-events: none; letter-spacing: -0.04em;
+}
+.bk-picon { width: 64px; height: 64px; flex-shrink: 0; transition: transform 0.25s; }
+.bk-pillar:hover .bk-picon { transform: translateY(-3px) scale(1.06); }
+.bk-ptitle { font-size: var(--fs-card); font-weight: var(--w-black); letter-spacing: -0.02em; color: var(--blue); line-height: 1.1; }
+.bk-pcta { font-size: var(--fs-sm); font-weight: var(--w-med); color: var(--ink-4); opacity: 0; transform: translateY(4px); transition: opacity 0.2s, transform 0.2s; }
+.bk-pillar:hover .bk-pcta { opacity: 1; transform: translateY(0); }
+
+/* ── MODAL: Pfeiler-Story ────────────────────────────────────────────────── */
+.bk-modal-bg { position: fixed; inset: 0; background: rgba(0, 20, 55, 0.55); backdrop-filter: blur(3px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 4%; }
+.bk-modal { background: var(--surface); width: 680px; max-width: 100%; max-height: 88vh; border-radius: var(--r-lg); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+.bk-modal-band { position: relative; background: linear-gradient(135deg, #004078 0%, #00528a 60%, #006aaf 100%); padding: 26px 30px 22px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.bk-modal-eyebrow { font-size: var(--fs-2xs); font-weight: var(--w-bold); color: rgba(255, 255, 255, 0.55); letter-spacing: 0.1em; margin-bottom: 6px; }
+.bk-modal-title { font-size: var(--fs-title); font-weight: var(--w-black); color: #fff; letter-spacing: -0.02em; line-height: 1; }
+.bk-modal-icon { width: 62px; height: 62px; border-radius: var(--r-xl); background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.bk-modal-icon svg { width: 40px; height: 40px; }
+.bk-mclose { position: absolute; top: 14px; right: 14px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; min-width: 34px; min-height: 34px; cursor: pointer; color: #fff; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; }
+.bk-mclose:hover { background: rgba(255, 255, 255, 0.28); }
+.bk-modal-body { padding: 20px 30px 26px; overflow-y: auto; }
+.bk-edit-hint { font-size: var(--fs-xs); font-weight: var(--w-med); color: var(--mut); margin-bottom: 8px; }
+.bk-modal-text { font-size: var(--fs-md); color: var(--ink-2); line-height: 1.7; outline: none; border-radius: var(--r-md); }
+body.edit-mode .bk-modal-text { border: 1.5px dashed var(--line); padding: 12px 14px; cursor: text; }
+body.edit-mode .bk-modal-text:focus { border-color: var(--blue); background: var(--blue-soft); }
