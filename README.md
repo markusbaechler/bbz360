@@ -50,6 +50,23 @@ npm run build        # Produktion nach dist/
   ist der Build rot.
 - **Entscheide**: `docs/ADR.md`.
 
+## Bilder (zentrale Verwaltung)
+
+Alle App-Bilder haben eine **einzige Registry** `src/lib/images.ts` und liegen
+als versionierte Dateien unter `public/img/…` (Repo = Default, geräteübergreifend).
+
+- **Slots:** Bank-Titelbild, Philosophie 1–4, Feedback (Titel + 2 Fragen),
+  Abschluss-Hintergrund. Berater-Porträts sind dynamisch pro Profil
+  (`berater<id>{a,b,c}.jpg`, überschreibbar im Admin → Beraterprofile).
+- **Ändern im Betrieb:** Admin → **App-Bilder** → „Ersetzen". Der Upload wird
+  browser-lokal gespeichert (Override im Store `bbzImages`); der Repo-Default
+  bleibt Fallback. „↺ Default" entfernt den Override.
+- **Dauerhaft für alle** (statischer Host kann nicht selbst committen):
+  in der App-Bilder-Ansicht „⬇ Für Repo" klicken → die Datei unter dem
+  angezeigten Pfad ablegen, z.B. `public/img/bank/bbzbank.jpg`, committen +
+  pushen. Ab dem nächsten Deploy ist es der neue Default für alle Geräte.
+- **Session-Portabilität:** die Overrides sind Teil von Export/Import (ADR-5).
+
 ## Deploy
 
 Push auf `main` → GitHub Actions (`.github/workflows/deploy.yml`):

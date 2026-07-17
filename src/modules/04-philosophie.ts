@@ -15,6 +15,7 @@
 import '../styles/theme.css';
 import '../styles/modules/04-philosophie.css';
 import { mountNav } from '../lib/nav';
+import { imageUrl, setImageOverride, resetImageOverride } from '../lib/images';
 
 interface PhaseDef { phase: string; title: string; color: string; quote: string; benefit: string; icon: string; tagline: string }
 interface PhaseState { quote: string; benefit: string; image?: string | null }
@@ -38,8 +39,10 @@ const DEFAULTS: PhaseDef[] = [
   { phase: 'Phase 04', title: 'Begleiten', color: '#475569', icon: ICONS[3], tagline: 'Entscheidungen brauchen Kontinuität. Wir bleiben an Ihrer Seite.', quote: '«Eine Entscheidung ist erst gut, wenn sie auch dauerhaft trägt.»', benefit: 'Wir sind nicht nur beim Abschluss da. Wir überprüfen regelmässig, ob Ihre Lösung noch zu Ihrer Lebenssituation passt – und passen an, wenn nötig.' },
 ];
 
-const STORAGE_KEY = 'bbz_beratungsphilosophie_v1'; // v1-Key, unverändert
-const DEFAULT_IMAGES = ['a', 'b', 'c', 'd'].map((l) => `../img/philosophie/philosophie_${l}.jpg`);
+const STORAGE_KEY = 'bbz_beratungsphilosophie_v1'; // v1-Key (Titel/Zitate/Nutzen)
+// Bilder laufen über die zentrale Registry (Slot phil_1..4), nicht mehr über
+// den Philosophie-Store. images.ts liest alte phases[].image weiter als Fallback.
+const PHIL_SLOT = (i: number): string => `phil_${i + 1}`;
 const DEFAULT_TITLE = 'Wir schaffen Klarheit, damit Sie sicher entscheiden können.';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
@@ -103,16 +106,14 @@ function renderFlow(): void {
   loadImages();
 }
 
-// ── Bilder (v1 handleImage/renderImage/removeImage/loadImages) ───────────────
+// ── Bilder (zentrale Registry; Upload = Override im Store bbzImages) ─────────
 function handleImage(event: Event, index: number): void {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
-    const base64 = e.target?.result as string;
-    data.phases[index].image = base64;
-    saveData();
-    renderImage(index, base64);
+    setImageOverride(PHIL_SLOT(index), e.target?.result as string);
+    renderImage(index, imageUrl(PHIL_SLOT(index)));
   };
   reader.readAsDataURL(file);
 }
@@ -124,12 +125,11 @@ function renderImage(index: number, src: string): void {
   img.alt = '';
 }
 function removeImage(index: number): void {
-  data.phases[index].image = null;
-  saveData();
-  renderImage(index, DEFAULT_IMAGES[index]); // v1: zurück auf Default-Bild
+  resetImageOverride(PHIL_SLOT(index));           // zurück auf Repo-Default
+  renderImage(index, imageUrl(PHIL_SLOT(index)));
 }
 function loadImages(): void {
-  DEFAULTS.forEach((_, i) => renderImage(i, data.phases[i].image || DEFAULT_IMAGES[i]));
+  DEFAULTS.forEach((_, i) => renderImage(i, imageUrl(PHIL_SLOT(i))));
 }
 
 // ── Modal (v1 openModal/saveModal verbatim) ──────────────────────────────────

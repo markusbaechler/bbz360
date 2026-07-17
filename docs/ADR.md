@@ -79,3 +79,31 @@ Options-Wert und jede Pflicht-Live-/Konditional-Komponente existiert.
 - Bewusstes Weglassen bleibt möglich, aber ausschließlich via ADR nach
   PO-Freigabe (wie ADR-10); ein solcher Eintrag nimmt das Feld explizit aus
   der Fixture.
+
+---
+
+## ADR-13 — Zentrale Bild-Registry (images.ts) + Repo-Speicherung
+
+**Kontext.** Bilder waren über die Module verstreut (hardcodierte Pfade
+`../img/…`) und Overrides lagen in uneinheitlichen Keys (`abschluss_bgImage`,
+`fb_s1_img`, Philosophie `phases[].image`, `bbzAdmin.foto_b64`,
+`modulbilder.feedback`); 02/Bank hatte gar keinen Override. Keine zentrale
+Verwaltung, keine klare Repo-Ablage.
+
+**Entscheid.** Eine **Registry** `src/lib/images.ts` als Single Source of Truth:
+jede Bildstelle ist ein Slot mit Repo-Default (`public/img/…`). Overrides liegen
+zentral in EINEM Store `bbzImages` (localStorage); `imageUrl(slot)` löst
+Override → Legacy-Fallback → Repo-Default auf. Berater-Porträts bleiben dynamisch
+pro Profil (`berater<id>{a,b,c}.jpg` + `foto_b64`-Override).
+
+**Konsequenzen.**
+- GitHub Pages ist statisch → In-App-Upload landet browser-lokal, nicht im Repo.
+  Dauerhafte Änderung: Admin → App-Bilder → „⬇ Für Repo" → Datei unter dem
+  Slot-Pfad ablegen + committen (neuer Default für alle).
+- Admin bekommt die Ansicht **App-Bilder** (Ersetzen/Zurücksetzen/Repo-Download).
+  In-Modul-Uploads (Philosophie, Feedback, Abschluss) schreiben in denselben
+  zentralen Store.
+- Alte Bild-Keys werden weiter GELESEN (verlustfreie Migration), nicht mehr
+  geschrieben. `bbzImages` ist Teil von Export/Import (ADR-5).
+- Tests: `images.spec.ts` (Defaults, Override-Fallback, Legacy-Migration,
+  Admin-Panel, Export).

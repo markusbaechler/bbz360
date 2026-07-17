@@ -14,6 +14,7 @@ import '../styles/theme.css';
 import '../styles/modules/09-feedback.css';
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
+import { imageUrl, setImageOverride } from '../lib/images';
 
 // v1 ADJ (Labels verbatim; 1–2 neutral statt rot, Regel 6)
 const ADJ: Array<{ label: string; color: string }> = [
@@ -29,9 +30,8 @@ const ADJ: Array<{ label: string; color: string }> = [
   { label: 'Ausgezeichnet', color: '#2e6b45' },
 ];
 
-const DEFAULT_IMGS = ['../img/feedback/feedback_b.jpg', '../img/feedback/feedback_c.jpg'];
-const DEFAULT_S1_IMG = '../img/feedback/feedback_a.jpg';
-let customS1Image: string | null = null;
+// Bilder (Titelbild + 2 Frage-Bilder) laufen über die zentrale Registry.
+const FB_SLOT = ['fb_title', 'fb_q1', 'fb_q2'];   // s1img, qimg-0, qimg-1
 const FALLBACK_EW = 'Wie hat das Gespräch als Ganzes für Sie funktioniert?';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
@@ -39,7 +39,6 @@ const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;'
 
 let erwartungen: string[] = [];
 let ratings: number[] = [];
-const customImages: Array<string | null> = [null, null];
 let editMode = false;
 
 function loadData(): void {
@@ -50,15 +49,10 @@ function loadData(): void {
   if (Array.isArray(d.fb_ratings)) ratings = (d.fb_ratings as number[]).slice();
   if (typeof d.fb_q_text_0 === 'string' && d.fb_q_text_0) el('q-text-0').textContent = d.fb_q_text_0;
   if (typeof d.fb_q_text_1 === 'string' && d.fb_q_text_1) el('q-text-1').textContent = d.fb_q_text_1;
-  if (typeof d.fb_s1_img === 'string' && d.fb_s1_img) customS1Image = d.fb_s1_img; // v1 Titelbild (config)
   if (!erwartungen.length) erwartungen = [FALLBACK_EW]; // v1 startStep2-Fallback
   if (ratings.length !== erwartungen.length) ratings = erwartungen.map(() => 7);
-  // Frage-Bilder: Admin-Override (v1 modulbilder.feedback), sonst Defaults
-  try {
-    const admin = JSON.parse(localStorage.getItem('bbzAdmin') || 'null') as unknown;
-    const mb = (!Array.isArray(admin) && (admin as { modulbilder?: { feedback?: string } } | null)?.modulbilder?.feedback) || null;
-    if (mb) { customImages[0] = mb; customImages[1] = mb; }
-  } catch { /* noop */ }
+  // Bilder: zentrale Registry (Override || Repo-Default); images.ts liest
+  // Legacy fb_s1_img weiter. modulbilder.feedback (selten) → nicht mehr genutzt.
 }
 
 function saveData(): void {
@@ -124,11 +118,8 @@ function renderAvg(): void {
 }
 
 function renderQImages(): void {
-  [0, 1].forEach((i) => {
-    const src = customImages[i] || DEFAULT_IMGS[i];
-    el('qimg-' + i).style.backgroundImage = `url('${src}')`;
-  });
-  el('s1img').style.backgroundImage = `url('${customS1Image || DEFAULT_S1_IMG}')`;
+  el('s1img').style.backgroundImage = `url('${imageUrl('fb_title')}')`;
+  [0, 1].forEach((i) => { el('qimg-' + i).style.backgroundImage = `url('${imageUrl(FB_SLOT[i + 1])}')`; });
 }
 
 function init(): void {
@@ -144,29 +135,19 @@ function init(): void {
     if (!editMode) saveData(); // v1 toggleEditMode: speichert beim Verlassen
   });
 
-  // Frage-Bilder tauschen (v1 changeImage — session-only)
-  [0, 1].forEach((i) => {
-    (document.getElementById('qfile-' + i) as HTMLInputElement).addEventListener('change', (ev) => {
+  // Bilder tauschen (Titelbild + 2 Frage-Bilder) → zentraler Override-Store.
+  const wireUpload = (inputId: string, slot: string): void => {
+    (document.getElementById(inputId) as HTMLInputElement).addEventListener('change', (ev) => {
       const file = (ev.target as HTMLInputElement).files?.[0];
       if (!file) return;
       const r = new FileReader();
-      r.onload = (e) => { customImages[i] = e.target?.result as string; renderQImages(); };
+      r.onload = (e) => { setImageOverride(slot, e.target?.result as string); renderQImages(); };
       r.readAsDataURL(file);
     });
-  });
-
-  // Titelbild tauschen (v1 changeStep1Image — persistiert fb_s1_img, config-scope)
-  (document.getElementById('s1file') as HTMLInputElement).addEventListener('change', (ev) => {
-    const file = (ev.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    const r = new FileReader();
-    r.onload = (e) => {
-      customS1Image = e.target?.result as string;
-      renderQImages();
-      BBZ.merge({ fb_s1_img: customS1Image });
-    };
-    r.readAsDataURL(file);
-  });
+  };
+  wireUpload('s1file', 'fb_title');
+  wireUpload('qfile-0', 'fb_q1');
+  wireUpload('qfile-1', 'fb_q2');
 
   // Fragen-Text speichern bei Blur (zusätzlich zum edit-mode-Exit)
   [0, 1].forEach((i) => el('q-text-' + i).addEventListener('blur', saveData));

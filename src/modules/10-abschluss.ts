@@ -22,9 +22,7 @@ import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
 import { tragbarkeit } from '../lib/finance';
 import { fmt, parseNum, fmtDate } from '../lib/format';
-
-const BG_KEY = 'bbzBgImage'; // v1-Legacy-Spiegel
-const DEFAULT_BG = '../img/abschluss/abschluss.jpg';
+import { imageUrl, setImageOverride } from '../lib/images';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 const esc = (s: unknown): string => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -47,8 +45,8 @@ function load(): void {
   if (Array.isArray(D.activeBranches) && (D.activeBranches as string[]).length) {
     activeBranches = (D.activeBranches as string[]).map((b) => b.replace('b', ''));
   }
-  const savedBg = (D.abschluss_bgImage as string) || localStorage.getItem(BG_KEY);
-  el('heroBg').style.backgroundImage = `url('${savedBg || DEFAULT_BG}')`;
+  // Hintergrund aus zentraler Registry (Override || Repo-Default; Legacy-Fallback in images.ts).
+  el('heroBg').style.backgroundImage = `url('${imageUrl('abschluss_bg')}')`;
 }
 
 function initUI(): void {
@@ -272,10 +270,8 @@ function init(): void {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      el('heroBg').style.backgroundImage = `url('${dataUrl}')`;
-      try { localStorage.setItem(BG_KEY, dataUrl); } catch { /* noop */ }
-      BBZ.set('abschluss_bgImage', dataUrl); // config-scope wie v1
+      setImageOverride('abschluss_bg', ev.target?.result as string); // zentraler Store
+      el('heroBg').style.backgroundImage = `url('${imageUrl('abschluss_bg')}')`;
     };
     reader.readAsDataURL(file);
   });

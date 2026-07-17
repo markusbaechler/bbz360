@@ -10,6 +10,7 @@ import '../styles/theme.css';
 import '../styles/modules/02-bank.css';
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
+import { imageUrl } from '../lib/images';
 
 // v1 DEFAULTS (verbatim)
 const DEFAULTS: Record<string, string> = {
@@ -91,8 +92,9 @@ function init(): void {
     if (!el('modalBg').hidden) el('modalText').contentEditable = editMode ? 'true' : 'false';
   });
 
-  // Bild-Fallback (v1 onerror)
+  // Titelbild aus zentraler Registry (Override || Repo-Default); Fallback v1 onerror.
   const img = el('heroImg') as HTMLImageElement;
+  img.src = imageUrl('bank_hero');
   img.addEventListener('error', () => { img.hidden = true; el('imgFallback').hidden = false; });
 
   // heroSub laden + persistieren (v1 bankHeroSub)

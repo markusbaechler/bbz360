@@ -9,12 +9,17 @@
 </head>
 <body class="ad-body">
   <header class="ad-topbar">
-    <div class="bbz-logo">bbz</div>
-    <span class="ad-topname">Administration · Beraterprofile</span>
+    <a class="bbz-logo" href="index.html" title="Zurück zum Beratercockpit" aria-label="Zurück zum Beratercockpit">bbz</a>
+    <span class="ad-topname">Administration</span>
+    <div class="ad-viewtabs">
+      <button class="ad-vtab on" id="tabProfiles" type="button">Beraterprofile</button>
+      <button class="ad-vtab" id="tabImages" type="button">App-Bilder</button>
+    </div>
     <a class="ad-backlink" href="index.html">← Zurück zum Beratercockpit</a>
   </header>
 
-  <main class="ad-main">
+  <!-- ANSICHT 1: Beraterprofile -->
+  <main class="ad-main" id="viewProfiles">
     <aside class="ad-side">
       <div class="ad-sidetitle">Profile</div>
       <div class="ad-list" id="sidebarList"></div>
@@ -39,7 +44,7 @@
             </div>
           </div>
           <div class="ad-block">
-            <div class="ad-blocktitle">Porträtfotos <small>— Klick zum Bearbeiten</small></div>
+            <div class="ad-blocktitle">Porträtfotos <small>— dynamisch pro Berater · Klick zum Bearbeiten</small></div>
             <div class="ad-fotorow" id="fotoRow"></div>
           </div>
         </div>
@@ -49,6 +54,15 @@
         </div>
       </div>
     </section>
+  </main>
+
+  <!-- ANSICHT 2: App-Bilder (zentrale Verwaltung aller statischen Bilder) -->
+  <main class="ad-imgmain" id="viewImages" hidden>
+    <div class="ad-imgintro">
+      <div class="ad-imgtitle">App-Bilder zentral verwalten</div>
+      <p class="ad-imgnote">Default = versionierte Datei im Repo (<code>public/img/…</code>), geräteübergreifend. „Ersetzen" speichert ein Bild browser-lokal (Override) — der Repo-Default bleibt Fallback. Um ein Bild <b>dauerhaft für alle</b> zu setzen: „Für Repo herunterladen", die Datei unter dem angezeigten Pfad ablegen und committen. Berater-Porträts sind dynamisch pro Profil → Ansicht „Beraterprofile".</p>
+    </div>
+    <div class="ad-imggroups" id="imageGroups"></div>
   </main>
 
   <footer class="ad-foot">
@@ -73,6 +87,7 @@
     </div>
   </div>
   <input type="file" id="fotoFileInput" accept="image/*" hidden>
+  <input type="file" id="slotFileInput" accept="image/*" hidden>
   <div class="ad-toast" id="toast"></div>
 </body>
 </html>

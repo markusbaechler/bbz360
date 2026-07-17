@@ -11,6 +11,7 @@ import './styles/theme.css';
 import './styles/modules/admin.css';
 import { BBZ } from './lib/data';
 import type { Berater } from './lib/schema';
+import { IMAGE_SLOTS, imageUrl, hasOverride, setImageOverride, resetImageOverride, repoTarget, downloadForRepo } from './lib/images';
 
 interface Kachel { titel: string; foto_b64: string | null; content: string }
 interface Profil extends Berater { name: string; titel: string; kacheln: Kachel[] }
@@ -186,10 +187,69 @@ function showToast(msg: string): void {
   window.setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+// ── App-Bilder-Panel (zentrale Bildverwaltung) ──────────────────────────────
+let slotUploadTarget: string | null = null;
+const GROUP_ORDER = ['Bank', 'Philosophie', 'Feedback', 'Abschluss'];
+function renderImagePanel(): void {
+  const groups = GROUP_ORDER.map((g) => {
+    const slots = IMAGE_SLOTS.filter((s) => s.group === g);
+    return `<div class="ad-imggroup"><div class="ad-imggrouptitle">${g}</div><div class="ad-imgcards">${slots.map((s) => {
+      const ov = hasOverride(s.id);
+      return `<div class="ad-imgcard" data-slot="${s.id}">
+        <div class="ad-imgprev" style="background-image:url('${imageUrl(s.id)}')"></div>
+        <div class="ad-imgmeta">
+          <div class="ad-imglabel">${esc(s.label)}${ov ? ' <span class="ad-imgbadge">angepasst</span>' : ''}</div>
+          <div class="ad-imgpath">${esc(repoTarget(s.id))}</div>
+          <div class="ad-imgactions">
+            <button class="btn ad-imgbtn" type="button" data-act="replace" data-slot="${s.id}">⇪ Ersetzen</button>
+            <button class="btn btn--ghost ad-imgbtn" type="button" data-act="download" data-slot="${s.id}">⬇ Für Repo</button>
+            <button class="btn btn--ghost ad-imgbtn" type="button" data-act="reset" data-slot="${s.id}"${ov ? '' : ' disabled'}>↺ Default</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}</div></div>`;
+  }).join('');
+  el('imageGroups').innerHTML = groups;
+  el('imageGroups').querySelectorAll<HTMLElement>('[data-act]').forEach((b) => {
+    const slot = b.dataset.slot!;
+    const act = b.dataset.act!;
+    b.addEventListener('click', () => {
+      if (act === 'replace') { slotUploadTarget = slot; (document.getElementById('slotFileInput') as HTMLInputElement).click(); }
+      else if (act === 'download') { downloadForRepo(slot); showToast('Heruntergeladen → ' + repoTarget(slot)); }
+      else if (act === 'reset') { resetImageOverride(slot); renderImagePanel(); showToast('Auf Repo-Default zurückgesetzt'); }
+    });
+  });
+}
+function switchView(view: 'profiles' | 'images'): void {
+  el('viewProfiles').hidden = view !== 'profiles';
+  el('viewImages').hidden = view !== 'images';
+  el('tabProfiles').classList.toggle('on', view === 'profiles');
+  el('tabImages').classList.toggle('on', view === 'images');
+  if (view === 'images') renderImagePanel();
+}
+
 async function init(): Promise<void> {
   await loadProfiles();
   renderSidebar();
   if (profiles.length) openProfile(profiles[0].id);
+
+  el('tabProfiles').addEventListener('click', () => switchView('profiles'));
+  el('tabImages').addEventListener('click', () => switchView('images'));
+  // Slot-Upload (App-Bilder): Datei → zentraler Override-Store, Panel neu zeichnen.
+  (document.getElementById('slotFileInput') as HTMLInputElement).addEventListener('change', (e) => {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !slotUploadTarget) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setImageOverride(slotUploadTarget!, ev.target?.result as string);
+      renderImagePanel();
+      showToast('Bild ersetzt (browser-lokal)');
+      slotUploadTarget = null;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  });
 
   (document.getElementById('fieldName') as HTMLInputElement).addEventListener('input', (e) => {
     const p = active();

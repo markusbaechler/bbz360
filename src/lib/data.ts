@@ -140,11 +140,16 @@ export const BBZ = {
   },
 
   // ── Export / Import (ADR-5) ───────────────────────────────────────────────
+  // bbzImages = zentraler Bild-Override-Store (images.ts); als Teil der Session
+  // portiert, ohne data.ts an images.ts zu koppeln (loser String-Store).
   exportSession(): Blob {
+    let bbzImages: unknown = {};
+    try { bbzImages = JSON.parse(localStorage.getItem('bbzImages') || '{}'); } catch { /* noop */ }
     const payload = {
       __schemaVersion: SCHEMA_VERSION,
       bbzData: load(),
       bbzAdmin: this.getBeraterProfiles(),
+      bbzImages,
     };
     return new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   },
@@ -157,5 +162,8 @@ export const BBZ = {
     const bbzData = 'bbzData' in obj ? obj.bbzData : obj;
     save(migrate(bbzData));
     if (Array.isArray(obj.bbzAdmin)) this.setBeraterProfiles(migrateAdmin(obj.bbzAdmin));
+    if (obj.bbzImages && typeof obj.bbzImages === 'object') {
+      try { localStorage.setItem('bbzImages', JSON.stringify(obj.bbzImages)); } catch { /* noop */ }
+    }
   },
 };

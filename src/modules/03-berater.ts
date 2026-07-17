@@ -11,6 +11,7 @@ import '../styles/theme.css';
 import '../styles/modules/03-berater.css';
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
+import { beraterImageUrl } from '../lib/images';
 
 interface Kachel { content: string; photo: string | null; placeholder: string; pikt: string }
 
@@ -154,8 +155,8 @@ async function init(): Promise<void> {
     const saved = BBZ.get('beratervorstellung_' + aktiverId) as Record<number, string> | null;
     if (saved) [1, 2, 3].forEach((i) => { if (saved[i]) kacheln[i].content = saved[i]; });
     renderCards();
-    const buchstaben = ['a', 'b', 'c'];
-    [1, 2, 3].forEach((i) => loadPhotoFromUrl(i, `../img/berater/berater${aktiverId}${buchstaben[i - 1]}.jpg`));
+    // Repo-Default pro Berater-ID (images.ts: berater<id>{a,b,c}.jpg); onerror = kein Foto.
+    [1, 2, 3].forEach((i) => loadPhotoFromUrl(i, beraterImageUrl(aktiverId, i - 1)));
   }
 }
 
