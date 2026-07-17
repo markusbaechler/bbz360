@@ -50,7 +50,10 @@ body.bbz-app{height:100vh;height:100dvh;overflow:hidden;display:grid;grid-templa
 
 /* Topbar */
 .bbz-topbar{background:var(--blue-dk);display:flex;align-items:center;gap:16px;padding:0 24px}
-.bbz-logo{width:30px;height:30px;border-radius:6px;background:#fff;color:var(--blue);font-size:var(--fs-nav);font-weight:var(--w-black);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bbz-logo{width:30px;height:30px;border-radius:6px;background:#fff;color:var(--blue);font-size:var(--fs-nav);font-weight:var(--w-black);display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none}
+/* Logo-als-Home-Link (Rücksprung ins Beratercockpit) — nur wo <a>. */
+a.bbz-logo{cursor:pointer;transition:box-shadow var(--dur)}
+a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 .bbz-nav{display:flex;gap:4px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
 .bbz-nav::-webkit-scrollbar{display:none}
 .bbz-nav-tab{color:rgba(255,255,255,.5);font-size:var(--fs-nav);padding:6px 12px;white-space:nowrap;text-decoration:none;border-radius:var(--r-sm)}
