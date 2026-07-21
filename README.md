@@ -67,6 +67,25 @@ als versionierte Dateien unter `public/img/…` (Repo = Default, geräteübergre
   pushen. Ab dem nächsten Deploy ist es der neue Default für alle Geräte.
 - **Session-Portabilität:** die Overrides sind Teil von Export/Import (ADR-5).
 
+## Beraterprofile (geräteübergreifend)
+
+Profile werden im Admin gepflegt und liegen dabei **browser-lokal** in
+`bbzAdmin` — sie gelten nur auf diesem Gerät und unter dieser Origin
+(`localhost` ≠ GitHub Pages). Der geräteübergreifende Default ist die
+versionierte Datei `public/data/berater.json`; ist `bbzAdmin` leer, liest die
+App sie automatisch.
+
+- **Dauerhaft für alle:** Admin → Beraterprofile → **„⇅ Repo-Abgleich"** →
+  `berater.json` herunterladen, unter `public/data/` ablegen, committen.
+  Lokal hochgeladene Porträts erscheinen im selben Dialog als eigene
+  Downloads mit Zielpfad (`public/img/berater/berater<id>{a,b,c}.jpg`).
+  Ab dem nächsten Deploy ist das der Default auf jedem Gerät.
+- **Umgekehrt:** „↧ Aus Repo laden" holt den committeten Stand zurück und
+  überschreibt nach Rückfrage die lokalen Profile — nötig auf Geräten, die
+  schon einen eigenen `bbzAdmin`-Stand haben.
+- Im JSON steht nie Base64: Fotos sind Repo-Pfade, damit die Datei klein
+  bleibt.
+
 ## Deploy
 
 Push auf `main` → GitHub Actions (`.github/workflows/deploy.yml`):

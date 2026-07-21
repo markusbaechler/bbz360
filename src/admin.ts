@@ -11,7 +11,8 @@ import './styles/theme.css';
 import './styles/modules/admin.css';
 import { BBZ } from './lib/data';
 import type { Berater } from './lib/schema';
-import { IMAGE_SLOTS, imageUrl, hasOverride, setImageOverride, resetImageOverride, repoTarget, downloadForRepo } from './lib/images';
+import { IMAGE_SLOTS, imageUrl, hasOverride, setImageOverride, resetImageOverride, repoTarget, downloadForRepo, downloadDataUrl } from './lib/images';
+import { buildRepoJson, pendingFotos, repoJsonToProfiles } from './lib/berater-repo';
 
 interface Kachel { titel: string; foto_b64: string | null; content: string }
 interface Profil extends Berater { name: string; titel: string; kacheln: Kachel[] }
@@ -187,6 +188,61 @@ function showToast(msg: string): void {
   window.setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+// ── Repo-Abgleich (Profile ⇄ public/data/berater.json) ──────────────────────
+function openRepoModal(): void {
+  flushEditor();
+  renderRepoFiles();
+  el('rmImportConfirm').hidden = true;
+  el('repoModalBg').hidden = false;
+}
+function closeRepoModal(): void { el('repoModalBg').hidden = true; }
+
+// Zeile je Datei, die im Repo landen muss: JSON + jedes lokal hochgeladene Foto.
+function renderRepoFiles(): void {
+  const fotos = pendingFotos(profiles);
+  const row = (key: string, label: string, path: string): string =>
+    `<div class="ad-repofile"><div class="ad-repometa"><div class="ad-repolabel">${esc(label)}</div><div class="ad-imgpath">${esc(path)}</div></div>
+      <button class="btn btn--ghost ad-imgbtn" type="button" data-dl="${esc(key)}">⬇ Herunterladen</button></div>`;
+
+  el('repoFiles').innerHTML =
+    row('json', 'Alle Profile — Namen, Titel, Kacheltexte', 'public/data/berater.json') +
+    (fotos.length
+      ? fotos.map((f, i) => row('foto-' + i, f.label, f.path)).join('')
+      : '<div class="ad-repoempty">Keine lokal hochgeladenen Porträtfotos — es gelten die Dateien im Repo.</div>');
+
+  el('repoFiles').querySelectorAll<HTMLElement>('[data-dl]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const key = b.dataset.dl!;
+      if (key === 'json') {
+        const blob = new Blob([JSON.stringify(buildRepoJson(profiles), null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        downloadDataUrl(url, 'berater.json');
+        URL.revokeObjectURL(url);
+        showToast('Heruntergeladen → public/data/berater.json');
+      } else {
+        const f = fotos[Number(key.slice(5))];
+        if (!f) return;
+        downloadDataUrl(f.dataUrl, f.filename);
+        showToast('Heruntergeladen → ' + f.path);
+      }
+    });
+  });
+}
+
+// Zweistufig: erst Warnung sichtbar machen, dann ueberschreiben.
+async function importFromRepo(): Promise<void> {
+  const raw = await BBZ.getAllProfiles();
+  const next = repoJsonToProfiles(raw);
+  if (!next.length) { showToast('berater.json ist leer oder nicht erreichbar — lokaler Stand bleibt'); return; }
+  profiles = next as Profil[];
+  BBZ.setBeraterProfiles(profiles);
+  activeId = null;
+  renderSidebar();
+  openProfile(profiles[0].id);
+  closeRepoModal();
+  showToast(`${next.length} Profile aus dem Repo geladen`);
+}
+
 // ── App-Bilder-Panel (zentrale Bildverwaltung) ──────────────────────────────
 let slotUploadTarget: string | null = null;
 const GROUP_ORDER = ['Bank', 'Philosophie', 'Feedback', 'Abschluss'];
@@ -267,6 +323,14 @@ async function init(): Promise<void> {
   });
 
   el('btnSave').addEventListener('click', () => { flushEditor(); persist(); renderSidebar(); showToast('Profil gespeichert'); });
+
+  // Repo-Abgleich: Export als Dateiliste, Import zweistufig mit Bestaetigung.
+  el('btnRepo').addEventListener('click', openRepoModal);
+  el('rmClose').addEventListener('click', closeRepoModal);
+  el('repoModalBg').addEventListener('click', (e) => { if (e.target === el('repoModalBg')) closeRepoModal(); });
+  el('rmImport').addEventListener('click', () => { el('rmImportConfirm').hidden = false; });
+  el('rmImportConfirm').addEventListener('click', () => { void importFromRepo(); });
+
   el('fmClose').addEventListener('click', closeFotoModal);
   el('fotoModalBg').addEventListener('click', (e) => { if (e.target === el('fotoModalBg')) closeFotoModal(); });
   el('fmUpload').addEventListener('click', () => (document.getElementById('fotoFileInput') as HTMLInputElement).click());

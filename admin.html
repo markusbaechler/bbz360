@@ -31,7 +31,10 @@
           <div class="ad-edtitle" id="chTitle">–</div>
           <div class="ad-edsub" id="chSubtitle">–</div>
         </div>
-        <button class="btn" id="btnSave" type="button">✓ Speichern</button>
+        <div class="ad-edactions">
+          <button class="btn btn--ghost" id="btnRepo" type="button">⇅ Repo-Abgleich</button>
+          <button class="btn" id="btnSave" type="button">✓ Speichern</button>
+        </div>
       </div>
 
       <div class="ad-grid">
@@ -86,6 +89,26 @@
       </div>
     </div>
   </div>
+  <!-- Repo-Abgleich: Profile als versionierbare Dateien heraus / Repo-Stand herein -->
+  <div class="ad-modal-bg" id="repoModalBg" hidden>
+    <div class="ad-modal ad-modal--wide" role="dialog" aria-modal="true" aria-labelledby="rmTitle">
+      <div class="ad-mhead"><span id="rmTitle">Repo-Abgleich — Beraterprofile</span><button class="ad-mclose" id="rmClose" type="button" aria-label="Schliessen">✕</button></div>
+      <div class="ad-mbody">
+        <p class="ad-imgnote">Profile liegen browser-lokal (<code>bbzAdmin</code>) und gelten nur auf diesem Gerät. Dauerhaft für alle werden sie, wenn die Dateien unten im Repo abgelegt und committet werden — ab dem nächsten Deploy sind sie der Default auf jedem Gerät.</p>
+
+        <div class="ad-blocktitle">Ins Repo schreiben</div>
+        <div class="ad-repolist" id="repoFiles"></div>
+
+        <div class="ad-blocktitle">Aus dem Repo laden</div>
+        <p class="ad-imgnote" id="repoImportNote">Holt den committeten Stand aus <code>public/data/berater.json</code> und <b>überschreibt die Profile auf diesem Gerät</b> — inklusive lokal hochgeladener Porträtfotos.</p>
+        <div class="ad-mactions">
+          <button class="btn btn--ghost" id="rmImport" type="button">↧ Aus Repo laden</button>
+          <button class="btn ad-mconfirm" id="rmImportConfirm" type="button" hidden>Ja, lokale Profile überschreiben</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <input type="file" id="fotoFileInput" accept="image/*" hidden>
   <input type="file" id="slotFileInput" accept="image/*" hidden>
   <div class="ad-toast" id="toast"></div>

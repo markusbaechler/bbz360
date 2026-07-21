@@ -108,16 +108,22 @@ export function repoTarget(slotId: string): string {
   const s = SLOT[slotId];
   return s ? 'public/img/' + s.file : '';
 }
-export function downloadForRepo(slotId: string): void {
-  const url = imageUrl(slotId);
-  const s = SLOT[slotId];
-  if (!s) return;
+// Generischer Datei-Download (data:-URL oder Repo-Pfad) unter festem Namen.
+// Einzige Download-Implementierung der App — auch Beraterfotos/berater.json
+// gehen hier durch (admin.ts).
+export function downloadDataUrl(url: string, filename: string): void {
   const a = document.createElement('a');
   a.href = url;
-  a.download = s.file.split('/').pop() || 'bild.jpg'; // Zieldateiname wie im Repo
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
+}
+
+export function downloadForRepo(slotId: string): void {
+  const s = SLOT[slotId];
+  if (!s) return;
+  downloadDataUrl(imageUrl(slotId), s.file.split('/').pop() || 'bild.jpg'); // Zieldateiname wie im Repo
 }
 
 // ── Berater-Bilder (dynamisch pro Profil) ───────────────────────────────────
