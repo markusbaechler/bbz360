@@ -10,6 +10,7 @@
 import './styles/theme.css';
 import './styles/modules/index.css';
 import { BBZ } from './lib/data';
+import { beraterImageUrl } from './lib/images';
 import type { Berater } from './lib/schema';
 
 interface Mod { id: string; num: string; name: string; desc: string; file: string; toggleable: boolean }
@@ -75,8 +76,12 @@ const initials = (name: string): string => {
 function renderPicker(): void {
   el('beraterPicker').innerHTML = profiles
     .map((p) => {
-      const foto = (p as { foto_b64?: string; foto?: string }).foto_b64 || (p as { foto?: string }).foto;
-      const avatar = foto ? `<img src="${esc(String(foto))}" alt="">` : esc(initials(String(p.name ?? '')));
+      // Kachel 0 = Portraet. beraterImageUrl kennt BASE und den Repo-Default;
+      // ein roher foto-Pfad aus berater.json wuerde nur zufaellig aufloesen.
+      // Fehlt die Repo-Datei, uebernehmen die Initialen (onerror unten).
+      const k0 = (p as { kacheln?: Array<{ foto_b64?: string | null }> }).kacheln?.[0];
+      const foto = beraterImageUrl(p.id, 0, k0?.foto_b64 ?? (p as { foto_b64?: string }).foto_b64);
+      const avatar = `<span class="ix-binit" hidden>${esc(initials(String(p.name ?? '')))}</span><img src="${esc(foto)}" alt="">`;
       return `<button class="ix-bopt${p.id === state.aktiverBerater ? ' active' : ''}" type="button" data-id="${p.id}">
         <span class="ix-bavatar">${avatar}</span>
         <span class="ix-binfo"><span class="ix-bname">${esc(String(p.name ?? 'Berater:in'))}</span><span class="ix-btitel">${esc(String(p.titel ?? ''))}</span></span>
@@ -84,6 +89,11 @@ function renderPicker(): void {
       </button>`;
     })
     .join('');
+  el('beraterPicker').querySelectorAll<HTMLImageElement>('.ix-bavatar img').forEach((img) =>
+    img.addEventListener('error', () => {
+      (img.previousElementSibling as HTMLElement | null)?.removeAttribute('hidden');
+      img.remove();
+    }));
   el('beraterPicker').querySelectorAll<HTMLElement>('[data-id]').forEach((b) =>
     b.addEventListener('click', () => selectBerater(Number(b.dataset.id))));
 }
