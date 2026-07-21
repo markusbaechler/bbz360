@@ -63,7 +63,7 @@ describe('repoJsonToProfiles — berater.json → bbzAdmin', () => {
     const next = repoJsonToProfiles([
       { id: 1, name: 'Anna Meier', titel: 'Beraterin', kacheln: [{ titel: 'Eigener Titel', content: '<p>A</p>' }] },
     ]);
-    const k = (next[0] as { kacheln: Array<{ titel: string; foto_b64: null; content: string }> }).kacheln;
+    const k = (next[0] as unknown as { kacheln: Array<{ titel: string; foto_b64: null; content: string }> }).kacheln;
     expect(k[0].titel).toBe('Eigener Titel');
     expect(k[0].foto_b64).toBeNull();
     expect(k).toHaveLength(3);
