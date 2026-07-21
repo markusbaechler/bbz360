@@ -83,6 +83,8 @@ export interface SessionData {
   anlage_konklusion?: AnlageKonklusion | null;
   // Finanzieren (07a)
   finanzierung_data?: FinanzierungData | null;
+  // Feedback (09) — Phasenstand 1|2 (Session-Scope, faellt bei clearSession weg)
+  fb_phase?: number;
   // Passthrough: alle weiteren v1-Keys bleiben erhalten (kein Feldverlust).
   [key: string]: unknown;
 }

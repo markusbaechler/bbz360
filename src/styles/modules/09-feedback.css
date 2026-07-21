@@ -1,6 +1,7 @@
 /* ============================================================================
-   09-feedback.css — Feedback (Grammatik v3): Slider-Zeilen im 01-Panel-Muster,
-   grosse Daumen, Abschluss-Fragen. Nur Modul-Spezifisches.
+   09-feedback.css — Feedback (Grammatik v3), zwei Phasen:
+   Phase 1 Slider-Zeilen + grosse Daumen + Titelbild, Phase 2 die zwei
+   Schlussfragen allein im Fokus-Container. Nur Modul-Spezifisches.
    ========================================================================== */
 
 /* ── SÄULE ───────────────────────────────────────────────────────────────── */
@@ -9,9 +10,20 @@
 .bbz-rail .rail-sub { font-size: var(--fs-base); color: rgba(255, 255, 255, 0.72); margin-top: 12px; }
 #railAvg { margin-top: 6px; }
 #railAdj { margin-top: 2px; }
+/* Phasenliste (Muster wie 08; .rail-phase kommt aus theme.css) */
+.fb-phaselist { display: flex; flex-direction: column; gap: 5px; }
+.rail-phase.done .pc { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.rail-phase.done span:last-child { color: rgba(255, 255, 255, 0.6); }
+.rail-phase.done { cursor: pointer; }
+.rail-phase.next { cursor: default; }
 
 /* ── BÜHNE ───────────────────────────────────────────────────────────────── */
 .fb-work { justify-content: center; }
+.fb-bar-right { display: flex; align-items: center; gap: 20px; }
+.fb-back { font-size: var(--fs-sm); color: var(--mut-2); cursor: pointer; }
+.fb-back:hover { color: var(--ink-3); }
+
+/* ── Phase 1: Erwartungsabgleich ─────────────────────────────────────────── */
 .fb-cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; align-items: stretch; min-height: 0; max-height: 820px; flex: 1 1 auto; }
 .fb-panel { display: flex; flex-direction: column; min-height: 0; padding: 24px 28px; }
 /* Regel 5c: Panels bündig, Inhalt verteilt (wie 05 .ck-body) */
@@ -31,26 +43,33 @@
 .fb-adj { font-size: var(--fs-sm); font-weight: var(--w-bold); }
 .fb-scale { display: flex; justify-content: space-between; font-size: var(--fs-2xs); color: var(--mut-2); margin-top: 4px; padding-right: 168px; }
 
-/* Rechte Spalte: Daumen + Fragen */
+/* Rechte Spalte: Daumen + Titelbild */
 .fb-side { display: grid; grid-template-rows: auto 1fr; gap: 16px; min-height: 0; }
 .fb-thumbpanel { display: flex; align-items: center; gap: 18px; padding: 18px 24px; }
 .fb-thumb { font-size: 64px; line-height: 1; transition: transform 0.2s, opacity 0.2s; }
 .fb-avg { font-size: var(--fs-kpi); font-weight: var(--w-black); color: var(--ink); }
 .fb-avg small { font-size: var(--fs-sm); font-weight: var(--w-med); color: var(--mut); }
 .fb-avgadj { margin-left: auto; font-size: var(--fs-md); font-weight: var(--w-bold); }
-.fb-titleimg { position: relative; width: 96px; height: 64px; border-radius: var(--r-md); background-size: cover; background-position: center; overflow: hidden; flex-shrink: 0; }
-.fb-qpanel { display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; padding: 20px 24px; justify-content: space-evenly; }
-.fb-q { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: start; }
-.fb-q + .fb-q { border-top: 1px solid var(--line-soft); padding-top: 14px; }
-.fb-qimg { position: relative; width: 96px; height: 76px; border-radius: var(--r-md); background-size: cover; background-position: center; overflow: hidden; }
+/* Titelbild füllt den Rest der Spalte (früher: Fragen-Panel) */
+.fb-titlepanel { position: relative; padding: 0; overflow: hidden; min-height: 0; background-size: cover; background-position: center; }
+
+/* ── Phase 2: Zwei Fragen zum Schluss (Fokus-Container 1100px) ───────────── */
+.fb-qpanel { display: flex; flex-direction: column; gap: 26px; min-height: 0; padding: 30px 36px; justify-content: center; }
+.fb-q { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: center; }
+.fb-q + .fb-q { border-top: 1px solid var(--line-soft); padding-top: 26px; }
+.fb-qimg { position: relative; width: 240px; height: 180px; border-radius: var(--r-md); background-size: cover; background-position: center; overflow: hidden; }
 .fb-imgbtn { position: absolute; inset: auto 4px 4px 4px; text-align: center; font-size: var(--fs-2xs); font-weight: var(--w-bold); color: #fff; background: rgba(0, 20, 55, 0.7); border-radius: 5px; padding: 3px 4px; cursor: pointer; }
 .fb-qnum { font-size: var(--fs-2xs); letter-spacing: 0.08em; font-weight: var(--w-bold); color: var(--mut); text-transform: uppercase; }
-.fb-qtext { font-size: var(--fs-lg); font-weight: var(--w-black); color: var(--ink); line-height: 1.3; margin-top: 3px; outline: none; }
-.fb-qsub { font-size: var(--fs-sm); color: var(--ink-4); line-height: 1.5; margin-top: 5px; }
+.fb-qtext { font-size: var(--fs-kpi); font-weight: var(--w-black); color: var(--ink); line-height: 1.3; margin-top: 6px; outline: none; }
+.fb-qsub { font-size: var(--fs-base); color: var(--ink-4); line-height: 1.5; margin-top: 10px; }
 
 @media (max-height: 820px) {
   .fb-row { padding: 11px 2px 9px; }
   .fb-sliderrow { margin-top: 8px; }
   .fb-thumb { font-size: 48px; }
-  .fb-qimg { height: 60px; }
+  .fb-qpanel { gap: 18px; padding: 22px 30px; }
+  .fb-q { grid-template-columns: 190px 1fr; gap: 22px; }
+  .fb-q + .fb-q { padding-top: 18px; }
+  .fb-qimg { width: 190px; height: 140px; }
+  .fb-qtext { font-size: var(--fs-card); }
 }

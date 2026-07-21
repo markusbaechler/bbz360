@@ -29,6 +29,8 @@ test('Registry-Defaults: Module zeigen die Repo-Bilder (public/img)', async ({ p
   await page.goto('modules/09-feedback.html');
   const s1 = await page.locator('#s1img').evaluate((el) => getComputedStyle(el).backgroundImage);
   expect(s1).toContain('feedback_a.jpg');
+  // Frage-Bilder leben in Phase 2 (Design 2026-07-21)
+  await page.locator('#btnFwd').click();
   const q0 = await page.locator('#qimg-0').evaluate((el) => getComputedStyle(el).backgroundImage);
   expect(q0).toContain('feedback_b.jpg');
   // 10 Abschluss Hintergrund
