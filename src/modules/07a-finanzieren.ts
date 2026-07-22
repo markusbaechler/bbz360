@@ -175,26 +175,65 @@ function updateAnalysis(): void {
   renderWarnings(C.affordPct, C.ltv, C.hardEqPct, C.totalEqPct, pVerp, price);
 }
 
+// Werteskala + Gitterlinien + Legende (Regel 5b). Die Schrittweite wird auf
+// eine lesbare Zahl gerundet (30'000 statt 31'250), der Deckel ergibt sich
+// daraus — sonst steht an der Achse Kleingeld.
+const NICE = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+function niceStep(raw: number): number {
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const f = raw / mag;
+  return (NICE.find((n) => n >= f - 1e-9) ?? 10) * mag;
+}
+
+function renderAmortScale(maxVal: number, hasVerpfaendung: boolean): number {
+  const step = niceStep(maxVal / 4);
+  const top = step * 4;
+  const ticks = [4, 3, 2, 1, 0].map((i) => i * step);
+  $('amortYAxis').innerHTML = ticks
+    .map((t) => `<span class="fz-ytick">${t === 0 ? '0' : fmt(Math.round(t))}</span>`)
+    .join('');
+  $('amortGrid').innerHTML = ticks
+    .map((t) => `<div class="fz-gridline${t === 0 ? ' base' : ''}" style="bottom:${((t / top) * 100).toFixed(2)}%"></div>`)
+    .join('');
+  // Legendenreihenfolge = Stapelreihenfolge von oben nach unten.
+  $('amortLegend').innerHTML =
+    (hasVerpfaendung ? `<span class="fz-lgi"><i class="fz-sw-p"></i>Verpfändung</span>` : '') +
+    `<span class="fz-lgi"><i class="fz-sw-h"></i>2. Hypothek</span>` +
+    `<span class="fz-lgunit">Restschuld in CHF · Jahre ab heute</span>`;
+  return top; // Balken skalieren auf denselben Deckel wie die Achse
+}
+
 // Amortisationsverlauf (v1, HTML-Balken + Tooltip)
 function renderAmortChart(h2: number, y65: number, age: number, pVerp: number): void {
   const box = $('amortChart');
   const maxVal = h2 + pVerp;
-  if (maxVal <= 0.01) { box.innerHTML = '<div class="fz-noamort">Keine Amortisation erforderlich</div>'; return; }
+  if (maxVal <= 0.01) {
+    box.innerHTML = '<div class="fz-noamort">Keine Amortisation erforderlich</div>';
+    $('amortYAxis').innerHTML = '';
+    $('amortGrid').innerHTML = '';
+    $('amortXAxis').innerHTML = '';
+    $('amortLegend').innerHTML = '';
+    return;
+  }
+  const scaleTop = renderAmortScale(maxVal, pVerp > 0.01);
   const steps = Math.max(y65, 15), aH2 = h2 / Math.min(15, y65), aP = pVerp / y65;
   const barData: Array<{ year: number; rH2: number; rP: number; total: number }> = [];
-  let html = '';
+  let html = '', labels = '';
   for (let i = 0; i <= steps; i += 2) {
     const rH2 = Math.max(0, h2 - aH2 * i), rP = Math.max(0, pVerp - aP * i);
     barData.push({ year: i, rH2, rP, total: rH2 + rP });
-    const pH2 = (rH2 / maxVal) * 100, pP = (rP / maxVal) * 100;
+    const pH2 = (rH2 / scaleTop) * 100, pP = (rP / scaleTop) * 100;
     const lbl = i === 0 ? 'Heute' : age + i >= 65 ? '65' : '+' + i;
     html += `<div class="fz-acol" data-idx="${barData.length - 1}">
       <div class="fz-aseg fz-aseg-p" style="height:${pP}%"></div>
       <div class="fz-aseg fz-aseg-h" style="height:${pH2}%;border-radius:${pP > 0 ? '0' : '3px 3px 0 0'}"></div>
-      <div class="fz-albl">${lbl}</div>
     </div>`;
+    // X-Achse als eigene Zeile: nur so sitzen Gitterlinien und Balken auf
+    // derselben Nulllinie (Regel 5a: Beschriftung ausserhalb der Zeichenflaeche).
+    labels += `<div class="fz-albl">${lbl}</div>`;
   }
   box.innerHTML = html;
+  $('amortXAxis').innerHTML = labels;
   const tip = $('amortTooltip');
   const card = box.closest('.fz-amort') as HTMLElement;
   box.querySelectorAll<HTMLElement>('.fz-acol').forEach((col) => {

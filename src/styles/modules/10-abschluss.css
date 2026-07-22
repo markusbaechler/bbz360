@@ -22,8 +22,17 @@
 .ab-pillname { font-size: var(--fs-md); font-weight: var(--w-black); color: var(--ink); }
 .ab-pilldate { font-size: var(--fs-sm); color: var(--ink-4); }
 
-.ab-summary { display: flex; flex-direction: column; min-height: 0; padding: 22px 26px; }
-.ab-sumbody { min-height: 0; display: flex; flex-direction: column; gap: 18px; padding-right: 6px; }
+.ab-summary { position: relative; display: flex; flex-direction: column; min-height: 0; padding: 22px 26px; }
+.ab-sumbody { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 18px; padding-right: 6px; }
+/* Scroll-Kante: nur sichtbar, solange unten noch Inhalt wartet (10-abschluss.ts) */
+.ab-summary::after {
+  content: ''; position: absolute; left: 1px; right: 1px; bottom: 1px; height: 56px;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--surface) 78%);
+  opacity: 0; transition: opacity 0.15s; pointer-events: none;
+}
+.ab-summary.has-more::after { opacity: 1; }
+.ab-summary.has-more .ab-sumbody { padding-bottom: 22px; }
 .ab-sec { display: flex; flex-direction: column; gap: 7px; }
 .ab-sech { font-size: var(--fs-2xs); letter-spacing: 0.08em; font-weight: var(--w-bold); color: var(--blue); border-bottom: 1px solid var(--line-soft); padding-bottom: 4px; }
 .ab-sech small { color: var(--mut-2); font-weight: var(--w-med); }

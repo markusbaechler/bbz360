@@ -283,6 +283,23 @@ function init(): void {
   if (!activeBranches.includes('07b')) (scope.querySelector('[value="anlegen"]') as HTMLOptionElement).disabled = true;
   initUI();
   renderSummary();
+  wireSummaryScroll();
+}
+
+// Die Zusammenfassung ist eine .bbz-scroll-Region: passt sie nicht, verschwand
+// bisher der letzte Eintrag (z.B. die dritte Erwartung) lautlos. Jetzt zeigt
+// die Panel-Kante an, dass mehr da ist — und verschwindet am Ende der Liste.
+function wireSummaryScroll(): void {
+  const body = el('summary');
+  const panel = body.closest('.ab-summary') as HTMLElement | null;
+  if (!panel) return;
+  const update = (): void => {
+    const more = body.scrollHeight - body.clientHeight - body.scrollTop > 2;
+    panel.classList.toggle('has-more', more);
+  };
+  body.addEventListener('scroll', update, { passive: true });
+  new ResizeObserver(update).observe(body);
+  update();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

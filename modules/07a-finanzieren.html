@@ -67,13 +67,21 @@
                 <div class="fz-housebadge" id="houseBadge"></div>
               </div>
               <div class="fz-amort">
-                <div class="fz-viztitle">AMORTISATIONSVERLAUF</div>
+                <div class="fz-viztitle">AMORTISATIONSVERLAUF<span class="fz-legend" id="amortLegend"></span></div>
                 <div class="fz-amorttop">
                   <div class="fz-akv"><span class="al">1. Hypothek (bis 66.7%)</span><span class="av" id="h1Val">–</span></div>
                   <div class="fz-akv" id="h2Box"><span class="al" id="h2Lbl">2. Hypothek / amortisationspflichtig</span><span class="av" id="h2Val">–</span></div>
                   <div class="fz-akv" id="amortRateBox" hidden><span class="al">Amortisation p.a.</span><span class="av" id="amortRateVal">–</span></div>
                 </div>
-                <div class="fz-amortbars" id="amortChart"></div>
+                <!-- Regel 5b: Werteskala + Gitterlinien + X-Achse, Legende im Panel-Kopf -->
+                <div class="fz-plot">
+                  <div class="fz-yaxis" id="amortYAxis"></div>
+                  <div class="fz-plotarea">
+                    <div class="fz-grid" id="amortGrid"></div>
+                    <div class="fz-amortbars" id="amortChart"></div>
+                  </div>
+                  <div class="fz-xaxis" id="amortXAxis"></div>
+                </div>
                 <div class="fz-tip" id="amortTooltip" hidden></div>
               </div>
             </div>

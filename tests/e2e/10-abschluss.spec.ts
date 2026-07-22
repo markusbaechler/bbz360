@@ -63,3 +63,39 @@ test('10 Abschluss — Zusammenfassung, Bericht, Notiz', async ({ page }) => {
   const fits = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight);
   expect(fits).toBe(true);
 });
+
+// Die Zusammenfassung schnitt lange Inhalte lautlos ab (gemessen: letzte Zeile
+// 37px unterhalb der Scroll-Region). Jetzt zeigt die Panel-Kante, dass mehr da
+// ist — und verschwindet, sobald das Ende erreicht ist.
+test('10 Abschluss — Zusammenfassung verrät, wenn unten mehr wartet', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.addInitScript(() => {
+    localStorage.setItem('bbzData', JSON.stringify({
+      p1name: 'Anna Meier', p2name: 'Tobias Meier',
+      agenda_erwartungen: [
+        'Klarheit über meine Vorsorge', 'Konkrete nächste Schritte für das Eigenheim',
+        'Verständlich erklärt bekommen, wie mein Geld arbeitet', 'Ehrliche Einschätzung',
+        'Weniger Gebühren zahlen', 'Einen Plan für die nächsten zehn Jahre',
+      ],
+      fb_ratings: [9, 8, 10, 7, 9, 8],
+      ziele: [{ id: 'z_1', katId: 'wohnen', typ: 'ziel', name: 'Eigenheim kaufen', jahr: 2029, betrag: 200000, prob: 'sicher' }],
+      finanzierung_data: {
+        inputs: { income: 148000, price: 950000, cashEquity: 200000, calcRate: 5, sideRate: 0.75, age: 47, obligations: 12000, currentRent: 2200 },
+        variants: [{ id: 1, tranches: [{ p: 'SARON', a: 760000 }] }], rates: { SARON: 1.65 },
+      },
+    }));
+  });
+  await page.goto('modules/10-abschluss.html');
+
+  // Alle sechs Erwartungen sind im Bericht — keine verschwindet
+  await expect(page.locator('.ab-fbrow')).toHaveCount(6);
+  await expect(page.locator('.ab-summary')).toHaveClass(/has-more/);
+
+  // Am Ende der Liste verschwindet der Hinweis wieder
+  await page.locator('#summary').evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  await expect(page.locator('.ab-summary')).not.toHaveClass(/has-more/);
+
+  // Und die Seite selbst scrollt weiterhin nicht (Regel 1)
+  const fits = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight);
+  expect(fits).toBe(true);
+});

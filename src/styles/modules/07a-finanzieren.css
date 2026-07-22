@@ -42,11 +42,33 @@
 .fz-akv { display: flex; flex-direction: column; }
 .fz-akv .al { font-size: var(--fs-2xs); color: var(--mut); font-weight: var(--w-bold); }
 .fz-akv .av { font-size: var(--fs-base); font-weight: var(--w-black); color: var(--ink); font-variant-numeric: tabular-nums; }
-.fz-amortbars { flex: 1; display: flex; align-items: flex-end; gap: 5px; min-height: 90px; }
+/* Regel 5b: Werteskala links, Gitterlinien hinter den Balken, X-Achse unten */
+/* Grid statt fixer Breiten: die X-Achse sitzt garantiert unter der Zeichenflaeche */
+/* Bodenwert 70px + X-Achsen-Zeile (18px) bleibt unter den 90px, die die Balken
+   vorher allein belegten — die Jahres-Labels sassen frueher INNERHALB der
+   Saeulen. Ohne das kippt Regel 1 bei 1280x720 (gemessen: 1px zu hoch). */
+.fz-plot { flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(70px, 1fr) auto; column-gap: 8px; }
+.fz-yaxis { grid-area: 1 / 1; display: flex; flex-direction: column; justify-content: space-between; text-align: right; }
+.fz-ytick { font-size: 9.5px; line-height: 1; color: var(--mut-2); font-variant-numeric: tabular-nums; transform: translateY(-50%); }
+.fz-ytick:first-child { transform: none; }
+.fz-ytick:last-child { transform: translateY(-100%); }
+.fz-plotarea { grid-area: 1 / 2; position: relative; min-width: 0; }
+.fz-grid { position: absolute; inset: 0; pointer-events: none; }
+.fz-gridline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line-soft); }
+.fz-gridline.base { border-top-color: var(--line); }
+.fz-amortbars { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 5px; }
 .fz-acol { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; cursor: pointer; min-width: 0; }
 .fz-aseg-p { background: var(--blue-lt); border-radius: 3px 3px 0 0; }
 .fz-aseg-h { background: var(--blue); opacity: 0.55; }
-.fz-albl { font-size: 9.5px; color: var(--mut-2); text-align: center; padding-top: 3px; white-space: nowrap; }
+.fz-xaxis { grid-area: 2 / 2; display: flex; gap: 5px; }
+.fz-albl { flex: 1; font-size: 9.5px; color: var(--mut-2); text-align: center; padding-top: 4px; white-space: nowrap; min-width: 0; }
+/* Legende im Panel-Kopf */
+.fz-legend { display: inline-flex; align-items: center; gap: 14px; margin-left: 14px; font-weight: var(--w-med); letter-spacing: 0; text-transform: none; color: var(--mut); }
+.fz-lgi { display: inline-flex; align-items: center; gap: 5px; }
+.fz-lgi i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.fz-sw-h { background: var(--blue); opacity: 0.55; }
+.fz-sw-p { background: var(--blue-lt); }
+.fz-lgunit { color: var(--mut-2); }
 .fz-noamort { display: flex; align-items: center; justify-content: center; width: 100%; font-size: var(--fs-sm); color: var(--mut); font-style: italic; }
 .fz-tip { position: absolute; z-index: 50; background: var(--blue); color: #fff; font-size: var(--fs-xs); font-weight: var(--w-med); padding: 6px 10px; border-radius: 6px; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); line-height: 1.45; }
 .fz-warnings { display: flex; flex-wrap: wrap; gap: 8px; min-height: 0; }

@@ -85,3 +85,66 @@ test('07a Finanzieren — Prefill, Varianten, Persistenz, Zins-Modal', async ({ 
   const fits = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight);
   expect(fits).toBe(true);
 });
+
+// Regel 5b (DESIGN-SPEC §2.5b): jeder Chart hat Gitterlinien, Werteskala,
+// X-Achse und eine Legende im Panel-Kopf. Der Amortisationsverlauf hatte
+// bisher nur X-Beschriftungen — Balken waren ohne Bezugsgrösse.
+test('07a Amortisationsverlauf — Werteskala, Gitter, X-Achse, Legende', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('bbzData', JSON.stringify({
+      finanzierung_data: {
+        inputs: { income: 148000, price: 950000, cashEquity: 200000, calcRate: 5, sideRate: 0.75, age: 47, obligations: 12000, currentRent: 2200, pensionWithdraw: 0, pensionPledge: 60000 },
+        variants: [{ id: 1, tranches: [{ p: 'SARON', a: 760000 }] }], rates: { SARON: 1.65 },
+      },
+    }));
+  });
+  await page.goto('modules/07a-finanzieren.html');
+
+  // Werteskala: 5 Ticks, oberster >= Maximum, Schritte sind runde Zahlen
+  const ticks = await page.locator('.fz-ytick').allTextContents();
+  expect(ticks).toHaveLength(5);
+  expect(ticks[ticks.length - 1]).toBe('0');
+  const nums = ticks.map((t) => Number(t.replace(/\D/g, '')));
+  const step = nums[nums.length - 2]; // erster Schritt über 0
+  expect(step).toBeGreaterThan(0);
+  nums.forEach((n, i) => expect(n).toBe(step * (nums.length - 1 - i))); // gleichmässig
+  expect(step % 1000).toBe(0); // keine Krümel wie 31'250
+
+  // Gitterlinien je Tick, X-Achse je Balken
+  await expect(page.locator('.fz-gridline')).toHaveCount(5);
+  const bars = await page.locator('.fz-acol').count();
+  await expect(page.locator('.fz-albl')).toHaveCount(bars);
+
+  // Legende im Panel-Kopf, Reihenfolge = Stapel von oben nach unten
+  const legend = await page.locator('#amortLegend .fz-lgi').allTextContents();
+  expect(legend).toEqual(['Verpfändung', '2. Hypothek']);
+  await expect(page.locator('.fz-lgunit')).toContainText('CHF');
+
+  // Höchster Balken bleibt innerhalb der Skala (Balken und Achse teilen den Deckel)
+  const fill = await page.evaluate(() => {
+    const col = document.querySelector('.fz-acol') as HTMLElement;
+    const area = document.querySelector('.fz-plotarea') as HTMLElement;
+    const segs = Array.from(col.querySelectorAll('.fz-aseg')) as HTMLElement[];
+    const h = segs.reduce((s, e) => s + e.getBoundingClientRect().height, 0);
+    return h / area.getBoundingClientRect().height;
+  });
+  expect(fill).toBeGreaterThan(0.5);
+  expect(fill).toBeLessThanOrEqual(1.0001);
+});
+
+// Ohne Amortisationspflicht bleibt die Fläche leer — dann auch ohne Achsen.
+test('07a Amortisationsverlauf — keine Amortisation, keine Achsen', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('bbzData', JSON.stringify({
+      finanzierung_data: {
+        inputs: { income: 250000, price: 600000, cashEquity: 400000, calcRate: 5, sideRate: 0.75, age: 45, obligations: 0, currentRent: 2000, pensionWithdraw: 0, pensionPledge: 0 },
+        variants: [{ id: 1, tranches: [{ p: 'SARON', a: 200000 }] }], rates: { SARON: 1.65 },
+      },
+    }));
+  });
+  await page.goto('modules/07a-finanzieren.html');
+  await expect(page.locator('.fz-noamort')).toBeVisible();
+  await expect(page.locator('.fz-ytick')).toHaveCount(0);
+  await expect(page.locator('.fz-gridline')).toHaveCount(0);
+  await expect(page.locator('#amortLegend')).toBeEmpty();
+});
