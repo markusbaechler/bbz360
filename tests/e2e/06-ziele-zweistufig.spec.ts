@@ -93,21 +93,33 @@ test('Leerzustand: Satz bricht natuerlich, Gedankenstrich sauber gesetzt', async
   await page.waitForSelector('#emptyHint');
 
   const m = await page.evaluate(() => {
+    const e = document.getElementById('emptyHint')!;
     const t = document.querySelector('.zl-empty-text') as HTMLElement;
+    const norm = (s: string | null | undefined): string =>
+      (s ?? '').replace(/[«»?.]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
     return {
       text: (t.textContent ?? '').trim(),
-      harteUmbrueche: t.querySelectorAll('br').length,
-      railStrich: (document.querySelector('.rail-title')?.textContent ?? '').includes('—'),
+      block: (e.textContent ?? '').trim(),
+      harteUmbrueche: e.querySelectorAll('br').length,
+      buehne: norm(t.textContent),
+      saeuleTitel: norm(document.querySelector('.rail-title')?.textContent),
+      eyebrow: norm(document.querySelector('.zl-empty-eyebrow')?.textContent),
+      saeuleKicker: norm(document.querySelector('.rail-kicker')?.textContent),
       passt: t.scrollWidth <= t.clientWidth + 1,
     };
   });
 
   expect(m.harteUmbrueche).toBe(0);
   expect(m.text).not.toContain('–heute');
-  expect(m.text).not.toMatch(/\S[–—]\S/); // Gedankenstrich braucht Luft
-  expect(m.railStrich).toBe(true);
-  expect(m.text).toContain('—'); // gleicher Strich wie in der Saeule
+  expect(m.block).not.toMatch(/\S[–—]\S/); // Gedankenstrich braucht Luft
   expect(m.passt).toBe(true);
+
+  // Die Buehne darf die Saeule nicht wiederholen — links steht die Frage,
+  // rechts der naechste Schritt.
+  expect(m.buehne).not.toBe(m.saeuleTitel);
+  expect(m.saeuleTitel).not.toContain(m.buehne);
+  expect(m.eyebrow).not.toContain('ziele & wünsche');
+  expect(m.eyebrow).not.toBe(m.saeuleKicker);
 });
 
 // Der Leerzustand wurde per Inline-Style auf display:block geschaltet und
