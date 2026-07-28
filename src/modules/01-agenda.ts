@@ -1,7 +1,11 @@
 // ============================================================================
 // 01-agenda.ts — Gastgeber-Modul (design/referenz-01-agenda.html, Grammatik v3).
 // Logik/Datenfluss = v1 (unveraendert); Markup nach Referenz. Regel 4:
-// Editieren/Werkzeuge nur in body.edit-mode (Ausnahme: "+ Erwartung ergaenzen").
+// Editieren/Werkzeuge nur in body.edit-mode. AUSNAHMEN: "+ Erwartung
+// ergaenzen" und das Abhaken eines Traktandums — beides ist Gespraechs-
+// fuehrung, keine Konfiguration, und muss ohne Moduswechsel gehen.
+// Erledigt-Stand: agenda_erledigt[] parallel zu agenda_traktanden[] (Spec
+// docs/superpowers/specs/2026-07-28-agenda-traktanden-abhaken-design.md).
 // ============================================================================
 import '../styles/theme.css';
 import '../styles/modules/01-agenda.css';
@@ -22,6 +26,9 @@ const DEFAULT_AGENDA = [
 ];
 
 let agenda: string[] = DEFAULT_AGENDA.slice();
+// Parallel zu agenda[]: erledigt[i] gehoert zu agenda[i]. Muss bei jeder
+// Strukturaenderung (Hinzufuegen/Loeschen/Sortieren) mitwandern.
+let erledigt: boolean[] = [];
 let expect: string[] = [];
 let editMode = false;
 
@@ -59,6 +66,9 @@ function init(): void {
   if (Array.isArray(all.agenda_traktanden) && all.agenda_traktanden.length) agenda = all.agenda_traktanden as string[];
   else BBZ.set('agenda_traktanden', agenda);
   if (Array.isArray(all.agenda_erwartungen)) expect = all.agenda_erwartungen as string[];
+  // Auf die Traktandenlaenge bringen — aeltere Sessions und Importe kennen den Key nicht.
+  const gespeichert = Array.isArray(all.agenda_erledigt) ? (all.agenda_erledigt as unknown[]) : [];
+  erledigt = agenda.map((_, i) => gespeichert[i] === true);
 
   hydrateText('goalText', 'agenda_goal');
   hydrateText('welcomeSub', 'agenda_welcome_sub');
@@ -103,7 +113,14 @@ function bindTextPersist(id: string, key: string): void {
 }
 
 function persist(): void {
-  BBZ.merge({ agenda_traktanden: agenda, agenda_erwartungen: expect });
+  BBZ.merge({ agenda_traktanden: agenda, agenda_erwartungen: expect, agenda_erledigt: erledigt });
+}
+
+// "· 3 von 6 erledigt" — erst ab dem ersten Haken, damit die Buehne beim
+// Gespraechsstart ruhig bleibt.
+function renderCount(): void {
+  const anz = erledigt.filter(Boolean).length;
+  el('trakCount').textContent = anz ? `· ${anz} von ${agenda.length} erledigt` : '';
 }
 
 function renderList(w: Which): void {
@@ -115,15 +132,18 @@ function renderList(w: Which): void {
     list.innerHTML = `<div class="ag-empty">${w === 'agenda' ? 'Noch keine Traktanden.' : 'Noch keine Erwartungen erfasst.'}</div>`;
   } else if (w === 'agenda') {
     list.innerHTML = data
-      .map(
-        (t, i) => `<div class="ag-tr" data-idx="${i}">
+      .map((t, i) => {
+        const done = erledigt[i] === true;
+        // data-done traegt den Zustand am DOM — Sortable baut beide Arrays daraus neu auf.
+        return `<div class="ag-tr" data-idx="${i}" data-done="${done ? '1' : '0'}">
           <span class="ag-grip edit-only" aria-hidden="true">⋮⋮</span>
-          <span class="ag-tn">${String(i + 1).padStart(2, '0')}</span>
+          <button class="ag-tn" type="button" role="checkbox" aria-checked="${done}" aria-label="${esc(t)} — erledigt"><span class="ag-tnin">${done ? '✓' : String(i + 1).padStart(2, '0')}</span></button>
           <span class="ag-tt" contenteditable="${ed}" spellcheck="false">${esc(t)}</span>
           <button class="ag-del edit-only" type="button" data-act="del" title="Löschen" aria-label="Löschen">×</button>
-        </div>`
-      )
+        </div>`;
+      })
       .join('');
+    renderCount();
   } else {
     list.innerHTML = data
       .map(
@@ -154,16 +174,34 @@ function renderList(w: Which): void {
       const idx = indexOf(btn);
       if (idx < 0) return;
       dataOf(w).splice(idx, 1);
+      if (w === 'agenda') erledigt.splice(idx, 1);
       persist();
       renderList(w);
     });
   });
 
   if (w === 'agenda') {
+    // Abhaken: ohne Bearbeiten-Modus bedienbar (Regel-4-Ausnahme, siehe Header).
+    list.querySelectorAll<HTMLButtonElement>('.ag-tn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = indexOf(btn);
+        if (idx < 0) return;
+        erledigt[idx] = !erledigt[idx];
+        persist();
+        renderList('agenda');
+        // Nach dem Neuzeichnen den Fokus zurueckholen (Tastaturbedienung).
+        (list.children[idx]?.querySelector('.ag-tn') as HTMLElement | null)?.focus();
+      });
+    });
+
     Sortable.create(list, {
       handle: '.ag-grip', animation: 120, ghostClass: 'sortable-ghost',
       onEnd: () => {
-        agenda = Array.from(list.querySelectorAll<HTMLElement>('.ag-tt')).map((n) => n.textContent ?? '');
+        // Text UND Zustand aus dem DOM neu aufbauen, damit der Haken beim
+        // richtigen Traktandum bleibt.
+        const rows = Array.from(list.querySelectorAll<HTMLElement>('.ag-tr'));
+        agenda = rows.map((r) => r.querySelector('.ag-tt')?.textContent ?? '');
+        erledigt = rows.map((r) => r.dataset.done === '1');
         persist();
         renderList('agenda');
       },
@@ -173,6 +211,7 @@ function renderList(w: Which): void {
 
 function addItem(w: Which): void {
   dataOf(w).push(w === 'agenda' ? 'Neues Thema …' : 'Was wünschen Sie sich?');
+  if (w === 'agenda') erledigt.push(false);
   persist();
   renderList(w);
   // Neuen Eintrag sofort editierbar machen + fokussieren (Erwartung: Regel-4-Ausnahme).

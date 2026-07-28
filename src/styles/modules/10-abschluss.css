@@ -82,6 +82,9 @@
   .rp-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
   .rp-lrow { display: flex; gap: 2.5mm; font-size: 9.5pt; padding: 1.2mm 0; border-bottom: 0.3pt solid #edf1f5; }
   .rp-lnum { font-weight: 900; color: #004078; }
+  /* Im Gespräch abgehaktes Traktandum (01 Agenda) */
+  .rp-ldone { color: #2e6b45; }
+  .rp-ldone-row { color: #5f7d99; }
   .rp-quote { border-left: 1mm solid #950e13; background: #faf6f6; padding: 2mm 3mm; font-size: 9.5pt; font-style: italic; color: #5a1518; margin-bottom: 1.5mm; }
   .rp-empty { font-size: 9pt; color: #98a5b2; font-style: italic; }
   .rp-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }

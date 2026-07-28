@@ -65,7 +65,7 @@ function initUI(): void {
 // ── Datenaggregation (reale Keys) ────────────────────────────────────────────
 interface CockpitData { zahlen?: { saldo?: number }; sparen?: { saldo?: number }; vorsorgen?: { s3Saldo?: number; pkSaldo?: number }; anlegen?: { volumen?: number } }
 function gather(): {
-  traktanden: string[]; erwartungen: string[];
+  traktanden: string[]; traktandenErledigt: unknown[]; erwartungen: string[];
   kpis: Array<{ label: string; val: string; sub: string }>;
   items: Array<Record<string, unknown>>;
   fin: ReturnType<typeof tragbarkeit> & { price: number } | null;
@@ -73,6 +73,7 @@ function gather(): {
   vereinb: Array<Record<string, unknown>>; ratings: number[];
 } {
   const traktanden = Array.isArray(D.agenda_traktanden) ? (D.agenda_traktanden as string[]) : [];
+  const traktandenErledigt = Array.isArray(D.agenda_erledigt) ? (D.agenda_erledigt as unknown[]) : [];
   const erwartungen = Array.isArray(D.agenda_erwartungen) ? (D.agenda_erwartungen as string[]) : [];
   const cd = (D.cockpit_data ?? {}) as CockpitData;
   const liq = (cd.zahlen?.saldo ?? 0) + (cd.sparen?.saldo ?? 0);
@@ -113,7 +114,7 @@ function gather(): {
   const produktwahl = (D.anlage_produktwahl as { praeferenz?: string; auswahl?: string }) || null;
   const vereinb = Array.isArray(D.vereinbarungen) ? (D.vereinbarungen as Array<Record<string, unknown>>) : [];
   const ratings = Array.isArray(D.fb_ratings) ? (D.fb_ratings as number[]) : [];
-  return { traktanden, erwartungen, kpis, items, fin, konk, produktwahl, vereinb, ratings };
+  return { traktanden, traktandenErledigt, erwartungen, kpis, items, fin, konk, produktwahl, vereinb, ratings };
 }
 
 // ── Bühnen-Zusammenfassung ───────────────────────────────────────────────────
@@ -162,10 +163,13 @@ function buildReport(): string {
     ? new Date(String(D.beratungsdatum)).toLocaleDateString('de-CH', { day: '2-digit', month: 'long', year: 'numeric' })
     : new Date().toLocaleDateString('de-CH', { day: '2-digit', month: 'long', year: 'numeric' });
   const notiz = ((D.schlussNotiz as string) || '').trim();
-  const traktanden = g.traktanden.length ? g.traktanden : [
+  const echteTraktanden = g.traktanden.length > 0;
+  const traktanden = echteTraktanden ? g.traktanden : [
     'Ihre aktuelle Gesamtsituation', 'Veränderungen mit finanziellen Auswirkungen', 'Ihre Ziele & Wünsche',
     'Handlungsfelder & Optimierungen', 'Entscheidungen', 'Nächste Schritte',
   ];
+  // Nur zur echten Agenda gibt es einen Erledigt-Stand; die Fallback-Liste hat keinen.
+  const istErledigt = (i: number): boolean => echteTraktanden && g.traktandenErledigt[i] === true;
 
   let html = `<div class="rp-cover">
     <div class="rp-logo-row"><span class="rp-logo-box">bbz</span><span class="rp-logo-name">bbz bank st.gallen</span></div>
@@ -184,7 +188,9 @@ function buildReport(): string {
 
   html += section('01', 'Gesprächsrahmen', 'Agenda & Erwartungen', `
     <div class="rp-2col">
-      <div><div class="rp-lbl">Traktanden</div>${traktanden.map((t, i) => `<div class="rp-lrow"><span class="rp-lnum">${String(i + 1).padStart(2, '0')}</span>${esc(t)}</div>`).join('')}</div>
+      <div><div class="rp-lbl">Traktanden</div>${traktanden.map((t, i) => istErledigt(i)
+        ? `<div class="rp-lrow rp-ldone-row"><span class="rp-lnum rp-ldone" title="erledigt">✓</span>${esc(t)}</div>`
+        : `<div class="rp-lrow"><span class="rp-lnum">${String(i + 1).padStart(2, '0')}</span>${esc(t)}</div>`).join('')}</div>
       <div><div class="rp-lbl">Ihre Erwartungen</div>${g.erwartungen.length ? g.erwartungen.map((e) => `<div class="rp-quote">«${esc(e)}»</div>`).join('') : '<div class="rp-empty">Keine Erwartungen erfasst.</div>'}</div>
     </div>`);
 
