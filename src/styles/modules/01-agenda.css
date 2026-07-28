@@ -22,9 +22,11 @@
 /* Positionsnummer = Erledigt-Schalter. Klickflaeche 44px (Layout-Konzept),
    sichtbare Marke 30px — die Zeilenhoehe bleibt dadurch nahe am Referenzbild. */
 .ag-tn { flex-shrink: 0; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0; border: none; background: none; cursor: pointer; font-family: var(--font); }
-.ag-tnin { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-size: var(--fs-nav); font-weight: var(--w-black); color: var(--blue); font-variant-numeric: tabular-nums; transition: background var(--dur), color var(--dur); }
-.ag-tn:hover .ag-tnin { background: var(--blue-lt); }
-.ag-tr[data-done="1"] .ag-tnin { background: var(--green); color: #fff; }
+/* Der Ring im OFFENEN Zustand ist die Einladung: ohne ihn sieht die Zeile aus
+   wie eine reine Nummernliste und niemand kommt auf die Idee zu klicken. */
+.ag-tnin { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--blue-line); font-size: var(--fs-nav); font-weight: var(--w-black); color: var(--blue); font-variant-numeric: tabular-nums; transition: background var(--dur), color var(--dur), border-color var(--dur); }
+.ag-tn:hover .ag-tnin { background: var(--blue-lt); border-color: var(--blue); }
+.ag-tr[data-done="1"] .ag-tnin { background: var(--green); border-color: var(--green); color: #fff; }
 .ag-tr[data-done="1"] .ag-tn:hover .ag-tnin { background: var(--green); }
 .ag-tt { flex: 1; font-size: var(--fs-md); color: var(--ink-2); outline: none; transition: color var(--dur); }
 .ag-tr[data-done="1"] .ag-tt { color: var(--mut); text-decoration: line-through; }
