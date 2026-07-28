@@ -10,6 +10,18 @@ import type { SessionData, Berater } from './schema';
 
 const STORAGE_KEY = 'bbzData';
 const ADMIN_KEY = 'bbzAdmin';
+// Bild-Override-Store aus images.ts — bewusst als loser String-Store gefuehrt,
+// damit data.ts nicht an images.ts koppelt (siehe exportSession/importSession).
+const IMAGES_KEY = 'bbzImages';
+
+// Speicher voll: unterscheidbar von "Datei kaputt", damit die Oberflaeche das
+// Richtige sagen kann. Bei diesem Fehler ist der bisherige Stand unveraendert.
+export class SpeicherVollError extends Error {
+  constructor() {
+    super('Speicher voll');
+    this.name = 'SpeicherVollError';
+  }
+}
 
 // Betrags-Keys -> number-Zwang beim Schreiben (wie v1 _coerce type:'number').
 const NUMBER_KEYS = new Set<string>([
@@ -46,11 +58,23 @@ function load(): SessionData {
   }
 }
 
-function save(data: SessionData): void {
+function save(data: SessionData): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
   } catch (e) {
     console.warn('data: localStorage write failed', e);
+    return false;
+  }
+}
+
+function saveImages(o: unknown): boolean {
+  try {
+    localStorage.setItem(IMAGES_KEY, JSON.stringify(o));
+    return true;
+  } catch (e) {
+    console.warn('data: bbzImages write failed', e);
+    return false;
   }
 }
 
@@ -131,11 +155,15 @@ export const BBZ = {
   },
 
   // WICHTIG: einziger bbzAdmin-Writer. Ausschliesslich von admin importieren.
-  setBeraterProfiles(profiles: Berater[]): void {
+  // false = nicht geschrieben (Quota). Der Aufrufer MUSS das melden, sonst
+  // zeigt der Admin ein Bild, das in keinem Modul ankommt.
+  setBeraterProfiles(profiles: Berater[]): boolean {
     try {
       localStorage.setItem(ADMIN_KEY, JSON.stringify(profiles));
+      return true;
     } catch (e) {
       console.warn('data: bbzAdmin write failed', e);
+      return false;
     }
   },
 
@@ -144,7 +172,7 @@ export const BBZ = {
   // portiert, ohne data.ts an images.ts zu koppeln (loser String-Store).
   exportSession(): Blob {
     let bbzImages: unknown = {};
-    try { bbzImages = JSON.parse(localStorage.getItem('bbzImages') || '{}'); } catch { /* noop */ }
+    try { bbzImages = JSON.parse(localStorage.getItem(IMAGES_KEY) || '{}'); } catch { /* noop */ }
     const payload = {
       __schemaVersion: SCHEMA_VERSION,
       bbzData: load(),
@@ -154,16 +182,34 @@ export const BBZ = {
     return new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   },
 
+  // Alles-oder-nichts: reicht der Speicher nicht, wird der vorherige Stand
+  // wiederhergestellt und SpeicherVollError geworfen. Ein halb geschriebener
+  // Import wuerde alte und neue Sitzung vermischen — schlimmer als kein Import.
   async importSession(file: Blob): Promise<void> {
     const raw = JSON.parse(await file.text()) as unknown;
     if (!raw || typeof raw !== 'object') throw new Error('Ungueltige Session-Datei');
     const obj = raw as Record<string, unknown>;
     // Sowohl das Export-Format {bbzData, bbzAdmin} als auch ein blankes bbzData akzeptieren.
     const bbzData = 'bbzData' in obj ? obj.bbzData : obj;
-    save(migrate(bbzData));
-    if (Array.isArray(obj.bbzAdmin)) this.setBeraterProfiles(migrateAdmin(obj.bbzAdmin));
-    if (obj.bbzImages && typeof obj.bbzImages === 'object') {
-      try { localStorage.setItem('bbzImages', JSON.stringify(obj.bbzImages)); } catch { /* noop */ }
+
+    const vorher: Array<[string, string | null]> =
+      [STORAGE_KEY, ADMIN_KEY, IMAGES_KEY].map((k) => [k, localStorage.getItem(k)]);
+    const zuruecksetzen = (): void => {
+      for (const [k, v] of vorher) {
+        try {
+          if (v === null) localStorage.removeItem(k);
+          else localStorage.setItem(k, v);
+        } catch { /* noop */ }
+      }
+    };
+
+    const ok =
+      save(migrate(bbzData)) &&
+      (!Array.isArray(obj.bbzAdmin) || this.setBeraterProfiles(migrateAdmin(obj.bbzAdmin))) &&
+      (!obj.bbzImages || typeof obj.bbzImages !== 'object' || saveImages(obj.bbzImages));
+    if (!ok) {
+      zuruecksetzen();
+      throw new SpeicherVollError();
     }
   },
 };

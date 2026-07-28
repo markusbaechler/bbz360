@@ -11,7 +11,7 @@ import './styles/theme.css';
 import './styles/modules/admin.css';
 import { BBZ } from './lib/data';
 import type { Berater } from './lib/schema';
-import { IMAGE_SLOTS, imageUrl, hasOverride, setImageOverride, resetImageOverride, repoTarget, downloadForRepo, downloadDataUrl } from './lib/images';
+import { IMAGE_SLOTS, imageUrl, hasOverride, setImageOverride, resetImageOverride, repoTarget, downloadForRepo, downloadDataUrl, toStorableDataUrl } from './lib/images';
 import { buildRepoJson, pendingFotos, repoJsonToProfiles } from './lib/berater-repo';
 
 interface Kachel { titel: string; foto_b64: string | null; content: string }
@@ -60,9 +60,10 @@ async function loadProfiles(): Promise<void> {
   }));
 }
 
-// v1 persist: bbzAdmin als Array + Spiegel in bbzData
-function persist(): void {
-  BBZ.setBeraterProfiles(profiles);
+// v1 persist: bbzAdmin als Array + Spiegel in bbzData.
+// false = bbzAdmin nicht geschrieben (Quota) -> Aufrufer meldet den Fehlschlag.
+function persist(): boolean {
+  const ok = BBZ.setBeraterProfiles(profiles);
   const cur = (BBZ.get('aktiverBerater') as number | null) || 1;
   const p = profiles.find((x) => x.id === cur);
   if (p) {
@@ -71,7 +72,9 @@ function persist(): void {
     p.kacheln.forEach((k, i) => { texte[i + 1] = k.content || ''; });
     BBZ.merge({ [`berater_texte_${p.id}`]: texte });
   }
+  return ok;
 }
+const SPEICHER_VOLL = 'Speicher voll — nicht gespeichert. Kleineres Bild wählen oder Fotos entfernen.';
 
 function renderSidebar(): void {
   el('sidebarList').innerHTML = profiles.map((p) => {
@@ -234,8 +237,15 @@ async function importFromRepo(): Promise<void> {
   const raw = await BBZ.getAllProfiles();
   const next = repoJsonToProfiles(raw);
   if (!next.length) { showToast('berater.json ist leer oder nicht erreichbar — lokaler Stand bleibt'); return; }
+  const vorher = profiles;
   profiles = next as Profil[];
-  BBZ.setBeraterProfiles(profiles);
+  // Laesst sich der Import nicht schreiben, bleibt der lokale Stand stehen —
+  // sonst zeigt der Admin Profile, die kein Modul zu sehen bekommt.
+  if (!BBZ.setBeraterProfiles(profiles)) {
+    profiles = vorher;
+    showToast(SPEICHER_VOLL);
+    return;
+  }
   activeId = null;
   renderSidebar();
   openProfile(profiles[0].id);
@@ -296,15 +306,15 @@ async function init(): Promise<void> {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file || !slotUploadTarget) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setImageOverride(slotUploadTarget!, ev.target?.result as string);
-      renderImagePanel();
-      showToast('Bild ersetzt (browser-lokal)');
-      slotUploadTarget = null;
-    };
-    reader.readAsDataURL(file);
+    const slot = slotUploadTarget;
+    slotUploadTarget = null;
     input.value = '';
+    void (async () => {
+      const ok = setImageOverride(slot, await toStorableDataUrl(file));
+      if (!ok) resetImageOverride(slot); // sonst zeigt das Panel einen Stand, den niemand liest
+      renderImagePanel();
+      showToast(ok ? 'Bild ersetzt (browser-lokal)' : SPEICHER_VOLL);
+    })();
   });
 
   (document.getElementById('fieldName') as HTMLInputElement).addEventListener('input', (e) => {
@@ -322,7 +332,12 @@ async function init(): Promise<void> {
     persist();
   });
 
-  el('btnSave').addEventListener('click', () => { flushEditor(); persist(); renderSidebar(); showToast('Profil gespeichert'); });
+  el('btnSave').addEventListener('click', () => {
+    flushEditor();
+    const ok = persist();
+    renderSidebar();
+    showToast(ok ? 'Profil gespeichert' : SPEICHER_VOLL);
+  });
 
   // Repo-Abgleich: Export als Dateiliste, Import zweistufig mit Bestaetigung.
   el('btnRepo').addEventListener('click', openRepoModal);
@@ -347,19 +362,29 @@ async function init(): Promise<void> {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file || fotoModalIdx === null) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      active().kacheln[fotoModalIdx!].foto_b64 = ev.target?.result as string;
-      persist(); renderFotos(); renderSidebar();
+    const idx = fotoModalIdx;
+    input.value = '';
+    void (async () => {
+      const dataUrl = await toStorableDataUrl(file);
+      const vorher = active().kacheln[idx].foto_b64;
+      active().kacheln[idx].foto_b64 = dataUrl;
+      // Scheitert das Schreiben, wird der Upload zurueckgenommen: der Admin darf
+      // kein Foto zeigen, das kein Modul je zu sehen bekommt.
+      if (!persist()) {
+        active().kacheln[idx].foto_b64 = vorher;
+        renderFotos(); renderSidebar();
+        if (fotoModalIdx === idx) openFotoModal(idx);
+        showToast(SPEICHER_VOLL);
+        return;
+      }
+      renderFotos(); renderSidebar();
       const img = document.getElementById('fmImg') as HTMLImageElement;
-      img.src = ev.target?.result as string;
+      img.src = dataUrl;
       img.hidden = false;
       el('fmEmpty').hidden = true;
       (el('fmBtnRemove') as HTMLButtonElement).disabled = false;
       showToast('Foto gespeichert');
-    };
-    reader.readAsDataURL(file);
-    input.value = '';
+    })();
   });
 }
 

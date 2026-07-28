@@ -52,11 +52,15 @@ function loadOverrides(): Overrides {
     return {};
   }
 }
-function saveOverrides(o: Overrides): void {
+// false = Schreiben fehlgeschlagen (praktisch immer QuotaExceededError). Der
+// Aufrufer MUSS das melden — ein stiller Verlust sieht aus wie "gespeichert".
+function saveOverrides(o: Overrides): boolean {
   try {
     localStorage.setItem(OVERRIDE_KEY, JSON.stringify(o));
+    return true;
   } catch (e) {
     console.warn('images: bbzImages write failed', e);
+    return false;
   }
 }
 
@@ -88,10 +92,10 @@ export function imageUrl(slotId: string): string {
 export function hasOverride(slotId: string): boolean {
   return !!loadOverrides()[slotId] || !!legacyOverride(slotId);
 }
-export function setImageOverride(slotId: string, dataUrl: string): void {
+export function setImageOverride(slotId: string, dataUrl: string): boolean {
   const o = loadOverrides();
   o[slotId] = dataUrl;
-  saveOverrides(o);
+  return saveOverrides(o);
 }
 export function resetImageOverride(slotId: string): void {
   const o = loadOverrides();
@@ -100,6 +104,58 @@ export function resetImageOverride(slotId: string): void {
   // Auch Legacy-Quelle räumen, damit "Zurücksetzen" wirklich den Repo-Default zeigt.
   if (slotId === 'abschluss_bg') {
     try { localStorage.removeItem('bbzBgImage'); } catch { /* noop */ }
+  }
+}
+
+// ── Upload-Aufbereitung ─────────────────────────────────────────────────────
+// localStorage fasst rund 5 MB pro Origin — geteilt von bbzAdmin, bbzImages und
+// bbzData. Ein rohes Kamerabild belegt als Base64 ~1.4x seiner Dateigroesse;
+// drei Portraetfotos sprengen das Budget, der setItem-Fehler kostete lautlos
+// das zuletzt hochgeladene Bild. Darum: vor dem Speichern verkleinern und als
+// JPEG neu kodieren. 1400 px Kantenlaenge deckt jede Darstellung der App ab
+// (groesste Flaeche: Abschluss-Hintergrund, formatfuellend).
+const MAX_EDGE = 1400;
+const JPEG_QUALITY = 0.82;
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(r.error ?? new Error('FileReader'));
+    r.readAsDataURL(blob);
+  });
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('decode'));
+    img.src = src;
+  });
+}
+
+// Datei -> speichertaugliche data:-URL. Nicht dekodierbare Dateien (z. B. SVG)
+// gehen unveraendert durch; ebenso Bilder, die durch die Umkodierung wachsen.
+export async function toStorableDataUrl(file: Blob): Promise<string> {
+  const raw = await blobToDataUrl(file);
+  try {
+    const img = await loadImage(raw);
+    const scale = Math.min(1, MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * scale));
+    const h = Math.max(1, Math.round(img.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return raw;
+    ctx.fillStyle = '#fff'; // JPEG kennt keine Transparenz — sonst wird sie schwarz
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    const out = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+    return out.length < raw.length ? out : raw;
+  } catch {
+    return raw;
   }
 }
 
@@ -140,6 +196,6 @@ export function beraterRepoTarget(beraterId: number, kachelIdx: number): string 
 export function exportOverrides(): Overrides {
   return loadOverrides();
 }
-export function importOverrides(o: unknown): void {
-  if (o && typeof o === 'object') saveOverrides(o as Overrides);
+export function importOverrides(o: unknown): boolean {
+  return o && typeof o === 'object' ? saveOverrides(o as Overrides) : false;
 }

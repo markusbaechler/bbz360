@@ -9,7 +9,7 @@
 // ============================================================================
 import './styles/theme.css';
 import './styles/modules/index.css';
-import { BBZ } from './lib/data';
+import { BBZ, SpeicherVollError } from './lib/data';
 import { beraterImageUrl } from './lib/images';
 import type { Berater } from './lib/schema';
 
@@ -212,8 +212,10 @@ async function importSession(file: File): Promise<void> {
   try {
     await BBZ.importSession(file);
     window.location.reload();
-  } catch {
-    el('footerDataInfo').textContent = 'Import fehlgeschlagen: ungültige Session-Datei';
+  } catch (e) {
+    el('footerDataInfo').textContent = e instanceof SpeicherVollError
+      ? 'Import abgebrochen: Speicher voll — bisherige Beratung unverändert'
+      : 'Import fehlgeschlagen: ungültige Session-Datei';
   }
 }
 
