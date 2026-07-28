@@ -10,6 +10,10 @@
 
 /* ── SÄULE: Berater-Picker + Datum + Session ─────────────────────────────── */
 .bbz-rail { padding: 30px 26px; gap: 20px; }
+/* Nur der Berater-Picker gibt nach; die uebrigen Abschnitte behalten ihre
+   natuerliche Hoehe, damit "Neue Beratung" und der Fuss nie wegrutschen. */
+.ix-pickwrap { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+.ix-picker { flex: 1 1 auto; }
 .ix-picker { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .ix-bopt {
   display: grid; grid-template-columns: 40px 1fr 20px; gap: 12px; align-items: center;

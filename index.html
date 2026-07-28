@@ -18,9 +18,12 @@
   <div class="bbz-main">
     <!-- SÄULE: Beraterprofil (Spec §4) -->
     <aside class="bbz-rail">
-      <div>
+      <!-- Der Picker waechst mit der Zahl der Profile und ist damit der einzige
+           dehnbare Teil der Saeule: er scrollt, damit Datum, Session-Aktionen
+           und Fuss auf kurzen Schirmen erreichbar bleiben. -->
+      <div class="ix-pickwrap">
         <div class="rail-kicker">BERATER:IN WÄHLEN</div>
-        <div class="ix-picker" id="beraterPicker"></div>
+        <div class="ix-picker bbz-scroll" id="beraterPicker"></div>
       </div>
       <div class="rail-sect">
         <div class="rail-kicker">BERATUNGSDATUM</div>
