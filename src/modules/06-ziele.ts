@@ -396,6 +396,18 @@ function openItemEdit(id: string): void {
   buildZielBody(k, z);
   el('modalZiel').hidden = false;
 }
+// Schaltet ein Modal zwischen Wahl (1) und Erfassungsmaske (2). Der Zustand
+// haengt als data-stufe am .zl-modal, damit auch der Speichern-Knopf im Fuss
+// mitgesteuert wird — er liegt ausserhalb des Koerpers.
+function setStufe(modalId: string, stufe: 1 | 2, begriff?: string): void {
+  const modal = el(modalId).querySelector('.zl-modal') as HTMLElement;
+  modal.dataset.stufe = String(stufe);
+  if (stufe === 2 && begriff) {
+    const tx = modal.querySelector('.zl-auswahl-tx');
+    if (tx) tx.textContent = begriff;
+  }
+}
+
 function buildZielBody(k: Kat, ex: Ziel | null): void {
   const isZ = k.type === 'zufluss', gc = isZ ? ' green' : '';
   el('mz-icon').className = 'zl-micon' + (isZ ? ' zl-micon-green' : '');
@@ -405,17 +417,25 @@ function buildZielBody(k: Kat, ex: Ziel | null): void {
   el('mz-sub').textContent = editId ? (isZ ? 'Erwartete Geldeingänge bearbeiten' : 'Ziel bearbeiten') : (isZ ? 'Erwartete Geldeingänge erfassen' : 'Neues Ziel erfassen');
   el('mz-del').hidden = !editId;
   const body = el('mz-body');
+  // Zweistufig: Stufe 1 ist nur die Wahl (.zl-wahl), Stufe 2 die Maske
+  // (.zl-stufe2). Gesteuert ueber data-stufe am Modal, siehe setStufe().
+  // Die Felder sind EINZELN markiert statt umhuellt — .zl-mbody ist ein
+  // Flex-Container mit gap, ein Wrapper wuerde die Abstaende einebnen.
   body.innerHTML = `
-    <div><div class="zl-fsec">${isZ ? 'Art des Zuflusses' : 'Worum geht es?'}</div><div class="zl-inspgrid" id="ig">${k.insp.map((insp) => `<button class="zl-inspchip${gc}${curInsp === insp.t ? ' active' : ''}" type="button" data-insp="${esc(insp.t)}" data-v1-field="insp|${esc(insp.t)}">${I[insp.i]}<span>${insp.t}</span></button>`).join('')}</div></div>
-    <div class="zl-fg"><label>Bezeichnung</label><input type="text" class="zl-inp${gc}" id="mz-nm" data-v1-field="mz-nm" value="${esc(ex?.name || ex?.insp || '')}" placeholder="Eigene Bezeichnung..."></div>
-    <div class="zl-fg" id="mz-jahr"></div>
-    <div class="zl-fg"><label>Ungefährer Betrag (CHF)</label><input type="text" class="zl-inp${gc}" id="mz-bt" data-v1-field="mz-bt" value="${ex?.betrag != null ? fmt(ex.betrag) : k.defaultBetrag ? fmt(k.defaultBetrag) : ''}" placeholder="z.B. 150 000"></div>
-    ${isZ ? '' : `<div class="zl-fg"><label>Eintrittswahrscheinlichkeit</label><div class="zl-prob">
+    <div class="zl-wahl"><div class="zl-fsec">${isZ ? 'Art des Zuflusses' : 'Worum geht es?'}</div><div class="zl-inspgrid" id="ig">${k.insp.map((insp) => `<button class="zl-inspchip${gc}${curInsp === insp.t ? ' active' : ''}" type="button" data-insp="${esc(insp.t)}" data-v1-field="insp|${esc(insp.t)}">${I[insp.i]}<span>${insp.t}</span></button>`).join('')}</div></div>
+    <button class="zl-auswahl${gc}" type="button" id="mz-auswahl"><span class="zl-auswahl-ik">${I[k.ikon]}</span><span class="zl-auswahl-tx" id="mz-auswahl-tx"></span><span class="zl-auswahl-ae">ändern</span></button>
+    <div class="zl-fg zl-stufe2"><label>Bezeichnung</label><input type="text" class="zl-inp${gc}" id="mz-nm" data-v1-field="mz-nm" value="${esc(ex?.name || ex?.insp || '')}" placeholder="Eigene Bezeichnung..."></div>
+    <div class="zl-fg zl-stufe2" id="mz-jahr"></div>
+    <div class="zl-fg zl-stufe2"><label>Ungefährer Betrag (CHF)</label><input type="text" class="zl-inp${gc}" id="mz-bt" data-v1-field="mz-bt" value="${ex?.betrag != null ? fmt(ex.betrag) : k.defaultBetrag ? fmt(k.defaultBetrag) : ''}" placeholder="z.B. 150 000"></div>
+    ${isZ ? '' : `<div class="zl-fg zl-stufe2"><label>Eintrittswahrscheinlichkeit</label><div class="zl-prob">
       <button class="zl-pbtn${curProb === 'moeglich' ? ' active' : ''}" type="button" data-p="moeglich" data-v1-field="prob|moeglich">möglich</button>
       <button class="zl-pbtn${curProb === 'wahrscheinlich' ? ' active' : ''}" type="button" data-p="wahrscheinlich" data-v1-field="prob|wahrscheinlich">wahrscheinlich</button>
       <button class="zl-pbtn${curProb === 'sicher' ? ' active' : ''}" type="button" data-p="sicher" data-v1-field="prob|sicher">sicher</button>
     </div></div>`}
-    <div class="zl-fg"><label>Notiz</label><input type="text" class="zl-inp${gc}" id="mz-nt" data-v1-field="mz-nt" value="${esc(ex?.notiz || '')}" placeholder="Weitere Angaben..."></div>`;
+    <div class="zl-fg zl-stufe2"><label>Notiz</label><input type="text" class="zl-inp${gc}" id="mz-nt" data-v1-field="mz-nt" value="${esc(ex?.notiz || '')}" placeholder="Weitere Angaben..."></div>`;
+  // Bearbeiten startet in Stufe 2 — die Wahl ist dort laengst getroffen.
+  setStufe('modalZiel', curInsp ? 2 : 1, curInsp || k.lbl.replace('\n', ' '));
+  el('mz-auswahl').addEventListener('click', () => setStufe('modalZiel', 1));
   buildJahrSlider(document.getElementById('mz-jahr') as HTMLElement, ex?.jahr || slJahrVal, isZ);
   // Insp-Chips: Auswahl + Name-Prefill (v1: ausser "Sonstiges")
   body.querySelectorAll<HTMLElement>('[data-insp]').forEach((c) =>
@@ -425,6 +445,7 @@ function buildZielBody(k: Kat, ex: Ziel | null): void {
       c.classList.add('active');
       const nf = document.getElementById('mz-nm') as HTMLInputElement;
       if (nf && curInsp !== 'Sonstiges') nf.value = curInsp;
+      setStufe('modalZiel', 2, curInsp); // Wahl getroffen -> Maske auf
     }));
   body.querySelectorAll<HTMLElement>('[data-p]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -487,18 +508,25 @@ function renderWKat(): void {
   const g = el('mw-kat');
   g.innerHTML = '';
   KATS.filter((k) => k.type !== 'zufluss').forEach((k) => {
+    const lbl = k.lbl.replace('\n', ' ');
     const c = document.createElement('button');
     c.type = 'button';
     c.className = 'zl-inspchip' + (curWKat === k.id ? ' active' : '');
     c.setAttribute('data-v1-field', 'wkat|' + k.id);
-    c.innerHTML = I[k.ikon] + `<span>${k.lbl.replace('\n', ' ')}</span>`;
+    c.innerHTML = I[k.ikon] + `<span>${lbl}</span>`;
     c.addEventListener('click', () => {
       curWKat = k.id;
       g.querySelectorAll('.zl-inspchip').forEach((x) => x.classList.remove('active'));
       c.classList.add('active');
+      el('mw-auswahl-ik').innerHTML = I[k.ikon];
+      setStufe('modalWunsch', 2, lbl);
     });
     g.appendChild(c);
   });
+  // Bearbeiten startet in Stufe 2; ohne Kategorie beginnt es bei der Wahl.
+  const gewaehlt = KATS.find((k) => k.id === curWKat);
+  if (gewaehlt) el('mw-auswahl-ik').innerHTML = I[gewaehlt.ikon];
+  setStufe('modalWunsch', gewaehlt ? 2 : 1, gewaehlt?.lbl.replace('\n', ' '));
 }
 function saveWunsch(): void {
   const name = ((document.getElementById('w-name') as HTMLInputElement).value || '').trim();
@@ -600,6 +628,7 @@ function init(): void {
   el('zoom-all').addEventListener('click', () => setZoom(0));
   el('btnRecap').addEventListener('click', openRecap);
   el('btnWunsch').addEventListener('click', openWunschModal);
+  el('mw-auswahl').addEventListener('click', () => setStufe('modalWunsch', 1));
   el('mz-save').addEventListener('click', saveItem);
   el('mz-del').addEventListener('click', deleteItem);
   el('mw-save').addEventListener('click', saveWunsch);

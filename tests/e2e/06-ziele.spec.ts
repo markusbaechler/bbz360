@@ -69,8 +69,9 @@ test('06 Ziele — Smoke (Erfassen, Zeithorizont, Persistenz, Recap)', async ({ 
 
   // Wunsch erfassen (rot, Kundeninhalt)
   await page.locator('#btnWunsch').click();
-  await page.locator('#w-name').fill('Segeltörn Karibik');
+  // Zweistufig: erst die Kategorie, dann klappt die Erfassungsmaske auf.
   await page.locator('[data-v1-field="wkat|freizeit"]').click();
+  await page.locator('#w-name').fill('Segeltörn Karibik');
   await page.locator('#mw-save').click();
   await expect(page.locator('.zl-wchip')).toHaveCount(1);
   await expect(page.locator('#stWuensche')).toHaveText('1');

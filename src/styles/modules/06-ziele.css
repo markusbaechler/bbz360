@@ -121,6 +121,24 @@
 .zl-btnred { background: var(--red); }
 .zl-fsec { font-size: var(--fs-2xs); letter-spacing: 0.08em; font-weight: var(--w-bold); color: var(--mut); text-transform: uppercase; margin-bottom: 8px; }
 .zl-inspgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+
+/* ── Zweistufiges Modal ────────────────────────────────────────────────────
+   Stufe 1 = nur die Wahl (.zl-wahl), Stufe 2 = Erfassungsmaske (.zl-stufe2).
+   data-stufe sitzt am .zl-modal, damit auch der Speichern-Knopf im Fuss
+   mitgesteuert wird. */
+.zl-modal[data-stufe="1"] .zl-stufe2,
+.zl-modal[data-stufe="1"] .zl-auswahl,
+.zl-modal[data-stufe="2"] .zl-wahl { display: none; }
+.zl-auswahl { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; background: var(--blue-soft); border: 1px solid var(--blue-line); border-radius: var(--r-md); cursor: pointer; font-family: var(--font); text-align: left; }
+.zl-auswahl:hover { border-color: var(--blue); }
+.zl-auswahl.green { background: var(--green-soft); border-color: var(--green); }
+.zl-auswahl.red { background: var(--red-soft); border-color: var(--red); }
+.zl-auswahl-ik { display: flex; flex-shrink: 0; }
+.zl-auswahl-ik svg { width: 20px; height: 20px; }
+.zl-auswahl-tx { flex: 1; min-width: 0; font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--ink); }
+.zl-auswahl-ae { flex-shrink: 0; font-size: var(--fs-xs); font-weight: var(--w-bold); color: var(--blue); text-decoration: underline; }
+.zl-auswahl.green .zl-auswahl-ae { color: var(--green); }
+.zl-auswahl.red .zl-auswahl-ae { color: var(--red); }
 .zl-inspchip { display: flex; align-items: center; gap: 7px; font-family: var(--font); font-size: var(--fs-xs); font-weight: var(--w-med); color: var(--ink-3); background: var(--surface); border: 1.5px solid var(--blue-line); border-radius: var(--r-md); padding: 7px 10px; cursor: pointer; text-align: left; min-height: 40px; }
 .zl-inspchip svg { width: 16px; height: 16px; flex-shrink: 0; }
 .zl-inspchip.active { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: var(--w-bold); }

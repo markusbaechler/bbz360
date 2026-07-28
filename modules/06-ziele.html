@@ -98,7 +98,7 @@
         <button class="zl-del" id="mz-del" data-v1-field="mz-del" type="button" hidden>Löschen</button>
         <div class="zl-mfr">
           <button class="btn btn--ghost" data-close="modalZiel" type="button">Abbrechen</button>
-          <button class="btn" id="mz-save" type="button">Speichern</button>
+          <button class="btn zl-stufe2" id="mz-save" type="button">Speichern</button>
         </div>
       </div>
     </div>
@@ -112,19 +112,20 @@
         <button class="zl-mclose" data-close="modalWunsch" type="button" aria-label="Schliessen">✕</button>
       </div>
       <div class="zl-mbody">
-        <div><div class="zl-fsec">Kategorie</div><div class="zl-inspgrid" id="mw-kat"></div></div>
-        <div class="zl-fg"><label>Bezeichnung</label><input type="text" class="zl-inp zl-inp-red" id="w-name" data-v1-field="w-name" placeholder="Was wünschen Sie sich?"></div>
-        <div class="zl-frow">
+        <div class="zl-wahl"><div class="zl-fsec">Kategorie</div><div class="zl-inspgrid" id="mw-kat"></div></div>
+        <button class="zl-auswahl red" type="button" id="mw-auswahl"><span class="zl-auswahl-ik" id="mw-auswahl-ik"></span><span class="zl-auswahl-tx"></span><span class="zl-auswahl-ae">ändern</span></button>
+        <div class="zl-fg zl-stufe2"><label>Bezeichnung</label><input type="text" class="zl-inp zl-inp-red" id="w-name" data-v1-field="w-name" placeholder="Was wünschen Sie sich?"></div>
+        <div class="zl-frow zl-stufe2">
           <div class="zl-fg"><label>Ungefähres Jahr <small>(optional)</small></label><input type="number" class="zl-inp zl-inp-red" id="w-jahr" data-v1-field="w-jahr" placeholder="z.B. 2035"></div>
           <div class="zl-fg"><label>Ungefährer Betrag CHF <small>(optional)</small></label><input type="text" class="zl-inp zl-inp-red" id="w-betrag" data-v1-field="w-betrag" placeholder="z.B. 50 000"></div>
         </div>
-        <div class="zl-fg"><label>Notiz</label><input type="text" class="zl-inp zl-inp-red" id="w-notiz" data-v1-field="w-notiz" placeholder="Was steckt dahinter?"></div>
+        <div class="zl-fg zl-stufe2"><label>Notiz</label><input type="text" class="zl-inp zl-inp-red" id="w-notiz" data-v1-field="w-notiz" placeholder="Was steckt dahinter?"></div>
       </div>
       <div class="zl-mfoot">
         <button class="zl-del" id="mw-del" data-v1-field="mw-del" type="button" hidden>Löschen</button>
         <div class="zl-mfr">
           <button class="btn btn--ghost" data-close="modalWunsch" type="button">Abbrechen</button>
-          <button class="btn zl-btnred" id="mw-save" type="button">Speichern</button>
+          <button class="btn zl-btnred zl-stufe2" id="mw-save" type="button">Speichern</button>
         </div>
       </div>
     </div>
