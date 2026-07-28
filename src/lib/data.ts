@@ -14,6 +14,17 @@ const ADMIN_KEY = 'bbzAdmin';
 // damit data.ts nicht an images.ts koppelt (siehe exportSession/importSession).
 const IMAGES_KEY = 'bbzImages';
 
+// Signal an die Oberflaeche, dass localStorage nichts mehr annimmt. Die
+// Datenschicht bleibt UI-frei und meldet nur — dargestellt wird es von
+// lib/speicher-hinweis.ts. Ohne Meldung gingen Eingaben lautlos verloren.
+export const SPEICHERFEHLER_EVENT = 'bbz:speicherfehler';
+
+function meldeSchreibfehler(): void {
+  try {
+    window.dispatchEvent(new CustomEvent(SPEICHERFEHLER_EVENT));
+  } catch { /* kein DOM (Unit-Test) */ }
+}
+
 // Speicher voll: unterscheidbar von "Datei kaputt", damit die Oberflaeche das
 // Richtige sagen kann. Bei diesem Fehler ist der bisherige Stand unveraendert.
 export class SpeicherVollError extends Error {
@@ -64,6 +75,7 @@ function save(data: SessionData): boolean {
     return true;
   } catch (e) {
     console.warn('data: localStorage write failed', e);
+    meldeSchreibfehler();
     return false;
   }
 }
@@ -74,6 +86,7 @@ function saveImages(o: unknown): boolean {
     return true;
   } catch (e) {
     console.warn('data: bbzImages write failed', e);
+    meldeSchreibfehler();
     return false;
   }
 }
@@ -84,21 +97,25 @@ export const BBZ = {
     return key in data ? data[key] : null;
   },
 
-  set(key: string, value: unknown): void {
+  // set/merge/setIfEmpty geben zurueck, ob geschrieben wurde. Die Module
+  // muessen das nicht auswerten — der Fehlschlag wird zusaetzlich als Event
+  // gemeldet und zentral angezeigt (lib/speicher-hinweis.ts).
+  set(key: string, value: unknown): boolean {
     const data = load();
     (data as Record<string, unknown>)[key] = coerce(key, value);
-    save(data);
+    return save(data);
   },
 
-  merge(obj: Record<string, unknown>): void {
+  merge(obj: Record<string, unknown>): boolean {
     const data = load();
     for (const [k, v] of Object.entries(obj)) (data as Record<string, unknown>)[k] = coerce(k, v);
-    save(data);
+    return save(data);
   },
 
-  setIfEmpty(key: string, value: unknown): void {
+  setIfEmpty(key: string, value: unknown): boolean {
     const cur = this.get(key as keyof SessionData);
-    if (cur === null || cur === '' || cur === undefined) this.set(key, value);
+    if (cur !== null && cur !== '' && cur !== undefined) return true; // nichts zu tun
+    return this.set(key, value);
   },
 
   all(): SessionData {
@@ -163,6 +180,7 @@ export const BBZ = {
       return true;
     } catch (e) {
       console.warn('data: bbzAdmin write failed', e);
+      meldeSchreibfehler();
       return false;
     }
   },

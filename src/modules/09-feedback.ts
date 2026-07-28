@@ -15,6 +15,7 @@
 // ============================================================================
 import '../styles/theme.css';
 import '../styles/modules/09-feedback.css';
+import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
 import { imageUrl, setImageOverride } from '../lib/images';

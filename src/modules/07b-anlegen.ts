@@ -19,6 +19,7 @@
 // ============================================================================
 import '../styles/theme.css';
 import '../styles/modules/07b-anlegen.css';
+import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
 import { STRATS as CORE_STRATS, simulate, stressStrategyIdx, stressScore, horizonMaxStrategyIdx } from '../lib/finance';

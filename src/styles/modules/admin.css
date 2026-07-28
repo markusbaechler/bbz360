@@ -4,6 +4,8 @@
    ========================================================================== */
 
 .ad-body { height: 100vh; overflow: hidden; display: grid; grid-template-rows: var(--topbar-h) 1fr 44px; background: var(--bg); }
+/* Speicher-Warnung als zusaetzliche erste Zeile (siehe theme.css) */
+.ad-body:has(> .bbz-speicherhinweis) { grid-template-rows: auto var(--topbar-h) 1fr 44px; }
 .ad-topbar { background: var(--blue-dk); display: flex; align-items: center; gap: 14px; padding: 0 24px; }
 .ad-topname { color: #fff; font-size: var(--fs-nav); font-weight: var(--w-bold); }
 .ad-backlink { margin-left: auto; color: rgba(255, 255, 255, 0.65); font-size: var(--fs-sm); text-decoration: none; padding: 6px 10px; border-radius: var(--r-sm); }

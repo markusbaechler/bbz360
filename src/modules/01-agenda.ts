@@ -5,6 +5,7 @@
 // ============================================================================
 import '../styles/theme.css';
 import '../styles/modules/01-agenda.css';
+import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import Sortable from 'sortablejs';
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';

@@ -14,6 +14,8 @@
   --blue-soft:#f4f8fb; --blue-line:#c7d6e4;
   --red:#950e13; --red-ink:#5a1518; --red-soft:#faf6f6; --red-kicker:#8a5a5d;
   --green:#2e6b45; --green-soft:#e7efe9; --amber:#b45309; --slate:#475569;
+  /* System-Warnung (Technik, kein Kundeninhalt) — red/amber sind semantisch belegt */
+  --warn:#8a2b00;
   --ink:#0f2a44; --ink-2:#1c2b3a; --ink-3:#3d4c5c; --ink-4:#5f7d99;
   --mut:#8b98a5; --mut-2:#98a5b2; --mut-3:#b0bcc7;
   --bg:#eef2f6; --surface:#fff; --line:#dde5ec; --line-soft:#edf1f5;
@@ -47,6 +49,15 @@ body.bbz-app{height:100vh;height:100dvh;overflow:hidden;display:grid;grid-templa
 .bbz-bar{background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center}
 .bbz-bar-in{max-width:var(--stage-max);width:100%;margin-inline:auto;display:flex;align-items:center;justify-content:space-between;padding:0 36px}
 .bbz-work--focus~.bbz-bar .bbz-bar-in,.bbz-bar-in--focus{max-width:var(--stage-focus)}
+
+/* Speicher-Warnung (lib/speicher-hinweis.ts) — nur im Fehlerfall im DOM.
+   Liegt als erstes Body-Kind ueber der Topbar; die festen Zeilenraster der
+   Seiten bekommen dafuer eine zusaetzliche auto-Zeile. */
+.bbz-speicherhinweis{background:var(--warn);color:#fff;display:flex;align-items:center;gap:16px;padding:10px 24px;font-size:var(--fs-sm);font-weight:var(--w-bold);line-height:1.35}
+.bbz-speicherhinweis span{flex:1;min-width:0}
+.bbz-speicherhinweis button{flex-shrink:0;background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:var(--r-sm);cursor:pointer;font-size:var(--fs-md);line-height:1;min-width:32px;min-height:32px}
+.bbz-speicherhinweis button:hover{background:rgba(255,255,255,0.28)}
+body.bbz-app:has(>.bbz-speicherhinweis){grid-template-rows:auto var(--topbar-h) 1fr}
 
 /* Topbar */
 .bbz-topbar{background:var(--blue-dk);display:flex;align-items:center;gap:16px;padding:0 24px}

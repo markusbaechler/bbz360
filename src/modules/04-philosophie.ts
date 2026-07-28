@@ -14,6 +14,7 @@
 // ============================================================================
 import '../styles/theme.css';
 import '../styles/modules/04-philosophie.css';
+import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { mountNav } from '../lib/nav';
 import { imageUrl, setImageOverride, resetImageOverride } from '../lib/images';
 

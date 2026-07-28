@@ -9,6 +9,7 @@
 // ============================================================================
 import './styles/theme.css';
 import './styles/modules/index.css';
+import './lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ, SpeicherVollError } from './lib/data';
 import { beraterImageUrl } from './lib/images';
 import type { Berater } from './lib/schema';

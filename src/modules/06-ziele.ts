@@ -22,6 +22,7 @@
 // ============================================================================
 import '../styles/theme.css';
 import '../styles/modules/06-ziele.css';
+import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
 

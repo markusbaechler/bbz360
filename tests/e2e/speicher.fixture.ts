@@ -14,5 +14,6 @@ export async function speicherFuellen(page: Page): Promise<void> {
     fuellen(64 * 1024, '__f64_');
     fuellen(4 * 1024, '__f4_');
     fuellen(256, '__f256_');
+    fuellen(32, '__f32_'); // fein genug, dass auch ein kurzer bbzData-Write scheitert
   });
 }

@@ -9,6 +9,7 @@
 // ============================================================================
 import './styles/theme.css';
 import './styles/modules/admin.css';
+import './lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from './lib/data';
 import { KACHEL_TITEL, type Berater } from './lib/schema';
 import { IMAGE_SLOTS, imageUrl, hasOverride, setImageOverride, resetImageOverride, repoTarget, downloadForRepo, downloadDataUrl, toStorableDataUrl } from './lib/images';

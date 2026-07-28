@@ -7,6 +7,7 @@
 // ============================================================================
 import '../styles/theme.css';
 import '../styles/modules/08-vereinbarungen.css';
+import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
 import { fmtDate } from '../lib/format';
