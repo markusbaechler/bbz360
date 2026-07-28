@@ -95,6 +95,9 @@ describe('migrate() — v1 bbzData -> SessionData (ADR-4)', () => {
   });
 });
 
+interface TestKachel { titel: string; foto_b64: string | null; content: string }
+const kachelnVon = (p: unknown): TestKachel[] => (p as { kacheln: TestKachel[] }).kacheln;
+
 describe('migrateAdmin() — bbzAdmin (separater Store)', () => {
   it('reines Array bleibt Array', () => {
     const admin = [{ id: 1, name: 'Berater 1' }, { id: 2, name: 'Berater 2' }];
@@ -107,5 +110,29 @@ describe('migrateAdmin() — bbzAdmin (separater Store)', () => {
   it('Muell -> leeres Array', () => {
     expect(migrateAdmin(null)).toEqual([]);
     expect(migrateAdmin({})).toEqual([]);
+  });
+
+  // admin.ts liest kacheln[0..2] ungeprueft (renderFotos/renderKachelEditor/
+  // flushEditor). Ein Profil ohne vollstaendige Kacheln legte die Oberflaeche
+  // beim Laden lahm — darum hier an der Lesegrenze auffuellen.
+  it('ergaenzt fehlende Kacheln auf drei', () => {
+    const p = kachelnVon(migrateAdmin([{ id: 1, name: 'Ohne Kacheln' }])[0]);
+    expect(p).toHaveLength(3);
+    expect(p[2].titel).toBe('Was Sie von mir erwarten können');
+    expect(p[0]).toEqual({ titel: 'Wer ich bin', foto_b64: null, content: '' });
+  });
+
+  it('bestehende Kacheln bleiben unangetastet', () => {
+    const p = kachelnVon(migrateAdmin([
+      { id: 1, kacheln: [{ titel: 'Eigener Titel', foto_b64: 'data:image/jpeg;base64,xx', content: '<p>Text</p>' }] },
+    ])[0]);
+    expect(p[0]).toEqual({ titel: 'Eigener Titel', foto_b64: 'data:image/jpeg;base64,xx', content: '<p>Text</p>' });
+    expect(p).toHaveLength(3);
+  });
+
+  it('Kacheln mit Luecken werden feldweise vervollstaendigt', () => {
+    const p = kachelnVon(migrateAdmin([{ id: 1, kacheln: [{ content: 'nur Text' }, null] }])[0]);
+    expect(p[0]).toEqual({ titel: 'Wer ich bin', foto_b64: null, content: 'nur Text' });
+    expect(p[1]).toEqual({ titel: 'Was ich mag', foto_b64: null, content: '' });
   });
 });

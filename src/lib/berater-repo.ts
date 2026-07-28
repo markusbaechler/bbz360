@@ -10,11 +10,11 @@
 // Regel: im JSON steht NIE Base64. Fotos sind Repo-Pfade, damit die Datei
 // klein bleibt und bei jedem Seitenaufruf schnell laedt.
 // ============================================================================
-import type { Berater } from './schema';
+import { KACHEL_TITEL, type Berater } from './schema';
 import { beraterRepoTarget } from './images';
 
 const SUFFIX = ['a', 'b', 'c'];
-const KACHEL_FALLBACK = ['Wer ich bin', 'Was ich mag', 'Was Sie von mir erwarten können'];
+const KACHEL_FALLBACK = KACHEL_TITEL;
 
 export interface RepoKachel { titel: string; foto: string; content: string }
 export interface RepoProfil { id: number; name: string; titel: string; foto: string; kacheln: RepoKachel[] }

@@ -10,7 +10,7 @@
 import './styles/theme.css';
 import './styles/modules/admin.css';
 import { BBZ } from './lib/data';
-import type { Berater } from './lib/schema';
+import { KACHEL_TITEL, type Berater } from './lib/schema';
 import { IMAGE_SLOTS, imageUrl, hasOverride, setImageOverride, resetImageOverride, repoTarget, downloadForRepo, downloadDataUrl, toStorableDataUrl } from './lib/images';
 import { buildRepoJson, pendingFotos, repoJsonToProfiles } from './lib/berater-repo';
 
@@ -36,7 +36,7 @@ const getInitials = (name: string): string => {
   return parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (name || '?').slice(0, 2).toUpperCase();
 };
 
-const KACHEL_TITLES = ['Wer ich bin', 'Was ich mag', 'Was Sie von mir erwarten können'];
+const KACHEL_TITLES = KACHEL_TITEL;
 
 async function loadProfiles(): Promise<void> {
   const saved = BBZ.getBeraterProfiles();

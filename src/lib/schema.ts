@@ -133,12 +133,38 @@ export function migrate(raw: unknown): SessionData {
   return src as SessionData;
 }
 
+// Kanonische Kachel-Titel — eine Quelle fuer admin, berater-repo und die
+// Normalisierung unten (frueher dreimal wortgleich gepflegt).
+export const KACHEL_TITEL = ['Wer ich bin', 'Was ich mag', 'Was Sie von mir erwarten können'];
+
+export interface AdminKachel { titel: string; foto_b64: string | null; content: string }
+
+// bbzAdmin ist browser-lokal und kommt auch aus Session-Importen oder von Hand.
+// admin.ts liest kacheln[0..2] ungeprueft; fehlten sie, warf renderFotos()
+// waehrend init() und die Administration blieb ohne Listener zurueck. Darum
+// wird hier IMMER auf drei vollstaendige Kacheln normalisiert.
+function normalisiereKacheln(raw: unknown): AdminKachel[] {
+  const ks = Array.isArray(raw) ? raw : [];
+  return KACHEL_TITEL.map((standard, i) => {
+    const k = (ks[i] ?? {}) as Partial<AdminKachel>;
+    return {
+      titel: typeof k.titel === 'string' && k.titel ? k.titel : standard,
+      foto_b64: typeof k.foto_b64 === 'string' && k.foto_b64 ? k.foto_b64 : null,
+      content: typeof k.content === 'string' ? k.content : '',
+    };
+  });
+}
+
 // bbzAdmin ist ein separater Store: reines Berater[]-Array.
 // v1-Altform (Objekt mit .profiles-Array) wird mitgelesen.
 export function migrateAdmin(raw: unknown): Berater[] {
-  if (Array.isArray(raw)) return raw as Berater[];
-  if (raw && typeof raw === 'object' && Array.isArray((raw as { profiles?: unknown }).profiles)) {
-    return (raw as { profiles: Berater[] }).profiles;
+  let arr: unknown[] = [];
+  if (Array.isArray(raw)) arr = raw;
+  else if (raw && typeof raw === 'object' && Array.isArray((raw as { profiles?: unknown }).profiles)) {
+    arr = (raw as { profiles: unknown[] }).profiles;
   }
-  return [];
+  return arr.map((p) => ({
+    ...(p as Berater),
+    kacheln: normalisiereKacheln((p as { kacheln?: unknown } | null)?.kacheln),
+  }));
 }
