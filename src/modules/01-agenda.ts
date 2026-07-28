@@ -182,9 +182,18 @@ function renderList(w: Which): void {
 
   if (w === 'agenda') {
     // Abhaken: ohne Bearbeiten-Modus bedienbar (Regel-4-Ausnahme, siehe Header).
-    list.querySelectorAll<HTMLButtonElement>('.ag-tn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const idx = indexOf(btn);
+    // Klickflaeche ist die GANZE Zeile — im Gespraech ist die Nummer allein zu
+    // klein. Die Nummer bleibt das barrierefreie Bedienelement (role=checkbox,
+    // fokussierbar); ihr Klick blubbert hierher, ein zweiter Handler entfaellt.
+    list.querySelectorAll<HTMLElement>('.ag-tr').forEach((row) => {
+      row.addEventListener('click', (e) => {
+        const ziel = e.target as HTMLElement;
+        // Loeschen und Ziehgriff haben eigene Aufgaben.
+        if (ziel.closest('[data-act="del"]') || ziel.closest('.ag-grip')) return;
+        // Im Bearbeiten-Modus hat der Textcursor Vorrang, sonst liesse sich
+        // kein Traktandum mehr umbenennen.
+        if (editMode && ziel.closest('.ag-tt')) return;
+        const idx = indexOf(row);
         if (idx < 0) return;
         erledigt[idx] = !erledigt[idx];
         persist();

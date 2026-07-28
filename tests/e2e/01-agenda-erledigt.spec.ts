@@ -34,6 +34,43 @@ test('Traktandum abhaken funktioniert ohne Bearbeiten-Modus und uebersteht den R
   expect(await erledigtStand(page)).toEqual([false, true, false, false, false, false]);
 });
 
+test('Klick auf den Traktandentext hakt ab', async ({ page }) => {
+  await page.goto('modules/01-agenda.html');
+  await page.waitForSelector('#trakList .ag-tr');
+
+  await page.locator('#trakList .ag-tr:nth-child(3) .ag-tt').click();
+
+  expect(await erledigtStand(page)).toEqual([false, false, true, false, false, false]);
+});
+
+test('im Bearbeiten-Modus bearbeitet ein Klick auf den Text, statt abzuhaken', async ({ page }) => {
+  await page.goto('modules/01-agenda.html');
+  await page.waitForSelector('#trakList .ag-tr');
+  await page.locator('#editToggle').click();
+
+  const text = page.locator('#trakList .ag-tr:nth-child(3) .ag-tt');
+  await text.click();
+  await page.keyboard.type('X');
+
+  expect(await erledigtStand(page)).toEqual([false, false, false, false, false, false]);
+  await expect(text).toContainText('X');
+  // Die Nummer bleibt auch im Bearbeiten-Modus der Schalter.
+  await page.locator(HAKEN(3)).click();
+  expect(await erledigtStand(page)).toEqual([false, false, true, false, false, false]);
+});
+
+test('Loeschen und Ziehgriff haken nicht ab', async ({ page }) => {
+  await page.goto('modules/01-agenda.html');
+  await page.waitForSelector('#trakList .ag-tr');
+  await page.locator('#editToggle').click();
+
+  await page.locator('#trakList .ag-tr:nth-child(2) .ag-grip').click();
+  expect(await erledigtStand(page)).toEqual([false, false, false, false, false, false]);
+
+  await page.locator('#trakList .ag-tr:nth-child(2) [data-act="del"]').click();
+  expect(await erledigtStand(page)).toEqual([false, false, false, false, false]);
+});
+
 test('Zaehler erscheint erst ab dem ersten Haken und zaehlt mit', async ({ page }) => {
   await page.goto('modules/01-agenda.html');
   await page.waitForSelector('#trakList .ag-tr');
