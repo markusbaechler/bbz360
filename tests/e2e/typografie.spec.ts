@@ -18,7 +18,13 @@ const wurzelGroesse = (page: import('@playwright/test').Page): Promise<string> =
 test('Praesentationsschirm bekommt die grosse Lesegroesse', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('modules/05-cockpit.html');
-  expect(await wurzelGroesse(page)).toBe('18px');
+  expect(parseFloat(await wurzelGroesse(page))).toBeGreaterThanOrEqual(19.5);
+});
+
+test('sehr hoher Schirm bleibt beim Deckel von 20px', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1200 });
+  await page.goto('modules/05-cockpit.html');
+  expect(await wurzelGroesse(page)).toBe('20px');
 });
 
 test('kleiner Laptop bleibt bei der bisherigen Groesse', async ({ page }) => {

@@ -40,7 +40,7 @@
    (100dvh, overflow:hidden), also ist die Hoehe der ehrliche Massstab. Auf dem
    Praesentationsschirm (>=900px) volle 18px, auf einem kleinen Laptop die
    bisherigen 16px — dort, wo es eng wuerde, aendert sich nichts. */
-html{font-size:clamp(16px,2vh,18px)}
+html{font-size:clamp(16px,2.2vh,20px)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
 body{font-family:var(--font);font-size:var(--fs-base);line-height:1.5;color:var(--ink-3);background:var(--bg);-webkit-font-smoothing:antialiased}
