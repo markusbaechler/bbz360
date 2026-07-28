@@ -37,7 +37,11 @@ body.edit-mode .ag-tt { cursor: text; }
 .ag-tr[data-done="1"]:hover .ag-tnin { background: var(--green); border-color: var(--green); color: #fff; }
 .ag-tr[data-done="1"] .ag-tn:hover .ag-tnin { background: var(--green); }
 .ag-tt { flex: 1; font-size: var(--fs-md); color: var(--ink-2); outline: none; transition: color var(--dur); }
-.ag-tr[data-done="1"] .ag-tt { color: var(--mut); text-decoration: line-through; }
+/* Erledigt = graue Zeile. Kein Durchstreichen: das Traktandum bleibt lesbar,
+   der Kunde soll es weiter mitlesen koennen. */
+.ag-tr[data-done="1"] { background: var(--bg); }
+.ag-tr[data-done="1"]:hover { background: var(--line-soft); }
+.ag-tr[data-done="1"] .ag-tt { color: var(--ink-4); }
 .ag-count { margin-left: 6px; margin-right: auto; font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--green); letter-spacing: .08em; }
 .ag-grip { cursor: grab; color: var(--mut-3); user-select: none; }
 .ag-del {

@@ -32,6 +32,15 @@ test('Traktandum abhaken funktioniert ohne Bearbeiten-Modus und uebersteht den R
   await page.reload();
   await page.waitForSelector('#trakList .ag-tr');
   expect(await erledigtStand(page)).toEqual([false, true, false, false, false, false]);
+
+  // Erledigt wird durch die graue Zeile markiert, NICHT durch Durchstreichen.
+  const stil = await page.locator('#trakList .ag-tr:nth-child(2)').evaluate((row) => ({
+    strich: getComputedStyle(row.querySelector('.ag-tt')!).textDecorationLine,
+    zeile: getComputedStyle(row).backgroundColor,
+    offen: getComputedStyle(row.parentElement!.children[0]).backgroundColor,
+  }));
+  expect(stil.strich).toBe('none');
+  expect(stil.zeile).not.toBe(stil.offen);
 });
 
 test('Klick auf den Traktandentext hakt ab', async ({ page }) => {
