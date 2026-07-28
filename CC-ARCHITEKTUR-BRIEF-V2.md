@@ -75,6 +75,19 @@ bbz360/
   per exportiertem, nur dort importiertem Writer erzwingen.
 - Neu (ADR-5): `exportSession(): Blob` und `importSession(file)` mit
   Versions-/Schema-Validierung vor dem Merge.
+- Neu (ADR-14): **jede schreibende Funktion gibt `boolean` zurück** — `set`,
+  `merge`, `setIfEmpty`, `setBeraterProfiles`. localStorage kann voll sein
+  (~5 MB pro Origin, geteilt mit `bbzAdmin`/`bbzImages`); ein verschluckter
+  `QuotaExceededError` kostet lautlos eine ganze Beratung. Auswerten muss den
+  Rückgabewert niemand: die Datenschicht meldet jeden Fehlschlag zusätzlich
+  als `CustomEvent('bbz:speicherfehler')` und bleibt UI-frei,
+  `lib/speicher-hinweis.ts` zeigt den Banner. `importSession()` ist
+  alles-oder-nichts und wirft `SpeicherVollError` (unterscheidbar von
+  „Datei kaputt").
+- `migrateAdmin()` normalisiert jedes Profil auf **drei vollständige
+  Kacheln**. `admin.ts` liest `kacheln[0..2]` ungeprüft; fehlten sie, warf
+  `renderFotos()` während `init()` und die Administration blieb ohne jeden
+  Listener zurück.
 
 `finance.ts` — sämtliche Berechnungen aus 05/07a/07b als **pure Functions**
 extrahieren (Tragbarkeit inkl. kalk. Zins, Amortisation, Anlagebetrag,

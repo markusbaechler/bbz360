@@ -44,19 +44,32 @@ Vor jedem Modul-Bau: passende Referenz im Browser oeffnen und daneben legen.
    Kommendes sichtbar, gedimmt, gesperrt — und benennt selbst, wann es dran
    ist. Nur die Chips des aktiven Schritts sind sichtbar (nie >1 Chip-Gruppe
    aktiv). Referenz: 08-erfassen.
+   Gilt auch fuer Erfassungs-MODALS: 06 fragt in Stufe 1 nur "Worum geht es?",
+   erst danach klappt die Maske auf; die Wahl kollabiert zur Quittungszeile
+   (Symbol + Begriff + "aendern"). Bearbeiten startet in Stufe 2, dort ist die
+   Wahl getroffen. Speichern erscheint erst in Stufe 2 — in Stufe 1 gibt es
+   nichts zu speichern.
 3. **Wert schlaegt Label.** Feld-Labels sind Kicker (11px Versalien, grau).
    Gewaehlte/erfasste WERTE tragen das Gewicht (Quittung: 19px/900 dunkel).
    Gilt app-weit fuer jede Anzeige erfasster Inhalte.
 4. **Ruhige Praesentationsflaeche.** Im Normalzustand: keine dashed-Underlines,
    keine Loesch-/Upload-/Sortier-Werkzeuge. Alles Editier-Werkzeug erscheint
    erst mit body.edit-mode (Stift-Toggle Topbar). Ausnahmen nur, wo Erfassen
-   die Kernfunktion des Screens ist (z.B. "+ Erwartung ergaenzen" in 01).
+   die Kernfunktion des Screens ist, ABSCHLIESSEND:
+   (a) "+ Erwartung ergaenzen" in 01;
+   (b) Traktandum abhaken in 01 — Gespraechsfuehrung, nicht Konfiguration:
+       ein Klick auf die Zeile markiert erledigt, ohne Moduswechsel.
+   Eine neue Ausnahme braucht einen Eintrag hier UND im Datei-Header.
 5. **Sauberkeit.** (a) Kein Text in skalierten SVGs — Chart-Beschriftungen
    als HTML positioniert, Endwerte INNERHALB der Flaeche; Linien mit
    vector-effect:non-scaling-stroke. (b) Jeder Chart hat Gitterlinien,
    Werteskala, Zeit-/X-Achse und Legende im Panel-Kopf. (c) Nebeneinander-
    liegende Panels schliessen buendig ab (align-items:stretch + verteilter
-   Inhalt). (d) Titel max ~34ch, Eingabefelder duerfen Text nie abschneiden.
+   Inhalt) UND fuellen die Buehne (flex:1 1 auto auf dem Panel-Container).
+   Ohne das nehmen sie nur Inhaltshoehe und stehen als kleine Kaesten in einer
+   leeren Flaeche — ein leeres Panel sieht dann aus, als fehle etwas (Befund
+   01, behoben 2026-07-28). (d) Titel max ~34ch, Eingabefelder duerfen Text
+   nie abschneiden.
 6. **Semantik-Farben unantastbar.** Rot #950e13 NUR Kundeninhalt (Zitate,
    Erwartungen — linke rote Kante + kursiv). Amber nur Zeithorizont
    "mittelfristig". Prioritaet/Zustand wird durch ORT und GEWICHT codiert,
@@ -67,13 +80,26 @@ Topbar-Nav 14 · Fliesstext/Zeilen 15–16 · Panel-Kicker 11 Versalien ·
 Karten-Titel 20–22/700 · Saeulen-Titel 26–30/900 · KPI-Zahl 24/900 ·
 Quittungs-Wert 19/900 · Buttons 14.5/700, Hoehe ≥40px · Klickziele ≥44px.
 NICHTS ueber 30px ausser Begruessungs-Momenten in Gastgeber-/Buehnen-Modulen
-(max 34px). Schriften ausschliesslich rem-Tokens aus theme.css (Root fix 16px
-— der fluide clamp-Root ist ABGESCHAFFT).
+(max 34px). Schriften ausschliesslich rem-Tokens aus theme.css.
+
+**Root-Groesse (geaendert 2026-07-28, ADR-15).** `clamp(16px, 2.2vh, 20px)`.
+Der frueher hier stehende Satz „Root fix 16px — der fluide clamp-Root ist
+ABGESCHAFFT" gilt NICHT mehr. Die oben genannten px-Werte sind seither
+Richtwerte bei Root 16px und wachsen proportional mit; die Deckel (30px bzw.
+34px) gelten entsprechend relativ.
+- Untergrenze = bisheriger Zustand: nichts wird je kleiner als vorher. Das
+  alte Verbot in Regel 1 zielt auf Schrumpfen, damit Inhalt passt — hier ist
+  die Richtung umgekehrt.
+- `--fs-nav` ist ABSOLUT (14px) und skaliert NICHT mit. Die Topbar traegt 11
+  Tabs und lief sonst ab 17px Root ueber. Navigation ist Chrome.
+- Obergrenze ist gemessen, nicht geschaetzt: ab 21px schneidet `index.html`
+  ab. Wer sie verschieben will, misst neu — `typografie.spec.ts` haelt
+  Lesegroesse und Navigations-Ueberlauf fest.
 
 ## 4. Modul-Zuordnung (alle 13)
 | Modul | Vorlage | Saeule traegt |
 |---|---|---|
-| 01 Agenda | referenz-01 | Begruessung, Meta, Gespraechsziel |
+| 01 Agenda | referenz-01 | Begruessung, Meta, Gespraechsziel — Traktanden abhakbar (Regel 4b), Zaehler im Panel-Kicker |
 | 02/03/04 Bank/Berater/Philosophie | 01-Grammatik, Buehne = Bild/Story-Panel + max 3 Punkte | Kernbotschaft |
 | 05 Cockpit | referenz-05 | KPI-Set (v1: Gesamtvermoegen inkl. BV, Liquiditaet, Anlagefaehig, Sparquote, Kapitalwert) |
 | 06 Ziele | 08-erfassen-Sequenz + Zielkarten auf der Buehne | Phasen/Stand |

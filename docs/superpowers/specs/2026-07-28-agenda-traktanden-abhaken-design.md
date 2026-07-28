@@ -41,7 +41,12 @@ weg). Deckt alte Sessions, Importe und von Hand bearbeitete Stände ab.
 
 ## Interaktion
 
-Die Positionsnummer **wird** der Schalter:
+**Klickfläche ist die ganze Zeile** (nachgezogen 2026-07-28: die Nummer allein
+war im Gespräch ein zu kleines Ziel). Ausgenommen sind Löschen-Knopf und
+Ziehgriff; im Bearbeiten-Modus hat der Textcursor Vorrang, sonst liesse sich
+kein Traktandum mehr umbenennen. Die Zeile färbt sich beim Darüberfahren.
+
+Die Positionsnummer bleibt das barrierefreie Bedienelement:
 
 ```html
 <button class="ag-tn" type="button" role="checkbox" aria-checked="false"
@@ -49,8 +54,8 @@ Die Positionsnummer **wird** der Schalter:
 ```
 
 Bedienbar per Klick und Tastatur (Leertaste/Enter, native Button-Semantik).
-Klickziel mindestens 44 px (Layout-Konzept: Klickziele ≥44px in
-Arbeitsflächen).
+Klickziel mindestens 44 px (DESIGN-SPEC §3: «Klickziele ≥44px»;
+LAYOUT-KONZEPT-V2 ist durch die Spec abgelöst).
 
 **Ohne Bearbeiten-Modus bedienbar.** Abhaken ist Gesprächsführung, keine
 Konfiguration — im Gespräch soll niemand erst den Bearbeiten-Modus suchen.
@@ -60,10 +65,17 @@ Das ist die zweite dokumentierte Ausnahme zu Regel 4 ("Werkzeuge nur in
 
 ## Darstellung
 
-| Zustand | Nummer | Text |
+| Zustand | Nummer | Zeile |
 |---|---|---|
-| offen | Positionsnummer wie heute (`--blue`) | `--ink-2` |
-| erledigt | gefüllter Kreis `--green` mit weissem Haken | `--mut`, `line-through` |
+| offen | Positionsnummer im Ring (`--blue-line`) | Text `--ink-2` |
+| erledigt | gefüllter Kreis `--green` mit weissem Haken | Zeile grau (`--bg`), Text `--ink-4` |
+
+**Nachgeschärft am 2026-07-28 nach Sichtprüfung:**
+- Der Ring im offenen Zustand kam dazu. Ohne ihn sah die Zeile aus wie eine
+  reine Nummernliste — niemand kam auf die Idee zu klicken, die Funktion war
+  faktisch unsichtbar.
+- Kein Durchstreichen: erledigte Traktanden bleiben voll lesbar, der Kunde
+  soll weiter mitlesen können. Die graue Zeile trägt den Zustand.
 
 Der Übergang wird über `--dur` animiert, damit das Abhaken im Gespräch
 sichtbar *passiert* statt nur da zu sein.

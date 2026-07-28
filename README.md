@@ -11,10 +11,10 @@ bis zum Gesprächsbericht, neu aufgebaut nach **Design-Grammatik v3**
 | # | Modul | Vorlage (Spec §4) |
 |---|---|---|
 | index | Beratercockpit (Berater, Kunde, Modulwahl, Session-Export/-Import) | 05-Grammatik |
-| 01 | Agenda — Traktanden & Erwartungen | Gastgeber (referenz-01) |
+| 01 | Agenda — Traktanden (abhakbar) & Erwartungen | Gastgeber (referenz-01) |
 | 02–04 | Bank / Berater:in / Philosophie | Bühnen-Module |
 | 05 | Finanz-Cockpit — KPIs, Erfassungsmodale, Simulation | referenz-05 |
-| 06 | Ziele & Wünsche — Zeitachse, Lebensthemen, Wunschliste | Zielkarten + Sequenz |
+| 06 | Ziele & Wünsche — Zeitachse, Lebensthemen, Wunschliste (zweistufige Erfassung) | Zielkarten + Sequenz |
 | 07a | Eigenheimfinanzierung — Tragbarkeit, Varianten | 05-Simulations-Muster |
 | 07b | Anlegen — Profilierung (6 Phasen) + Umsetzung (3 Phasen) | referenz-08 |
 | 08 | Vereinbarungen — Wizard | referenz-08 |
@@ -45,6 +45,12 @@ npm run build        # Produktion nach dist/
 - **Design**: `src/styles/theme.css` ist Single Source of Truth;
   verbindliche Regeln in `design/DESIGN-SPEC.md` (Bühnen-Grammatik,
   6 Regeln, Inventar-Pflicht §5 inkl. Vereinfachungs-Verbot §5.4).
+  Lesegrösse wächst mit der Bildschirmhöhe: `clamp(16px, 2.2vh, 20px)`,
+  Navigation bleibt fix bei 14px (ADR-15). Obergrenze ist gemessen —
+  `tests/e2e/typografie.spec.ts` hält sie fest.
+- **Speicher**: localStorage fasst rund 5 MB pro Origin. Schreibfehler
+  werden nicht mehr verschluckt, sondern als Banner gemeldet
+  (`src/lib/speicher-hinweis.ts`, ADR-14); Importe sind alles-oder-nichts.
 - **Gate MODAL-PARITÄT** (ADR-12): v1-Feldinventare als checked-in
   Fixtures (`tests/e2e/modal-parity.fixture.ts`); fehlt ein v1-Feld,
   ist der Build rot.
@@ -66,6 +72,12 @@ als versionierte Dateien unter `public/img/…` (Repo = Default, geräteübergre
   angezeigten Pfad ablegen, z.B. `public/img/bank/bbzbank.jpg`, committen +
   pushen. Ab dem nächsten Deploy ist es der neue Default für alle Geräte.
 - **Session-Portabilität:** die Overrides sind Teil von Export/Import (ADR-5).
+- **Grösse:** Uploads werden vor dem Speichern auf max. 1400px verkleinert und
+  als JPEG neu kodiert (ADR-14). localStorage fasst nur rund 5 MB pro Origin —
+  ungeskalierte Kamerabilder sprengten das Budget, und der Schreibfehler wurde
+  früher verschluckt. Reicht der Platz trotzdem nicht, erscheint ein Banner
+  «Speicher voll — Eingaben werden nicht gespeichert» und der Upload wird
+  zurückgenommen.
 
 ## Beraterprofile (geräteübergreifend)
 

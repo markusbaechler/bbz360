@@ -107,3 +107,82 @@ pro Profil (`berater<id>{a,b,c}.jpg` + `foto_b64`-Override).
   geschrieben. `bbzImages` ist Teil von Export/Import (ADR-5).
 - Tests: `images.spec.ts` (Defaults, Override-Fallback, Legacy-Migration,
   Admin-Panel, Export).
+
+---
+
+## ADR-14 — Speicherfehler sind sichtbar; Uploads werden vor dem Speichern verkleinert
+
+**Kontext.** Ein hochgeladenes Beraterfoto erschien im Admin, kam aber in
+Modul 03 nie an. Ursache: Uploads landeten ungeskaliert als Base64 in
+`bbzAdmin`. localStorage fasst rund 5 MB pro Origin — geteilt von `bbzData`,
+`bbzAdmin` und `bbzImages`. Ab dem dritten Porträt scheiterte `setItem` mit
+`QuotaExceededError`. Der Fehler wurde verschluckt (nur `console.warn`), der
+Admin arbeitete auf der In-Memory-Kopie weiter und meldete „Foto
+gespeichert" — geschrieben wurde nichts. Dasselbe Muster steckte in
+`BBZ.set/merge` (33 Schreibstellen in 12 Dateien) und in beiden Import-Pfaden.
+
+**Entscheid.** Zwei Ebenen.
+
+1. *Ursache:* `toStorableDataUrl()` in `images.ts` verkleinert jeden Upload
+   vor dem Speichern auf max. 1400px Kantenlänge und kodiert ihn als JPEG neu.
+   Genutzt von beiden Upload-Pfaden (Porträts und App-Bilder). Nicht
+   dekodierbare Dateien (z. B. SVG) und Bilder, die durch die Umkodierung
+   wachsen würden, gehen unverändert durch.
+2. *Sicherheitsnetz:* Schreibende Funktionen geben `boolean` zurück
+   (`setBeraterProfiles`, `save`, `setImageOverride`, `BBZ.set/merge/
+   setIfEmpty`). Zusätzlich meldet die Datenschicht jeden Fehlschlag als
+   `CustomEvent('bbz:speicherfehler')` und bleibt selbst UI-frei;
+   `lib/speicher-hinweis.ts` macht daraus einen Banner über der Topbar
+   (schliessbar, einmalig). Ein Seiteneffekt-Import je Einstiegspunkt — eine
+   gemeinsame Bootstrap-Datei gibt es nicht, jedes Modul ist ein eigener
+   Vite-Entry.
+
+**Konsequenzen.**
+- Ein gescheiterter Upload wird zurückgenommen: der Admin darf kein Bild
+  zeigen, das kein Modul zu sehen bekommt.
+- `importSession()` ist alles-oder-nichts: `bbzData`/`bbzAdmin`/`bbzImages`
+  werden vorab gesichert und bei jedem Fehlschlag wiederhergestellt, danach
+  `SpeicherVollError`. Die Oberfläche unterscheidet das von „Datei kaputt".
+- Bestehende Browser: das dritte Foto ist dort nie angekommen und muss
+  einmalig neu hochgeladen werden.
+- Tests: `bild-persistenz.spec.ts`, `import-persistenz.spec.ts`,
+  `speicher-hinweis.spec.ts`. Die Fixture erzeugt ein echtes, dekodierbares
+  PNG — ein Zufalls-Buffer würde die Umkodierung stillschweigend umgehen.
+
+---
+
+## ADR-15 — Lesegrösse skaliert mit der Bildschirmhöhe (ersetzt „Root fix 16px")
+
+**Kontext.** Die Schrift war für ein Gerät, auf das Berater und Kunde
+gemeinsam schauen, zu klein (Fliesstext 15px). DESIGN-SPEC §3 schrieb bis
+hierhin „Root fix 16px — der fluide clamp-Root ist ABGESCHAFFT", Regel 1
+verbietet „Fit-to-screen durch Schrift-Schrumpfen (kein vw/vh-Font)".
+
+**Entscheid.** `html { font-size: clamp(16px, 2.2vh, 20px) }`, und
+`--fs-nav` wird ABSOLUT auf 14px gesetzt.
+
+**Abgrenzung zu Regel 1.** Das alte Verbot zielt auf *Schrumpfen*, damit
+Inhalt in eine feste Fläche passt — Text wurde dort zur Manövriermasse des
+Layouts. Hier ist die Richtung umgekehrt: die Untergrenze ist der bisherige
+Zustand (16px), grössere Schirme bekommen mehr. Kein Inhalt wird je kleiner
+als vorher. Regel 1 bleibt im Übrigen unangetastet: die Seite scrollt nicht.
+
+**Messgrundlage** (statt Schätzung, 1440px Breite):
+- Vertikal trägt es bis 20px in allen 13 Einstiegspunkten; erst bei 21px
+  schneidet `index.html` ab. Treffer bei 16px sind dekorative Elemente mit
+  `overflow:visible`.
+- Horizontal war die Topbar der Engpass: mit mitskalierender Navigation lief
+  sie ab 17px über (27px → 88px → 151px) und kürzte „10 Abschluss" auf „10".
+  Mit fixierten 14px verschwindet der Überlauf bei jeder getesteten Grösse.
+  Navigation ist Chrome — der Kunde liest sie nicht.
+- Geprüft auf 1440x900 (19.8px), 1280x1024 (20px), 1920x1080 (20px),
+  1280x800 (17.6px).
+
+**Konsequenzen.**
+- DESIGN-SPEC §3 ist entsprechend angepasst; der Satz „Root fix 16px" gilt
+  nicht mehr.
+- Typo läuft weiterhin ausschliesslich über `--fs-*`-Tokens (ADR-3 unberührt).
+  Abstände und Container sind weiterhin px — Schrift wächst, Kästen nicht.
+  Das ist der Grund, warum die Obergrenze gemessen und nicht geschätzt wird.
+- Wer die Grenze verschieben will, misst neu: `typografie.spec.ts` nagelt
+  Lesegrösse und Navigations-Überlauf fest.
