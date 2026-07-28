@@ -11,14 +11,16 @@
 .ag-goal { color: #fff; font-size: var(--fs-md); line-height: 1.6; font-weight: var(--w-med); }
 
 /* ── BÜHNE: zwei Panels ──────────────────────────────────────────────────── */
-.ag-cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; min-height: 0; align-items: stretch; }
+/* flex:1 — sonst nehmen die Panels nur Inhaltshoehe und stehen als kleine
+   Kaesten in einer grossen leeren Buehne (Muster wie .br-cards in Modul 03). */
+.ag-cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; min-height: 0; align-items: stretch; flex: 1 1 auto; }
 .ag-cols .panel { padding: 24px 28px; display: flex; flex-direction: column; min-height: 0; max-height: 100%; }
 .ag-kicker-red { color: var(--red-kicker); }
 .ag-list { min-height: 0; }              /* bbz-scroll uebernimmt overflow */
 
 /* Traktanden-Zeilen */
 /* Ganze Zeile ist Klickflaeche zum Abhaken (siehe 01-agenda.ts). */
-.ag-tr { display: flex; align-items: center; gap: 16px; padding: 6px 8px; margin: 0 -8px; border-radius: var(--r-md); cursor: pointer; transition: background var(--dur); }
+.ag-tr { display: flex; align-items: center; gap: 16px; padding: 6px 8px; border-radius: var(--r-md); cursor: pointer; transition: background var(--dur); }
 .ag-tr:hover { background: var(--blue-soft); }
 .ag-tr + .ag-tr { border-top: 1px solid var(--line-soft); }
 /* Im Bearbeiten-Modus fasst man den Text an, nicht den Schalter. */

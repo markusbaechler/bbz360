@@ -163,3 +163,27 @@ test('Modul 10 zeigt den Haken fuer erledigte Traktanden', async ({ page }) => {
   await expect(zeilen.nth(1)).toContainText('Veränderungen');
   await expect(zeilen.nth(0).locator('.rp-ldone')).toHaveCount(0);
 });
+
+// Die Panels nahmen nur Inhaltshoehe und standen als kleine Kaesten in einer
+// grossen leeren Flaeche — anders als in allen anderen Modulen, die ihre
+// Buehne fuellen (vgl. .br-cards in 03 mit flex:1 1 auto).
+test('Traktanden und Erwartungen fuellen die Buehne', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('modules/01-agenda.html');
+  await page.waitForSelector('#trakList .ag-tr');
+
+  const m = await page.evaluate(() => {
+    const w = document.querySelector('.bbz-work') as HTMLElement;
+    const c = document.querySelector('.ag-cols') as HTMLElement;
+    const st = getComputedStyle(w);
+    const nutzbar = w.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
+    const liste = document.getElementById('trakList')!;
+    return {
+      anteil: c.getBoundingClientRect().height / nutzbar,
+      querUeberlauf: liste.scrollWidth - liste.clientWidth,
+    };
+  });
+
+  expect(m.anteil).toBeGreaterThan(0.9);  // Buehne wird ausgefuellt
+  expect(m.querUeberlauf).toBeLessThanOrEqual(0); // Zeilen ragen nicht heraus
+});
