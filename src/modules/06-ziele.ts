@@ -174,7 +174,9 @@ const SZ: Record<string, number> = { sicher: 96, wahrscheinlich: 74, moeglich: 5
 function renderBubbles(): void {
   const area = el('bubblesArea');
   area.querySelectorAll('.zl-bubble').forEach((b) => b.remove());
-  el('emptyHint').style.display = ziele.length || wuensche.length ? 'none' : 'block';
+  // hidden statt Inline-display: 'block' ueberschrieb das display:flex aus
+  // .zl-empty und setzte damit die Zentrierung ausser Kraft.
+  el('emptyHint').hidden = !!(ziele.length || wuensche.length);
   const placed: Placed[] = [];
   const rPct = (px: number): number => (px / area.clientWidth) * 100 / 2;
 

@@ -84,3 +84,49 @@ test('Wunsch-Modal fuehrt genauso in zwei Stufen', async ({ page }) => {
   await expect(page.locator('#mw-save')).toBeVisible();
   await expect(page.locator('#modalWunsch .zl-auswahl')).toBeVisible();
 });
+
+// Der Leerzustand trug einen handgesetzten Zeilenumbruch fuer die alte
+// Schriftgroesse — dadurch klebte der Gedankenstrich am naechsten Wort
+// ("Sie –heute") und der Satz brach mitten drin um.
+test('Leerzustand: Satz bricht natuerlich, Gedankenstrich sauber gesetzt', async ({ page }) => {
+  await page.goto('modules/06-ziele.html');
+  await page.waitForSelector('#emptyHint');
+
+  const m = await page.evaluate(() => {
+    const t = document.querySelector('.zl-empty-text') as HTMLElement;
+    return {
+      text: (t.textContent ?? '').trim(),
+      harteUmbrueche: t.querySelectorAll('br').length,
+      railStrich: (document.querySelector('.rail-title')?.textContent ?? '').includes('—'),
+      passt: t.scrollWidth <= t.clientWidth + 1,
+    };
+  });
+
+  expect(m.harteUmbrueche).toBe(0);
+  expect(m.text).not.toContain('–heute');
+  expect(m.text).not.toMatch(/\S[–—]\S/); // Gedankenstrich braucht Luft
+  expect(m.railStrich).toBe(true);
+  expect(m.text).toContain('—'); // gleicher Strich wie in der Saeule
+  expect(m.passt).toBe(true);
+});
+
+// Der Leerzustand wurde per Inline-Style auf display:block geschaltet und
+// verlor damit die Zentrierung aus .zl-empty (display:flex) — der Titelblock
+// klebte oben statt mittig in der leeren Flaeche zu stehen.
+test('Leerzustand steht mittig in der leeren Zeitachse', async ({ page }) => {
+  await page.goto('modules/06-ziele.html');
+  await page.waitForSelector('#emptyHint');
+
+  const m = await page.evaluate(() => {
+    const e = document.getElementById('emptyHint')!;
+    const t = document.querySelector('.zl-empty-text') as HTMLElement;
+    const eb = e.getBoundingClientRect(), tb = t.getBoundingClientRect();
+    return {
+      display: getComputedStyle(e).display,
+      abweichung: Math.abs((eb.top + eb.bottom) / 2 - (tb.top + tb.bottom) / 2),
+    };
+  });
+
+  expect(m.display).toBe('flex');
+  expect(m.abweichung).toBeLessThan(60); // Titelzeile nahe der Mitte
+});
