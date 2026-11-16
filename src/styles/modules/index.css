@@ -57,13 +57,14 @@
 }
 .ix-mod.tog { cursor: pointer; }
 .ix-mod.tog:hover { border-color: var(--blue); }
-.ix-mod.off { background: var(--bg); border-color: var(--line); opacity: 0.55; }
+/* Abgewählt: ohne Flächenfarbe, gestrichelter Rand, kein Haken — aber lesbar (Kontrast, Assessment C2) */
+.ix-mod.off { background: var(--surface); border-color: var(--mut-3); border-style: dashed; }
 .ix-mnum { grid-area: num; font-size: var(--fs-nav); font-weight: var(--w-black); color: var(--blue); font-variant-numeric: tabular-nums; }
-.ix-mod.off .ix-mnum { color: var(--mut-2); }
+.ix-mod.off .ix-mnum { color: var(--ink-4); }
 .ix-mname { grid-area: name; font-size: var(--fs-nav); font-weight: var(--w-bold); color: var(--ink); }
 .ix-mdesc { grid-area: desc; font-size: var(--fs-xs); color: var(--ink-4); }
 .ix-mcheck { grid-area: check; font-weight: var(--w-black); color: var(--blue); }
-.ix-mod.off .ix-mcheck { color: var(--mut-2); }
+.ix-mod.off .ix-mcheck { color: var(--ink-4); }
 .ix-branchhint { font-size: var(--fs-xs); color: var(--ink-4); margin-top: 8px; line-height: 1.5; }
 
 #btnStart small { display: block; font-size: var(--fs-2xs); opacity: 0.85; }

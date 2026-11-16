@@ -11,7 +11,8 @@ a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 /* Das Brand System kennt selbst eine Komponente .bbz-nav (mit Umbruch und Abstaenden): hier zuruecksetzen. */
 .bbz-nav{display:flex;flex-wrap:nowrap;align-items:center;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;margin:0;padding:0}
 .bbz-nav::-webkit-scrollbar{display:none}
-.bbz-nav-tab{color:rgba(255,255,255,.5);font-size:14px;padding:6px 7px;white-space:nowrap;text-decoration:none;border-radius:7px}
+/* Kontrast inaktiver Reiter mindestens 4.5:1 (Assessment C1) */
+.bbz-nav-tab{color:rgba(255,255,255,.66);font-size:14px;padding:6px 7px;white-space:nowrap;text-decoration:none;border-radius:7px}
 .bbz-nav-tab.active{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
 /* Unter-Module (05b, 07a–07c …): inaktiv nur die Nummer, sonst laeuft die Topbar ueber (13+ Reiter). */
 .bbz-nav-tab.sub:not(.active) .bbz-nav-lbl{display:none}

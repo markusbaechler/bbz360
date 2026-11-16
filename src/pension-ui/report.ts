@@ -220,7 +220,7 @@ export async function buildReport(app: App) {
   h2('Jahresrechnung (nominal, CHF)');
   const c = (v: number) => (Math.abs(v) < 0.5 ? '–' : nf.format(Math.round(v)));
   table(['Jahr', 'Alter', 'Lohn', 'Übr. Eink.', 'AHV', 'PK', 'Kapital', 'Ertrag', 'Ausgaben', 'Steuern', 'AHV-Beitr.', 'Übriges', 'Vermögen'],
-    R.base.rows.map((x) => [String(x.year), S.haushalt === 'single' ? String(x.age) : x.ages.join('/'), c(x.lohn), c(x.uebrig), c(x.ahv), c(x.pk), c(x.kapZu), c(x.ertrag), c(-x.ausgaben), c(-x.steuern - x.stVerm - x.stErtrag), c(-x.ne), c(x.wEin - x.wAus - x.einz3a + x.lgNetto - x.amortFrei), c(x.V)]),
+    R.base.rows.map((x) => [String(x.year), S.haushalt === 'single' ? String(x.age) : x.ages.join('/'), c(x.lohn), c(x.uebrig + (x.zufluss || 0)), c(x.ahv), c(x.pk), c(x.kapZu), c(x.ertrag), c(-x.ausgaben), c(-x.steuern - x.stVerm - x.stErtrag), c(-x.ne), c(x.wEin - x.wAus - x.einz3a + x.lgNetto - x.amortFrei - (x.lgKauf || 0)), c(x.V)]),
     { size: 7, cols: right(12) });
   p('Steuern = Einkommenssteuer auf Renten und auf dem steuerbaren Teil der Vermögenserträge sowie Vermögenssteuer. Übriges = Wünsche, Einzahlungen in die Säule 3a, weitere Liegenschaften und Amortisationen aus freiem Vermögen. Vermögen = Stand am Jahresende.', { muted: true, size: 8 });
 

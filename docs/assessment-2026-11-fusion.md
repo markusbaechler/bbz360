@@ -1,6 +1,6 @@
 # Assessment der Fusion PensCheck → bbz360
 
-Stand: 2026-11-16 · Geprüfter Commit: `446225f` (Branch `claude/loving-albattani-efae2x`) · Status: **Befunde offen, nichts behoben**
+Stand: 2026-11-16 · Geprüfter Commit: `446225f` (Branch `claude/loving-albattani-efae2x`) · Status: **Befunde behoben (siehe «Behebung» am Ende); zweiter Prüflauf ausstehend**
 
 ## Urteil
 
@@ -262,3 +262,47 @@ Vier Entscheide des Auftraggebers sind dafür nötig:
    in der Frist») oder das Einkaufsdatum erfassen?
 4. **A9:** Soll der Kauf in 07a ausdrücklich einem Ziel zugeordnet werden, statt ihn aus dem ersten
    Wohnen-Ziel abzuleiten?
+
+
+---
+
+## Behebung (2026-11-16, nach dem Assessment)
+
+Entscheide des Auftraggebers: ein Kundenfall statt zwei (A1), zwei Kinderangaben (A13/A14), Sperrfrist
+vorsichtig nach Usanz (A15), der Kauf ist ein Ziel (A9). Regeln und Einzelheiten: ADR-22.
+
+| Befund | Stand | Wie | Test |
+|---|---|---|---|
+| A1 | behoben | Musterfall, «Neu beginnen» und Übungsmodus aus 07c entfernt | `07c-pension.spec.ts` (A1, zwei Tests) |
+| A2 | behoben | Import wendet die Stammdaten an; keine anderen Wege, den Stand zu ersetzen | `07c-pension.spec.ts` (A2), `haushalt.test.ts` |
+| A3 | behoben | zweite Person auch bei Einkommen im Cockpit; kein Nullsetzen | `haushalt-fluss.spec.ts` (A3), `haushalt.test.ts` |
+| A4 | behoben | ein Betrag, Cockpit gliedert; Löschen wirkt | `haushalt-fluss.spec.ts` (A4) |
+| A5 | behoben | je Person Brutto, sonst ihr Netto | `haushalt-fluss.spec.ts` (A5/B2), `haushalt.test.ts` |
+| A6 | behoben | ältere Brutto-Stände tragen kein Netto; Ausgaben werden übernommen | `haushalt-fluss.spec.ts` (A6), `haushalt.test.ts` |
+| A7 | behoben | 07b schreibt `anlage_betrag` | `07-lebensplan.spec.ts` (Betrag über die Oberfläche von 07b) |
+| A8 | behoben | Ausgaben mit Kalenderjahr; laufendes Jahr sofort | `kern-erweiterung.test.ts`, `lebensplan.test.ts` |
+| A9 | behoben | Zuordnung des Kaufs zu einem Ziel in 07a; keine Doppelzählung bekannter Vorschläge | `07a-finanzieren.spec.ts` (A9), `lebensplan.test.ts` |
+| A10 | behoben | Vorbezug kürzt Rente und Kapital, höchstens bis zum Guthaben, nur vor der Pensionierung | `lebensplan.test.ts` |
+| A11 | behoben | Vorbezug in heutiger Kaufkraft, auf die Eigenmittel begrenzt | `kern-erweiterung.test.ts` |
+| A12 | behoben | UVG-Ehegattenrente nur mit Anspruch | `fachmodule.test.ts` |
+| A13, A14 | behoben | zwei Kinderangaben; AHV-Anspruch mit Kindern gleich welchen Alters | `fachmodule.test.ts`, `07def-fachmodule.spec.ts` |
+| A15 | behoben | Sperrfrist vom Einkaufsjahr bis und mit dem dritten Folgejahr | `fachmodule.test.ts`, `07def-fachmodule.spec.ts` |
+| B1 | behoben | früherer Paar-Zivilstand wird gemerkt (Themenkarten von Person 2 gehen weiterhin verloren, wenn der Haushalt zur Einzelperson wird) | `haushalt.test.ts` |
+| B2 | behoben | Vorbelegungen werden mit dem Stand geschrieben; der Abschluss liest die geteilten Grössen aus dem Haushalt | `haushalt-fluss.spec.ts` |
+| B3 | Grenze | ADR-22 | – |
+| B4, B5 | behoben | Kalenderjahre; Einträge nach dem Horizont vorgemerkt | `lebensplan.test.ts`, `kern-erweiterung.test.ts` |
+| B6 | behoben | später Kauf zählt nicht ungeprüft als Reserve | `kern-erweiterung.test.ts` |
+| B7 | behoben | Miete sinkt ab 75 mit; Ausgaben nicht negativ | `kern-erweiterung.test.ts` |
+| B8, B10 | behoben | ein Kriterium «künftig» für Simulation, Eigenkapital, Vermögenssteuer | `kern-erweiterung.test.ts` |
+| B9 | Grenze | ADR-22 | – |
+| B11 | behoben | Drucken wartet auf die Rechnung; derselbe Stand wie Modul 07; Fehler wird genannt | – (im Code geprüft) |
+| B12 | behoben | nur Bezüge ab dem Einkaufsjahr | `fachmodule.test.ts`, `07def-fachmodule.spec.ts` |
+| B13, B14 | behoben | nur Erwerbstätige vor dem Referenzalter; Annahmen offengelegt | `fachmodule.test.ts` |
+| B15 | behoben | Entwurf für unvollständige Zeilen; ungültige Eingaben ändern nichts | `07def-fachmodule.spec.ts` |
+| B16 | behoben | gespeicherte Werte geprüft; keine 3a-Einzahlung nach der Pensionierung; Hinweis zum Grenzsteuersatz | `fachmodule.test.ts` |
+| weitere | behoben bzw. Grenze | Wahrscheinlichkeit im Hinweis; Rappen; Jahresrechnung geht auf; Miete nach Verkauf und Kaufmonat als Grenzen | `haushalt.test.ts`, `jahresrechnung.test.ts` |
+| C1, C2 | behoben | Kontrast | zweiter Prüflauf |
+| C3–C5, C8 | behoben | Texte | – |
+| C6 | behoben | Kundenname folgt den Stammdaten | `haushalt.test.ts` |
+| C7 | behoben | Anzeige «wie geplant»; keine Zeile «Witwenrente» im Konkubinat; Ganzzahlfelder nur Ziffern | `fachmodule.test.ts` |
+| C9 | behoben | die beiden Tests sind korrigiert | – |

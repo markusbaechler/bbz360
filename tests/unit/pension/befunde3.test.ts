@@ -426,7 +426,7 @@ describe('Kleineres', () => {
   });
   it('die Jahresrechnung im PDF enthält alle Steuern und geht zum Vermögen auf', () => {
     const rep = lies('src/pension-ui/report.ts');
-    expect(rep).toMatch(/c\(-x\.steuern - x\.stVerm - x\.stErtrag\), c\(-x\.ne\), c\(x\.wEin - x\.wAus - x\.einz3a \+ x\.lgNetto - x\.amortFrei\), c\(x\.V\)/);
+    expect(rep).toMatch(/c\(-x\.steuern - x\.stVerm - x\.stErtrag\), c\(-x\.ne\), c\(x\.wEin - x\.wAus - x\.einz3a \+ x\.lgNetto - x\.amortFrei - \(x\.lgKauf \|\| 0\)\), c\(x\.V\)/); // bbz360: mit Kauf (ADR-19/22)
     // dieselbe Rechnung wie im Rechenkern: Endvermögen = Anfang + alle Spalten
     const E = createEngine(P, A0, Pn);
     const R = analyse(migrate(clone(EXAMPLE)), E);

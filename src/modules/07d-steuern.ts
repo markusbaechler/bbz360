@@ -91,7 +91,7 @@ feld('stGrenz').addEventListener('input', () => { const v = zahlAus(feld('stGren
 feld('stEinkauf').addEventListener('input', () => { const v = zahlAus(feld('stEinkauf'), 5e6); if (v === null) return; ein.einkauf = v; sichern(); zeigeAbzuege(); });
 feld('stEinkaufJahr').addEventListener('input', () => {
   const el = feld('stEinkaufJahr'), t = el.value.trim(), n = Number(t);
-  const ok = t === '' || (Number.isInteger(n) && n >= 2000 && n <= 2100);
+  const ok = t === '' || (/^\d{4}$/.test(t) && n >= 2000 && n <= 2100);
   el.classList.toggle('bad', !ok);
   if (!ok) return;
   ein.einkaufJahr = t === '' ? 0 : n; sichern(); zeigeAbzuege();

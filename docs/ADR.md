@@ -462,3 +462,93 @@ Schriften und Markenzeichen; dazu offline-fähig als PWA.
   sind nicht Teil des Vorab-Caches.
 - Der PDF-Bericht der Pensionierung lädt jsPDF beim ersten Gebrauch nach;
   die Dateien sind im Vorab-Cache enthalten.
+
+---
+
+## ADR-22 — Ein Kundenfall pro Sitzung; Regeln für den gemeinsamen Stand (Korrekturen nach dem Assessment)
+
+**Kontext.** Das Assessment vom 2026-11-16 (`docs/assessment-2026-11-fusion.md`)
+fand 15 Fehler der Klasse A. Ihre gemeinsame Ursache: Funktionen und Regeln des
+PensCheck, die dort für einen einzelnen, eigenständigen Stand gedacht waren,
+trafen in bbz360 auf einen Stand, der allen Modulen gehört. Entscheid des
+Auftraggebers: **Die App muss in sich stringent funktionieren; es gibt einen
+Kundenfall, nicht zwei.**
+
+**Regeln.**
+1. **Ein Fall.** Es gibt keinen Musterfall, kein «Neu beginnen» und keinen
+   Übungsmodus in der Pensionierung (`app.einFall`; der Tutor beginnt beim
+   ersten Erfassungsschritt). Zurückgesetzt wird nur im Beratercockpit («Neue
+   Beratung»). Ersetzt wird der Stand nur durch «PensCheck-Stand einlesen»,
+   nach einer Rückfrage, die nennt, was ersetzt wird.
+2. **Haushalt führt.** Geteilte Grössen stehen nur im Haushalts-Stand. Was
+   Module daneben speichern (`cockpit_data`, `cockpit_einkommen`,
+   `cockpit_pk_saldo`), ist Gliederung oder Vorbelegung und wird beim Öffnen
+   bzw. beim Schreiben des Stands nachgeführt (`haushaltSchreiben` schreibt
+   die Vorbelegungen mit).
+3. **Stammdaten gehen vor.** Namen und Geburtsdaten kommen aus dem
+   Beratercockpit; sie werden nachgeführt, sobald sie sich ändern, und auf
+   einen eingelesenen Stand angewendet (`stammdatenAnwenden`).
+4. **Zwei Personen** gibt es, wenn die Stammdaten eine zweite Person nennen
+   oder das Cockpit ein Einkommen für Person 2 trägt (Annahme «verheiratet»).
+   Wählt jemand in der Pensionierung «alleinstehend», entfällt das Einkommen
+   von Person 2 im Cockpit.
+5. **Ausgaben heute** haben einen Betrag (im Haushalts-Stand). Das Cockpit
+   gliedert ihn in vier Kategorien; ändert ihn ein anderes Modul, trägt
+   «Haushalt & Lebenshaltung» die Differenz, darunter werden alle Kategorien
+   im selben Verhältnis gekürzt. Geschrieben wird er vom Cockpit nur im Modal
+   «Ausgaben & Einkommen»; 0 heisst «nicht erfasst».
+6. **Einkommen für 07a:** je Person der Bruttolohn; fehlt er, ihr im Cockpit
+   erfasstes Nettoeinkommen. Ältere Stände mit Einkommens-Typ «brutto» tragen
+   Brutto, kein Netto.
+7. **Kinder** sind zwei Angaben: alle Kinder (`familie_kinder`, für Erbfolge
+   und Anspruch auf Witwen- oder Witwerrente) und davon die unter 18 oder in
+   Ausbildung (`familie_kinder_abh`, für Kinder- und Waisenrenten).
+8. **Der Lebensplan rechnet in Kalenderjahren.** Ausgaben, Zuflüsse und ein
+   Kauf fallen im Januar an, im laufenden Jahr sofort; Einträge nach dem
+   Planungshorizont sind vorgemerkt.
+9. **Der Kauf ist ein Ziel.** 07a ordnet den Kauf einem Ziel aus 06 zu
+   (`finanzierung_data.zielId`; ohne Wahl das erste Ziel «Wohnen» mit Betrag,
+   wie die Vorbelegung des Kaufpreises). Sein Jahr ist das Kaufjahr; es zählt
+   nicht zusätzlich als Ausgabe.
+10. **Nichts doppelt.** Was der Kern schon rechnet (PK-Kapital, 3a,
+    Liegenschaftsverkauf), wird aus gleichnamigen Einträgen in 06 nicht noch
+    einmal dazugezählt.
+11. **Tests erzeugen ihre Daten über die Module.** Der Musterfall der
+    E2E-Tests wird über «PensCheck-Stand einlesen» geladen; Schlüssel, die im
+    Betrieb kein Modul schreibt, dürfen in Tests nicht von Hand gesetzt werden
+    (so blieb unentdeckt, dass `anlage_betrag` nie geschrieben wurde).
+
+**Änderungen an früheren Entscheiden.**
+- **ADR-16:** `haushaltLesen()` liefert nie einen Übungsfall (`ui.practice`
+  ist immer falsch).
+- **ADR-17:** Summen von 3a und PK gelten als unverändert, wenn sie auf den
+  Franken übereinstimmen. Der Zivilstand «Konkubinat» wird gemerkt, wenn die
+  zweite Person aus den Stammdaten fällt und wiederkommt.
+- **ADR-18:** 07b schreibt `anlage_betrag`. Die Eintrittswahrscheinlichkeit
+  eines Ziels wird im Hinweis genannt; gerechnet ist der volle Betrag.
+- **ADR-19:** Die Liegenschaft trägt ein Kaufjahr (`kaufJahr`) statt eines
+  Kaufalters; ein erreichtes Kaufjahr heisst «im Besitz», überall gleich
+  (Simulation, Eigenkapital, Vermögenssteuer). Einmalige Ausgaben können ein
+  Kalenderjahr tragen (`Wunsch.jahr`). Der PK-Vorbezug steht in heutiger
+  Kaufkraft, ist auf die Eigenmittel begrenzt, nur vor der Pensionierung und
+  bis zum Guthaben möglich und kürzt Rente und Kapital im selben Verhältnis.
+  Die wegfallende Miete sinkt ab 75 mit den Ausgaben; Ausgaben werden nicht
+  negativ. Eine erst nach der Pensionierung gekaufte Liegenschaft zählt nicht
+  ungeprüft als Reserve. Die Jahresrechnung (07c, PDF) zeigt Zuflüsse unter
+  «Übr. Eink.» und Eigenmittel eines Kaufs unter «Liegensch.» und geht auf.
+- **ADR-20:** Absicherung nur für Erwerbstätige vor dem Referenzalter;
+  UVG-Ehegattenrente nur mit Anspruch (Art. 29 Abs. 3 UVG); Sperrfrist nach
+  PK-Einkauf vorsichtig vom Einkaufsjahr bis und mit dem dritten Folgejahr;
+  Zuflüsse-Editor mit Entwurf für unvollständige Zeilen.
+- **ADR-21:** Kontrast der inaktiven Navigationsreiter und der abgewählten
+  Kacheln im Beratercockpit angehoben.
+
+**Bewusst nicht geändert (bekannte Grenzen).**
+- Eine zweite Person ohne Geburtsdatum rechnet mit dem Vorgabe-Jahrgang, bis
+  er in den Stammdaten oder in der Pensionierung erfasst ist.
+- Verkaufsalter vor dem Kaufjahr und Amortisationen vor dem Kauf sind über
+  die Oberfläche nicht erreichbar und werden nicht eigens abgefangen.
+- Nach dem Verkauf eines in der Zukunft gekauften Eigenheims kommt die frühere
+  Miete nicht automatisch zurück.
+- Im Kaufmonat rechnet die Vermögenssteuer einen Monat lang mit dem alten
+  freien Vermögen und der neuen Liegenschaft.
