@@ -370,3 +370,57 @@ Mit den neuen Feldern rechnet bbz360 mehr als PensCheck.
   Betrags bis zur Pensionierung ist nicht berücksichtigt.
 - Ein vom Kunden im öffentlichen PensCheck geöffneter Link kennt diese
   Felder nicht (dort fallen sie weg).
+
+---
+
+## ADR-20 — Fachmodule 07d Steuern, 07e Absicherung, 07f Nachlass
+
+**Kontext.** Zielbild Phasen 6–8, Vorgabe «rechnend, wo belegbar»: gerechnet
+wird nur mit öffentlich prüfbaren Grundlagen; alles Übrige ist
+Gesprächsführung mit Themen zum Vormerken. Freigabe des Auftraggebers: bauen,
+fachliche Abnahme durch die Bank danach. **Diese Abnahme steht aus.**
+
+**07d Steuern** (`lib/steuern.ts`).
+- Gerechnet: Steuer auf Kapitalbezügen je Jahr wie geplant, verglichen mit
+  «alles im selben Jahr» und «jeder Bezug einzeln» (ESTV-Tabelle der
+  Kantonshauptorte aus den geprüften Grundlagen); Vermögenssteuer heute.
+- Abzüge (Säule 3a, PK-Einkauf): Betrag × **erfasster** Grenzsteuersatz. Der
+  Grenzsteuersatz wird nicht geschätzt (kantonale Einkommenssteuertarife sind
+  Nicht-Ziel). Sperrfrist Art. 79b Abs. 3 BVG wird gegen den Plan geprüft.
+
+**07e Absicherung** (`lib/absicherung.ts`).
+- Gerechnet je Person für Invalidität und Tod: AHV/IV-Renten als gesetzliche
+  Anteile der geschätzten Altersrente (Art. 36/37 AHVG, Art. 37/38 IVG), bei
+  Unfall die UVG-Renten samt Komplementärgrenze (Art. 20/31 UVG,
+  Höchstverdienst CHF 148’200), Pensionskasse **laut Vorsorgeausweis**
+  (Eingabe), begrenzt auf 90% des Lohns (Art. 34a BVG, Art. 24 BVV 2).
+- Nicht geschätzt: BVG-Minimalleistungen. Nicht gerechnet: Plafonierung von
+  Kinderrenten, Taggelder, Wartefristen, Teilinvalidität, Steuern.
+- **Nicht automatisch geprüft:** Die Anteile und der UVG-Höchstverdienst
+  stehen als Konstanten im Code (`ANTEILE`, `UVG_MAX_VERDIENST`), nicht in
+  `params.json`. Der Höchstverdienst wurde im November 2026 für 2026
+  nachgeschlagen; für 2027 ist er zu prüfen. Die Reform der
+  Hinterlassenenrenten ist im Parlament hängig; gerechnet ist das geltende
+  Recht mit vereinfachter Anspruchsprüfung.
+
+**07f Nachlass** (`lib/nachlass.ts`).
+- Gerechnet: gesetzliche Erbteile (Art. 457–462 ZGB), Pflichtteile (Art. 471
+  ZGB, Fassung seit 1.1.2023) und frei verfügbare Quote.
+- Der Nachlass ist eine Eingabe; ohne Eingabe gilt als ausgewiesene Annahme
+  die Hälfte (Paare) bzw. das Ganze (Alleinstehende) des Reinvermögens.
+  Güterrecht, Verträge, Vorempfänge und Erbschaftssteuern sind nicht gerechnet.
+- Erwartete Erbschaften werden als **Zuflüsse** im Haushalts-Stand gespeichert
+  und rechnen in Pensionierung und Lebensplan mit (ADR-19).
+
+**Gemeinsam.**
+- Eingaben liegen in bbzData unter `steuern`, `absicherung`, `nachlass` und
+  `familie_kinder` (Session-Scope). Themen zum Vormerken: `lib/fach-themen.ts`.
+- Der Abschluss (10) nennt vorgemerkte Themen und die grösste Lücke der
+  Absicherung; der Druckbericht hat je aktive Vertiefung einen Abschnitt.
+- Beratercockpit: 07d–07f sind Vertiefungen (`b07d`–`b07f`).
+- **Navigation:** 17 Reiter. Unter-Module zeigen inaktiv nur die Nummer;
+  reicht der Platz auch dann nicht, verzichtet das aktive Unter-Modul auf
+  seine Bezeichnung (`nav.ts`, Klasse `eng`). Auf den Brand-Seiten wird die
+  gleichnamige Komponente `.bbz-nav` des Brand System zurückgesetzt.
+- Jedes Modul nennt unter «So ist gerechnet» Grundlagen und Vereinfachungen
+  und hält fest, dass es keine Steuer- bzw. Rechtsberatung ist.

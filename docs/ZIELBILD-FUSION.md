@@ -48,7 +48,7 @@ Kundendatenmodell** und zeigen sich in **einem durchgängigen Lebensplan**.
 | 3 Themenkarten, «So oder so», Import | umgesetzt |
 | 4 Budget 05b, Cockpit auf gemeinsamen Daten | umgesetzt (ADR-17) |
 | 5 Lebensplan | umgesetzt (ADR-18); Eigenheimkauf und Zuflüsse über die Kern-Erweiterung (ADR-19) |
-| 6–8 Steuern, Absicherung, Nachlass | offen, nach Review |
+| 6–8 Steuern, Absicherung, Nachlass | umgesetzt (ADR-20); **fachliche Abnahme durch die Bank steht aus** |
 | 9 Look, Bericht, PWA | offen (PDF-Bericht der Pensionierung ist mit Phase 2 bereits da) |
 
 ## 3. Nicht-Ziele

@@ -39,6 +39,9 @@ const BRANCHES = [
   { id: 'b07a', num: '07a', name: 'Finanzieren', desc: 'Eigenheim & Tragbarkeit' },
   { id: 'b07b', num: '07b', name: 'Anlegen', desc: 'Anlegerprofil & Risiko' },
   { id: 'b07c', num: '07c', name: 'Pensionierung', desc: 'Standortbestimmung & Aktionsplan' },
+  { id: 'b07d', num: '07d', name: 'Steuern', desc: 'Kapitalbezüge, Abzüge, Vermögen' },
+  { id: 'b07e', num: '07e', name: 'Absicherung', desc: 'Invalidität & Todesfall' },
+  { id: 'b07f', num: '07f', name: 'Nachlass', desc: 'Erbfolge & Vorsorgedokumente' },
 ];
 
 const COCKPIT_KEY = 'bbzCockpit'; // v1: separater Config-Key, übersteht clearSession

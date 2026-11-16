@@ -79,6 +79,8 @@ a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 .bbz-nav-tab.active{background:rgba(255,255,255,.16);color:#fff;font-weight:var(--w-bold)}
 /* Unter-Module (05b, 07a–07c …): inaktiv nur die Nummer, sonst laeuft die Topbar ueber (13+ Reiter). */
 .bbz-nav-tab.sub:not(.active) .bbz-nav-lbl{display:none}
+.bbz-nav-tab.sub:not(.active){padding-left:4px;padding-right:4px}
+.bbz-nav.eng .bbz-nav-tab.sub .bbz-nav-lbl{display:none}
 
 .bbz-edit-toggle{color:rgba(255,255,255,.8);font-size:var(--fs-nav);background:none;border:none;cursor:pointer;font-family:var(--font);flex-shrink:0}
 /* Schmale Praesentationsgeraete: 11 Tabs passten bei 1280px nicht, die letzten
@@ -88,6 +90,7 @@ a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
   .bbz-topbar{gap:10px;padding:0 14px}
   .bbz-nav{gap:1px}
   .bbz-nav-tab{padding:6px 3px}
+  .bbz-nav-tab.sub:not(.active){padding-left:2px;padding-right:2px}
 }
 
 /* Saeulen-Bausteine */

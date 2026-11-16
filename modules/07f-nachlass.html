@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>bbz360 — Nachlass</title>
+  <script type="module" src="/src/modules/07f-nachlass.ts"></script>
+</head>
+<body class="pc-app fm-app">
+  <header class="bbz-topbar">
+    <a class="bbz-logo" href="../index.html" title="Zurück zum Beratercockpit" aria-label="Zurück zum Beratercockpit">bbz</a>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+  </header>
+  <div class="wrap">
+    <section class="hero fm-hero" aria-labelledby="fmTitel">
+      <div>
+        <p class="pc-kicker fm-kicker">07f · NACHLASS</p>
+        <h1 id="fmTitel">Wer erbt, und was ist geregelt?</h1>
+        <p class="lead">Gesetzliche Erbteile, Pflichtteile und frei verfügbare Quote; dazu erwartete Erbschaften und die Themen, die zu regeln sind.</p>
+      </div>
+    </section>
+    <main id="main" class="fm-main">
+      <section class="panel fm-panel" aria-labelledby="naEinTitel">
+        <h2 id="naEinTitel">Ausgangslage.</h2>
+        <div class="fm-felder">
+          <div class="fm-feld" id="naWerFeld"><span class="fm-lbl" id="naWerLbl">Wer stirbt zuerst?</span><div class="fm-wahl" role="group" aria-labelledby="naWerLbl" id="naWer"></div></div>
+          <div class="fm-feld"><label for="naKinder">Kinder</label><input type="text" inputmode="numeric" id="naKinder" data-frei autocomplete="off"><small>Nachkommen der verstorbenen Person</small></div>
+          <div class="fm-feld"><span class="fm-lbl" id="naElternLbl">Eltern oder Geschwister am Leben?</span><div class="fm-wahl" role="group" aria-labelledby="naElternLbl"><button type="button" class="chip" data-eltern="ja" aria-pressed="true">Ja</button><button type="button" class="chip" data-eltern="nein" aria-pressed="false">Nein</button></div><small>Zählt nur ohne Kinder</small></div>
+          <div class="fm-feld"><label for="naNachlass">Nachlass (CHF)</label><input type="text" inputmode="decimal" id="naNachlass" autocomplete="off"><small id="naNachlassHinweis"></small></div>
+        </div>
+        <p class="cap" id="naZivil"></p>
+      </section>
+
+      <section class="panel fm-panel" aria-labelledby="naTeilTitel" aria-live="polite">
+        <h2 id="naTeilTitel">Ohne Testament: gesetzliche Erbfolge.</h2>
+        <div class="tblwrap" tabindex="0" role="region" aria-label="Tabelle, seitlich scrollbar">
+          <table class="cmp fm-tab">
+            <thead><tr><th>Wer erbt</th><th>Erbteil</th><th>CHF</th><th>Pflichtteil</th><th>CHF</th></tr></thead>
+            <tbody id="naErben"></tbody>
+          </table>
+        </div>
+        <div class="kpis fm-kpis" id="naKpis"></div>
+        <div id="naHinweise"></div>
+      </section>
+
+      <section class="panel fm-panel" aria-labelledby="naZuTitel">
+        <h2 id="naZuTitel">Erwartete Erbschaften und Schenkungen.</h2>
+        <p class="cap">Was der Haushalt voraussichtlich erhält. Einträge mit Jahr und Betrag rechnen in der Pensionierung und im Lebensplan als Zufluss mit (heutige Kaufkraft, ohne Erbschafts- oder Schenkungssteuer).</p>
+        <div id="naZufluesse"></div>
+        <div><button type="button" class="bbz-button bbz-button--secondary sm" id="naZuPlus">+ Zufluss</button></div>
+      </section>
+
+      <section class="panel fm-panel" aria-labelledby="naThemenTitel">
+        <h2 id="naThemenTitel">Was soll geregelt werden?</h2>
+        <p class="cap">Ein Haken merkt das Thema für die Vereinbarungen und den Gesprächsbericht vor.</p>
+        <div class="fm-themen" id="naThemen"></div>
+        <div class="fm-feld"><label for="naNotiz">Notiz</label><textarea class="fm-notiz" id="naNotiz" maxlength="2000"></textarea></div>
+      </section>
+
+      <section class="panel fm-panel" aria-labelledby="naAnnTitel">
+        <h2 id="naAnnTitel">So ist gerechnet.</h2>
+        <ul class="fm-liste">
+          <li>Gesetzliche Erbteile nach Art. 457 bis 462 ZGB, Pflichtteile nach Art. 471 ZGB (seit 1. Januar 2023: die Hälfte des gesetzlichen Erbanspruchs; Eltern haben keinen Pflichtteil).</li>
+          <li>Der Nachlass ist eine Angabe. Ohne Angabe gilt als Annahme: bei Paaren die Hälfte des heutigen Reinvermögens (als wäre alles Errungenschaft und hälftig zu teilen, ohne Eigengüter), bei Alleinstehenden das ganze.</li>
+          <li>Die güterrechtliche Auseinandersetzung, Ehe- und Erbverträge, Vorempfänge und Ausgleichungspflichten sind nicht gerechnet.</li>
+          <li>Guthaben der Pensionskasse und der Säule 3a fallen nicht in den Nachlass; sie folgen der Begünstigtenordnung.</li>
+          <li>Erbschafts- und Schenkungssteuern sind kantonal und hier nicht gerechnet. Die Angaben sind keine Rechtsberatung.</li>
+        </ul>
+      </section>
+    </main>
+    <nav class="fm-weiter" aria-label="Weiter">
+      <a class="bbz-button bbz-button--ghost" href="07e-absicherung.html">← Absicherung</a>
+      <a class="bbz-button bbz-button--primary" href="08-vereinbarungen.html">Weiter: Vereinbarungen →</a>
+    </nav>
+  </div>
+</body>
+</html>

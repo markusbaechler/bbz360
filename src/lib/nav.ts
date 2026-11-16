@@ -25,6 +25,9 @@ export const MODULES: NavModule[] = [
   { id: '07a', label: 'Finanzieren', file: '07a-finanzieren.html', sub: true },
   { id: '07b', label: 'Anlegen', file: '07b-anlegen.html', sub: true },
   { id: '07c', label: 'Pension', file: '07c-pension.html', sub: true },
+  { id: '07d', label: 'Steuern', file: '07d-steuern.html', sub: true },
+  { id: '07e', label: 'Absicherung', file: '07e-absicherung.html', sub: true },
+  { id: '07f', label: 'Nachlass', file: '07f-nachlass.html', sub: true },
   { id: '08', label: 'Vereinbarungen', file: '08-vereinbarungen.html' },
   { id: '09', label: 'Feedback', file: '09-feedback.html' },
   { id: '10', label: 'Abschluss', file: '10-abschluss.html' },
@@ -74,4 +77,14 @@ export function buildNav(opts: NavOptions): HTMLElement {
 export function mountNav(target: Element, opts: NavOptions): void {
   const nav = buildNav(opts);
   target.replaceChildren(...Array.from(nav.childNodes));
+  // 17 Reiter (ADR-20): Reicht der Platz nicht, verzichtet auch das aktive Unter-Modul auf seine Bezeichnung
+  // (Klasse «eng», theme.css); der Titel steht auf der Seite. Neu gemessen bei Groessenwechsel und sobald die
+  // Schrift geladen ist.
+  const anpassen = (): void => {
+    target.classList.remove('eng');
+    if (target.scrollWidth > target.clientWidth + 1) target.classList.add('eng');
+  };
+  anpassen();
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(anpassen).observe(target);
+  void document.fonts?.ready.then(anpassen);
 }

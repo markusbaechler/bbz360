@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>bbz360 — Steuern</title>
+  <script type="module" src="/src/modules/07d-steuern.ts"></script>
+</head>
+<body class="pc-app fm-app">
+  <header class="bbz-topbar">
+    <a class="bbz-logo" href="../index.html" title="Zurück zum Beratercockpit" aria-label="Zurück zum Beratercockpit">bbz</a>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+  </header>
+  <div class="wrap">
+    <section class="hero fm-hero" aria-labelledby="fmTitel">
+      <div>
+        <p class="pc-kicker fm-kicker">07d · STEUERN</p>
+        <h1 id="fmTitel">Was lässt sich bei den Steuern planen?</h1>
+        <p class="lead">Kapitalbezüge staffeln, Abzüge nutzen, Vermögenssteuer kennen. Gerechnet ist, was sich mit amtlichen Tabellen belegen lässt.</p>
+      </div>
+    </section>
+    <p class="rfehler" id="fmFehler" role="alert" hidden><b>Die Rechnung ist fehlgeschlagen.</b> Bitte die Angaben in der Pensionierung prüfen.</p>
+    <main id="main" class="fm-main">
+      <section class="panel fm-panel fm-rechnet" aria-labelledby="stKapTitel">
+        <h2 id="stKapTitel">Kapitalbezüge staffeln.</h2>
+        <p class="cap" id="stKapOrt"></p>
+        <div class="kpis fm-kpis" id="stKapKpis" aria-live="polite"></div>
+        <p class="cap" id="stKapText"></p>
+        <div class="tblwrap" tabindex="0" role="region" aria-label="Tabelle, seitlich scrollbar">
+          <table class="cmp fm-tab">
+            <thead><tr><th>Jahr</th><th>Bezüge</th><th>Betrag</th><th>Steuer</th></tr></thead>
+            <tbody id="stKapListe"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="fm-cols">
+        <section class="panel fm-panel" aria-labelledby="stAbzTitel">
+          <h2 id="stAbzTitel">Abzüge nutzen.</h2>
+          <div class="fm-felder">
+            <div class="fm-feld"><label for="stGrenz">Grenzsteuersatz in %</label><input type="text" inputmode="decimal" id="stGrenz" data-dez autocomplete="off"><small>Steuer auf dem obersten verdienten Franken, laut Steuerrechner oder letzter Veranlagung</small></div>
+            <div class="fm-feld"><label for="stEinkauf">PK-Einkauf (CHF)</label><input type="text" inputmode="decimal" id="stEinkauf" autocomplete="off"><small>Möglicher Einkauf laut Vorsorgeausweis</small></div>
+            <div class="fm-feld"><label for="stEinkaufJahr">Jahr des Einkaufs</label><input type="text" inputmode="numeric" id="stEinkaufJahr" data-frei autocomplete="off"></div>
+          </div>
+          <div class="kpis fm-kpis fm-rechnet" id="stAbzKpis" aria-live="polite"></div>
+          <p class="fm-hinweis" id="stSperre" hidden></p>
+        </section>
+        <section class="panel fm-panel" aria-labelledby="stVermTitel">
+          <h2 id="stVermTitel">Vermögenssteuer heute.</h2>
+          <div class="kpis fm-kpis" id="stVermKpis"></div>
+          <p class="cap" id="stVermText"></p>
+        </section>
+      </div>
+
+      <section class="panel fm-panel" aria-labelledby="stThemenTitel">
+        <h2 id="stThemenTitel">Was soll geprüft werden?</h2>
+        <p class="cap">Ein Haken merkt das Thema für die Vereinbarungen und den Gesprächsbericht vor. Gerechnet wird es nicht.</p>
+        <div class="fm-themen" id="stThemen"></div>
+        <div class="fm-feld"><label for="stNotiz">Notiz</label><textarea class="fm-notiz" id="stNotiz" maxlength="2000"></textarea></div>
+      </section>
+
+      <section class="panel fm-panel" aria-labelledby="stAnnTitel">
+        <h2 id="stAnnTitel">So ist gerechnet.</h2>
+        <ul class="fm-liste">
+          <li>Kapitalbezüge: Tarif des Kantonshauptorts aus der Steuerbelastungsstatistik der ESTV, inklusive Bund, ohne Kirchensteuer. Verheiratete werden gemeinsam besteuert, alle anderen je Person. Bezüge desselben Jahres werden zusammengezählt.</li>
+          <li>«Alles im selben Jahr» und «jeder Bezug einzeln» sind Vergleichswerte. Ob sich Bezüge auf mehrere Jahre verteilen lassen, hängt vom Reglement der Pensionskasse, von der Zahl der 3a- und Freizügigkeitskonten und vom Pensionierungszeitpunkt ab.</li>
+          <li>Abzüge: Ersparnis = Betrag × Grenzsteuersatz. Das ist eine Näherung; bei grossen Beträgen sinkt der Grenzsteuersatz, die Ersparnis fällt dann tiefer aus. Der Grenzsteuersatz wird nicht geschätzt.</li>
+          <li>Nach einem Einkauf in die Pensionskasse dürfen die Leistungen daraus während drei Jahren nicht als Kapital bezogen werden (Art. 79b Abs. 3 BVG).</li>
+          <li>Vermögenssteuer: Tarif des Kantonshauptorts (Kanton und Gemeinde, ohne Kirchensteuer) auf dem Reinvermögen; Liegenschaften zum geschätzten Steuerwert.</li>
+          <li>Die Einkommenssteuer nach Kantons- und Gemeindetarif ist nicht gerechnet. Die Angaben sind keine Steuerberatung.</li>
+        </ul>
+      </section>
+    </main>
+    <nav class="fm-weiter" aria-label="Weiter">
+      <a class="bbz-button bbz-button--ghost" href="07c-pension.html">← Pensionierung</a>
+      <a class="bbz-button bbz-button--primary" href="07e-absicherung.html">Weiter: Absicherung →</a>
+    </nav>
+  </div>
+</body>
+</html>

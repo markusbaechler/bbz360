@@ -1,0 +1,37 @@
+/* Fachmodule 07d Steuern, 07e Absicherung, 07f Nachlass — bbz Brand System
+   (Topbar aus 07c-pension.css). Gemeinsame Bausteine mit Praefix fm-. */
+.fm-hero { padding: var(--bbz-space-32) var(--bbz-space-32) var(--bbz-space-24); margin-bottom: var(--bbz-space-24); }
+.fm-hero .fm-kicker { color: var(--on-deep); opacity: .75; margin-bottom: var(--bbz-space-8); }
+.fm-hero .lead { margin-top: var(--bbz-space-8); }
+.fm-main { display: flex; flex-direction: column; gap: var(--bbz-space-24); }
+.fm-panel { padding: var(--bbz-space-24); display: flex; flex-direction: column; gap: var(--bbz-space-16); }
+.fm-panel h2, .fm-panel h3 { margin: 0; }
+.fm-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bbz-space-24); align-items: start; }
+.fm-felder { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--bbz-space-16); align-items: end; }
+.fm-feld { display: flex; flex-direction: column; gap: 6px; }
+.fm-feld label, .fm-feld .fm-lbl { font-weight: var(--bbz-weight-emphasis); color: var(--ink); }
+.fm-feld small { color: var(--muted); font-size: var(--bbz-size-small); }
+.fm-feld input[type=text] { max-width: 240px; }
+.fm-wahl { display: flex; flex-wrap: wrap; gap: var(--bbz-space-8); }
+.fm-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fm-kpis .kpi[data-st="gut"] .v { color: var(--good); }
+.fm-kpis .kpi[data-st="knapp"] .v { color: var(--warn); }
+.fm-kpis .kpi[data-st="schlecht"] .v { color: var(--bad); }
+.fm-tab td:first-child small { display: block; color: var(--muted); white-space: normal; font-weight: 400; }
+.fm-tab tr.tot td { font-weight: var(--bbz-weight-emphasis); border-top: 2px solid var(--line); }
+.fm-tab tr.luecke td:last-child[data-st="schlecht"] { color: var(--bad); }
+.fm-tab tr.luecke td:last-child[data-st="gut"] { color: var(--good); }
+.fm-liste { margin: 0; padding-left: 1.2em; color: var(--ink-2); font-size: var(--bbz-size-small); display: flex; flex-direction: column; gap: 6px; }
+.fm-hinweis { margin: 0; padding: var(--bbz-space-8) var(--bbz-space-16); border-left: 3px solid var(--warn); background: var(--warn-soft); color: var(--ink); font-size: var(--bbz-size-small); }
+.fm-hinweis[data-st="schlecht"] { border-left-color: var(--bad); background: var(--bad-soft); }
+.fm-themen { display: flex; flex-direction: column; }
+.fm-thema { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: var(--bbz-space-8) var(--bbz-space-16); align-items: start; padding: var(--bbz-space-8) 0; border-bottom: 1px solid var(--line-soft); cursor: pointer; }
+.fm-thema input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); }
+.fm-thema b { color: var(--ink); display: block; }
+.fm-thema small { color: var(--muted); font-size: var(--bbz-size-small); }
+.fm-notiz { width: 100%; min-height: 72px; resize: vertical; }
+.fm-zeile { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 110px 44px; gap: var(--bbz-space-8); align-items: center; padding: 4px 0; }
+.fm-zeile button { min-height: 40px; }
+.fm-weiter { display: flex; justify-content: space-between; gap: var(--bbz-space-16); margin: var(--bbz-space-32) 0 var(--bbz-space-48); }
+body[aria-busy="true"] .fm-rechnet { opacity: .55; transition: opacity .15s; }
+@media (max-width: 900px) { .fm-cols { grid-template-columns: minmax(0, 1fr); } .fm-kpis { grid-template-columns: minmax(0, 1fr); } }
