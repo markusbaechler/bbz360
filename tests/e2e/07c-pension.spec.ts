@@ -61,3 +61,31 @@ test('Abschluss (10) zeigt das Urteil der Pensionierung aus dem gemeinsamen Stan
   await expect(sec).toContainText('58 / 60');
   await expect(page.locator('#printScope option[value="pension"]')).toHaveCount(1);
 });
+
+test('PensCheck-Stand einlesen: Link ergibt dasselbe Urteil wie der Musterfall; Unlesbares wird abgewiesen', async ({ page }) => {
+  // Urteil des Musterfalls als Referenz
+  await page.locator('#btnMuster').click();
+  await expect(page.locator('#verdictText')).toContainText(/Reicht|Knapp/);
+  const urteil = await page.locator('#verdictText').textContent();
+  // Link, wie ihn der öffentliche PensCheck erzeugt («#angaben=CODE» aus dem geprüften Stand ohne Bedienzustand)
+  const link = await page.evaluate(() => {
+    const { ui, ...rest } = JSON.parse(localStorage.getItem('bbzData') || '{}').haushalt;
+    void ui;
+    const b64 = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify({ v: 1, ...rest })))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return `https://bbzsg.ch/PensCheck/#angaben=${b64}`;
+  });
+  // neu beginnen, dann einlesen
+  await page.locator('#btnNeu').click();
+  await page.locator('#btnNeuJa').click();
+  await expect(page.locator('#verdictText')).toContainText('Bitte erfassen Sie die Eckdaten');
+
+  await page.locator('#btnImport').click();
+  await page.locator('#importText').fill('das ist kein Link');
+  await page.locator('#btnImportJa').click();
+  await expect(page.locator('#importFehler')).toBeVisible();
+
+  await page.locator('#importText').fill(link);
+  await page.locator('#btnImportJa').click();
+  await page.locator('#btnConfirmJa').click();
+  await expect(page.locator('#verdictText')).toHaveText(urteil as string);
+});

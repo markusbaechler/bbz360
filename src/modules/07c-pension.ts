@@ -14,7 +14,7 @@ import '../styles/modules/07c-pension.css';
 import bundledParams from '../../public/data/params.json';
 import bundledVerification from '../../public/data/verification.json';
 import { mountNav } from '../lib/nav';
-import { haushaltLesen, haushaltSchreiben } from '../lib/haushalt';
+import { haushaltImport, haushaltLesen, haushaltSchreiben } from '../lib/haushalt';
 import { createEngine, monthOf } from '../lib/pension/engine';
 import { applyBudget } from '../lib/pension/analyse';
 import { resolveParams, nextParams, pruefZahl } from '../lib/pension/params';
@@ -315,6 +315,27 @@ $('btnMuster').onclick = async () => {
 $('btnNeu').onclick = () => { $('neuConfirm').hidden = false; };
 $('btnNeuNein').onclick = () => { $('neuConfirm').hidden = true; };
 $('btnNeuJa').onclick = () => { $('neuConfirm').hidden = true; app.replaceState(emptyState(), true); toast('Alle Eingaben gelöscht.'); };
+
+// ---------- Stand aus dem öffentlichen PensCheck einlesen (Link, Code oder JSON) ----------
+// Der Inhalt ist fremd: haushaltImport prüft jedes Feld, bevor etwas in den Zustand gelangt.
+const idlg = $('importDlg') as HTMLDialogElement;
+$('btnImport').onclick = () => {
+  ($('importText') as HTMLTextAreaElement).value = '';
+  $('importFehler').hidden = true;
+  idlg.showModal();
+  $('importText').focus();
+};
+$('btnImportNein').onclick = () => idlg.close();
+idlg.addEventListener('click', (ev) => { if (klickDaneben(idlg, ev)) idlg.close(); });
+$('btnImportJa').onclick = async () => {
+  let ns: PensState;
+  try { ns = haushaltImport(($('importText') as HTMLTextAreaElement).value); } catch { $('importFehler').hidden = false; return; }
+  idlg.close();
+  if (app.hatEigenes() && !(await app.confirm('Angaben ersetzen?', 'Die erfassten Angaben zur Pensionierung werden durch den eingelesenen Stand ersetzt.'))) return;
+  // Wie beim Link im PensCheck: eigene Angaben, direkt im Ergebnis
+  Object.assign(ns.ui, { edited: true, practice: false, tutorStep: 'ergebnis', tutorMax: 99 });
+  if (app.replaceState(ns, true)) toast('Angaben aus dem PensCheck übernommen.');
+};
 
 $('btnPdf').onclick = async () => {
   if (!app.R) return;

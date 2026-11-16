@@ -39,6 +39,7 @@
         <div class="newbar">
           <button class="bbz-button bbz-button--secondary sm" id="btnNeu" type="button">Neu beginnen</button>
           <button class="bbz-button bbz-button--ghost sm" id="btnMuster" type="button">Musterfall laden</button>
+          <button class="bbz-button bbz-button--ghost sm" id="btnImport" type="button">PensCheck-Stand einlesen</button>
           <div class="confirm" id="neuConfirm" hidden><span>Alle Eingaben löschen?</span><button class="bbz-button bbz-button--primary sm" id="btnNeuJa" type="button">Ja, alles löschen</button><button class="bbz-button bbz-button--ghost sm" id="btnNeuNein" type="button">Abbrechen</button></div>
         </div>
         <!-- Kundenname und Gesprächsdatum aus den Berichtsangaben (leer, wenn nicht erfasst) -->
@@ -134,6 +135,19 @@
     <div class="ctarow">
       <button class="bbz-button bbz-button--primary" type="button" id="btnConfirmJa">Ja, ersetzen</button>
       <button class="bbz-button bbz-button--ghost" type="button" id="btnConfirmNein">Abbrechen</button>
+    </div>
+  </dialog>
+  <dialog class="dlg" id="importDlg" aria-labelledby="importTitel">
+    <h2 id="importTitel" tabindex="-1">PensCheck-Stand einlesen.</h2>
+    <div class="dlg-body">
+      <p>Hat die Kundin oder der Kunde die Angaben im öffentlichen PensCheck erfasst? Fügen Sie hier den Link («Link kopieren» im PensCheck) ein. Der Inhalt wird geprüft, bevor er übernommen wird.</p>
+      <label for="importText">Link oder Code</label>
+      <textarea id="importText" rows="4" spellcheck="false" autocomplete="off" style="width:100%"></textarea>
+      <p class="rfehler" id="importFehler" role="alert" hidden>Der Link ist unvollständig oder ungültig. Die bisherigen Angaben bleiben unverändert.</p>
+    </div>
+    <div class="ctarow">
+      <button class="bbz-button bbz-button--primary" type="button" id="btnImportJa">Einlesen</button>
+      <button class="bbz-button bbz-button--ghost" type="button" id="btnImportNein">Abbrechen</button>
     </div>
   </dialog>
   <dialog class="dlg thdlg" id="themenDlg" aria-labelledby="themenTitel">
