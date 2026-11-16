@@ -36,6 +36,7 @@ const MODULES: Record<'einstieg' | 'kundenbild' | 'abschluss', Mod[]> = {
 const BRANCHES = [
   { id: 'b07a', num: '07a', name: 'Finanzieren', desc: 'Eigenheim & Tragbarkeit' },
   { id: 'b07b', num: '07b', name: 'Anlegen', desc: 'Anlegerprofil & Risiko' },
+  { id: 'b07c', num: '07c', name: 'Pensionierung', desc: 'Standortbestimmung & Aktionsplan' },
 ];
 
 const COCKPIT_KEY = 'bbzCockpit'; // v1: separater Config-Key, übersteht clearSession
@@ -146,9 +147,9 @@ function renderBranches(): void {
       <span class="ix-mcheck">${on ? '✓' : ''}</span>
     </div>`;
   }).join('');
-  el('branchHint').textContent = state.branches.length === 2
-    ? '⚡ Beide Vertiefungen aktiv – im Abschluss wählbar, welche gedruckt wird.'
-    : 'Mindestens eine Vertiefung muss aktiv sein. Beide gleichzeitig möglich.';
+  el('branchHint').textContent = state.branches.length >= 2
+    ? '⚡ Mehrere Vertiefungen aktiv – im Abschluss wählbar, welche gedruckt wird.'
+    : 'Mindestens eine Vertiefung muss aktiv sein. Mehrere gleichzeitig möglich.';
   el('gridVertiefung').querySelectorAll<HTMLElement>('[data-branch]').forEach((c) => {
     const t = () => toggleBranch(c.dataset.branch!);
     c.addEventListener('click', t);

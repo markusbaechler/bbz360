@@ -13,16 +13,35 @@ import { ZUSTAND_TXT } from './themenui';
 import { bildLegende, bildVergleich, renderBild } from './bild';
 import { reachData } from './reach';
 import { ST, tragbar } from './results';
+import type { Auswertung } from '../lib/pension/analyse';
+import type { VariantenWerte } from '../lib/pension/themen';
+import type { Amortisation, Einkommen, NumLeer, Person, Thema, Wunsch } from '../lib/pension/typen';
+import type { App } from './app';
 
-const $ = (id) => document.getElementById(id);
+/** Rückgabe von createVergleich() (auch app.vergleich). */
+export type Vergleich = ReturnType<typeof createVergleich>;
+/** Feld einer Karte: [Schlüssel, Beschriftung, Dezimalfeld, Feld für negative Zahlen]. */
+export type FeldDef = [k: string, label: string, dez?: boolean | 1, neg?: boolean | 1];
+/** Karte eines Vergleichs: das Wunsch- bzw. Themen-Objekt selbst. */
+type Ref = Wunsch | Thema;
+/** Angezeigtes Formular: Rohtexte und geprüfte Werte (Zahl, '' = leer, null = ungültig) je Seite a und b. */
+interface Formular { ref: Ref; sig: string; roh: Record<string, Record<string, string>>; zahl: Record<string, Record<string, NumLeer | null>> }
+/** Aussage einer Variante für Umschalter und Textalternative. */
+interface Aussage { st: string; wort: string; kern: string; trag: string; hyp: string; txt: string }
+/** Seite des Umschalters: Aussage, «wird gerechnet» oder «liess sich nicht rechnen» (fehlt). */
+interface SeitenText { txt: string; st: string; fehlt?: boolean; wort?: string; kern?: string; trag?: string; hyp?: string }
+/** Laufender Vergleich (vergleichAktiv). */
+type Aktiv = NonNullable<ReturnType<typeof vergleichAktiv>>;
+
+const $ = (id: string) => document.getElementById(id);
 
 /**
  * Felder je Karte: [Schlüssel, Beschriftung, Dezimalfeld, Feld für negative Zahlen]. Beschriftungen und Einheiten wie
  * im Formular bzw. im Karteneditor; die Grenzen kommen aus LIMITS (state.js), wie überall.
  */
-const JAHR = [['betrag', 'CHF pro Jahr'], ['von', 'von Alter', 1], ['bis', 'bis Alter', 1]];
-const EINMAL = [['betrag', 'Betrag (CHF)'], ['alter', 'Alter', 1]];
-export const FELDER = {
+const JAHR: FeldDef[] = [['betrag', 'CHF pro Jahr'], ['von', 'von Alter', 1], ['bis', 'bis Alter', 1]];
+const EINMAL: FeldDef[] = [['betrag', 'Betrag (CHF)'], ['alter', 'Alter', 1]];
+export const FELDER: Record<string, FeldDef[]> = {
   reisen: JAHR, pflege: JAHR, anschaffung: EINMAL, schenkung: EINMAL,
   ausland: [['monate', 'Monate pro Jahr', 1], ['von', 'von Alter', 1], ['bis', 'bis Alter', 1]],
   hinterlassen: [['betrag', 'Mindestvermögen am Horizont (CHF, heutige Kaufkraft)']],
@@ -36,77 +55,77 @@ export const FELDER = {
 };
 const PERSON_FELD = ['aufhoeren', 'teil', 'rentekapital', 'ahv'];
 const HINWEIS_RK = 'Bitte für jede Variante Rente und Kapital laut Pensionskasse erfassen. PensCheck rechnet nicht zwischen Rente und Kapital um. Ein Kapitalbezug muss bei der Pensionskasse fristgerecht angemeldet werden und braucht bei Verheirateten und in eingetragener Partnerschaft die schriftliche Zustimmung der Partnerin oder des Partners.';
-const TRAG_ST = { gruen: 'tragbar', gelb: 'knapp tragbar', rot: 'nicht tragbar' };
+const TRAG_ST: Record<string, string> = { gruen: 'tragbar', gelb: 'knapp tragbar', rot: 'nicht tragbar' };
 const LEER = 'Bitte einen Wert eingeben.';
 const SEITEN = ['a', 'b'];
-const gross = (w) => w.toUpperCase();
+const gross = (w: string) => w.toUpperCase();
 
 // Anmeldung der Druckereignisse der bisherigen Instanz; jede neue ersetzt sie (Tests bauen die Seite mehrfach auf)
-let abmeldenDruck = null;
-export function createVergleich(app) {
-  const host = $('vergleich'), box = $('sofortBox');
+let abmeldenDruck: (() => void) | null = null;
+export function createVergleich(app: App) {
+  const host = $('vergleich')!, box = $('sofortBox') as HTMLDetailsElement | null;
   const form = () => app.S.ui.mode === 'form';
-  let gewaehlt = 'a', gewaehltFuer = null; // Seite im Bild; gilt für den Vergleich mit diesem Schlüssel
-  let entwurf = null; // { ref }: Karte, für die ein Vergleich vorbereitet wird (Wunsch- bzw. Themen-Objekt)
-  let fm = null; // angezeigtes Formular: { ref, sig, roh: { a, b }, zahl: { a, b } }
+  let gewaehlt = 'a', gewaehltFuer: string | null = null; // Seite im Bild; gilt für den Vergleich mit diesem Schlüssel
+  let entwurf: { ref: Ref } | null = null; // { ref }: Karte, für die ein Vergleich vorbereitet wird (Wunsch- bzw. Themen-Objekt)
+  let fm: Formular | null = null; // angezeigtes Formular: { ref, sig, roh: { a, b }, zahl: { a, b } }
   let werteOffen = false, sofortOffen = false;
   let druck = false, vorDruck = false; // Druck läuft; Zustand von #sofortBox davor
 
   // ---------- Bezüge ----------
   /** Schlüssel (w3/t2) zu einem Wunsch- oder Themen-Objekt, null wenn es nicht mehr besteht. */
-  function keyVon(ref) {
+  function keyVon(ref: Ref) {
     const S = app.S;
-    let i = S.wuensche.indexOf(ref);
+    let i = S.wuensche.indexOf(ref as Wunsch);
     if (i >= 0) return `w${i}`;
-    i = S.themen.indexOf(ref);
+    i = S.themen.indexOf(ref as Thema);
     return i >= 0 ? `t${i}` : null;
   }
-  const refVon = (key) => (key[0] === 'w' ? app.S.wuensche[+key.slice(1)] : app.S.themen[+key.slice(1)]) || null;
-  const karteZu = (key) => karten(app.S).find((k) => k.key === key) || null;
+  const refVon = (key: string): Ref | null => (key[0] === 'w' ? app.S.wuensche[+key.slice(1)] : app.S.themen[+key.slice(1)]) || null;
+  const karteZu = (key: string | null) => karten(app.S).find((k) => k.key === key) || null;
   /** Themeneintrag einer Feldkarte (für Person und Liegenschaft); bei Wunschkarten null. */
-  const eintragVon = (key) => (key[0] === 't' ? app.S.themen[+key.slice(1)] : null);
-  const scope = (karte) => (KARTEN[karte]?.art === 'wunsch' ? 'w' : null);
-  const felder = (karte) => (FELDER[karte] || []).filter(([k]) => VAR_FELDER[karte]?.includes(k));
+  const eintragVon = (key: string) => (key[0] === 't' ? app.S.themen[+key.slice(1)] : null);
+  const scope = (karte: string | null | undefined) => (KARTEN[karte!]?.art === 'wunsch' ? 'w' : null);
+  const felder = (karte: string) => (FELDER[karte] || []).filter(([k]) => VAR_FELDER[karte]?.includes(k));
 
   /** Heutiger Wert eines Felds (Vorgabe für A); leer, wo die Karte eine Zeile hinzufügt (weiter, amort) oder nichts erfasst ist. */
-  function heute(key, karte, k) {
+  function heute(key: string, karte: string, k: string) {
     const S = app.S;
-    if (key[0] === 'w') return S.wuensche[+key.slice(1)]?.[k] ?? '';
+    if (key[0] === 'w') return S.wuensche[+key.slice(1)]?.[k as keyof Wunsch] ?? '';
     const t = eintragVon(key);
-    if (PERSON_FELD.includes(karte)) return S.personen[t.person]?.[k] ?? '';
-    if (karte === 'verkauf') return S.liegenschaften[t.lg]?.verkaufAlter ?? '';
+    if (PERSON_FELD.includes(karte)) return S.personen[t!.person!]?.[k as keyof Person] ?? '';
+    if (karte === 'verkauf') return S.liegenschaften[t!.lg!]?.verkaufAlter ?? '';
     // Zeile, die diese Karte früher angelegt hat: A zeigt, was heute im Plan steht
-    if (karte === 'weiter') return zeileWeiter(S, t.person)?.[k] ?? '';
-    if (karte === 'amort') return zeileAmort(S, t.lg)?.[k] ?? '';
+    if (karte === 'weiter') return zeileWeiter(S, t!.person!)?.[k as keyof Einkommen] ?? '';
+    if (karte === 'amort') return zeileAmort(S, t!.lg!)?.[k as keyof Amortisation] ?? '';
     return '';
   }
   /** Ziel einer Feldkarte als Satz (Rohtext): Person bzw. Liegenschaft. */
-  function zielText(key) {
+  function zielText(key: string) {
     const t = eintragVon(key), S = app.S;
     if (!t) return '';
     if (t.person != null) return `Gilt für Person ${t.person + 1}.`;
     if (t.lg != null) return `Gilt für die Liegenschaft «${S.liegenschaften[t.lg]?.name || `Liegenschaft ${t.lg + 1}`}».`;
     return '';
   }
-  const hinweisText = (karte) => (karte === 'rentekapital' ? HINWEIS_RK : KARTEN[karte]?.hinweis || '');
+  const hinweisText = (karte: string) => (karte === 'rentekapital' ? HINWEIS_RK : KARTEN[karte]?.hinweis || '');
 
   // ---------- Formular A und B ----------
   /** Formular zur Karte ref; im laufenden Vergleich mit dessen Werten (sig), sonst A = heutiger Wert, B = leer. */
-  function formularFuer(ref, thema) {
+  function formularFuer(ref: Ref, thema: Thema | null) {
     const key = keyVon(ref), k = karteZu(key), sig = thema ? JSON.stringify([thema.a, thema.b]) : '';
     if (fm && fm.ref === ref && fm.sig === sig) return fm;
-    const roh = { a: {}, b: {} };
-    felder(k.karte).forEach(([f, , dez]) => {
-      roh.a[f] = fmtIn(thema ? thema.a?.[f] ?? '' : heute(key, k.karte, f), dez);
-      roh.b[f] = thema ? fmtIn(thema.b?.[f] ?? '', dez) : '';
+    const roh: Formular['roh'] = { a: {}, b: {} };
+    felder(k!.karte!).forEach(([f, , dez]) => {
+      roh.a[f] = fmtIn(thema ? thema.a?.[f] ?? '' : heute(key!, k!.karte!, f), dez as boolean);
+      roh.b[f] = thema ? fmtIn(thema.b?.[f] ?? '', dez as boolean) : '';
     });
     fm = { ref, sig, roh, zahl: { a: {}, b: {} } };
     return fm;
   }
-  const vollstaendig = (f, karte) => felder(karte).every(([k]) => SEITEN.every((s) => typeof f.zahl[s][k] === 'number'));
+  const vollstaendig = (f: Formular, karte: string) => felder(karte).every(([k]) => SEITEN.every((s) => typeof f.zahl[s][k] === 'number'));
 
-  function formHtml(f, karte, { laufend }) {
-    const zeile = ([k, label, dez, neg]) => `<span class="vg-l" id="vg_l_${k}">${esc(label)}</span>${SEITEN.map((s) => {
+  function formHtml(f: Formular, karte: string, { laufend }: { laufend: boolean }) {
+    const zeile = ([k, label, dez, neg]: FeldDef) => `<span class="vg-l" id="vg_l_${k}">${esc(label)}</span>${SEITEN.map((s) => {
       const id = `vg_${s}_${k}`, roh = f.roh[s][k] ?? '';
       return `<div class="vg-zelle"><input type="text" inputmode="${neg ? 'text' : 'decimal'}" autocomplete="off" id="${id}" data-vg="${s}" data-k="${k}"${dez ? ' data-dec="1"' : ''}${neg ? ' class="neg"' : ''} value="${esc(roh)}" aria-labelledby="vg_kopf_${s} vg_l_${k}" aria-describedby="${id}_l"><span class="vg-leer" id="${id}_l"${String(roh).trim() ? ' hidden' : ''}>${LEER}</span></div>`;
     }).join('')}`;
@@ -122,29 +141,29 @@ export function createVergleich(app) {
    * Untergrenze des AHV-Bezugs der Person einer Karte: so viele Jahre Vorbezug, wie der Rechenkern zulässt (sonst
    * stünde bei A «3 Jahre früher», gerechnet würde mit weniger); null für alle anderen Felder.
    */
-  function ahvMin(key, karte, k) {
-    const p = app.S.personen[eintragVon(key)?.person];
+  function ahvMin(key: string | null, karte: string | null | undefined, k: string) {
+    const p = app.S.personen[eintragVon(key!)?.person!];
     // Pensionsalter: nur künftige Alter lassen sich vergleichen (wer schon pensioniert ist, hat nichts zu wählen)
     if (karte === 'aufhoeren' && k === 'pensAlter' && p && app.E.abAlter(p, p.pensAlter) > app.E.A0) return Math.floor(app.E.alterBei(p, app.E.A0)) + 1;
     if (karte !== 'ahv' || k !== 'ahvBezug') return null;
     return p ? -app.E.maxVorbezug(p) : null;
   }
   /** Ein Feld prüfen (Meldung am Feld, wie im Formular) und den Wert merken: Zahl, '' (leer) oder null (ungültig). */
-  function pruefeFeld(el) {
-    const s = el.dataset.vg, k = el.dataset.k, key = keyVon(fm.ref), karte = karteZu(key)?.karte;
-    fm.roh[s][k] = el.value;
-    if (!takeNum(el, k, scope(karte), true, (v) => { fm.zahl[s][k] = v; })) fm.zahl[s][k] = null;
-    const min = ahvMin(key, karte, k), v = fm.zahl[s][k];
+  function pruefeFeld(el: HTMLInputElement) {
+    const s = el.dataset.vg!, k = el.dataset.k!, key = keyVon(fm!.ref), karte = karteZu(key)?.karte;
+    fm!.roh[s][k] = el.value;
+    if (!takeNum(el, k, scope(karte), true, (v) => { fm!.zahl[s][k] = v; })) fm!.zahl[s][k] = null;
+    const min = ahvMin(key, karte, k), v = fm!.zahl[s][k];
     if (min != null && typeof v === 'number' && v < min) {
       setErr(el, `Erlaubt sind Werte von ${min} bis ${limitFor(k).max}.`);
-      fm.zahl[s][k] = null;
+      fm!.zahl[s][k] = null;
     }
     const leer = $(`${el.id}_l`);
     if (leer) leer.hidden = el.value.trim() !== '';
   }
   /** «Vergleichen» nur mit allen Werten für A und B; der Grund steht als Text daneben. */
   function knopfNachfuehren() {
-    const los = host.querySelector('[data-vgl-los]'), grund = $('vgGrund');
+    const los = host.querySelector<HTMLButtonElement>('[data-vgl-los]'), grund = $('vgGrund');
     if (!los || !fm) return;
     const karte = karteZu(keyVon(fm.ref))?.karte, ok = !!karte && vollstaendig(fm, karte);
     los.disabled = !ok;
@@ -152,7 +171,7 @@ export function createVergleich(app) {
     if (grund && grund.textContent !== t) grund.textContent = t;
   }
   function formBinden() {
-    host.querySelectorAll('input[data-vg]').forEach(pruefeFeld);
+    host.querySelectorAll<HTMLInputElement>('input[data-vg]').forEach(pruefeFeld);
     knopfNachfuehren();
   }
 
@@ -164,21 +183,21 @@ export function createVergleich(app) {
       : '<p class="cap">Noch kein Thema zum Vergleichen. Merken Sie ein Thema vor; dann lassen sich hier zwei Werte vergleichen.</p><div class="th-aktionen"><button type="button" class="vg-plus" data-vgl-plus aria-haspopup="dialog">+ Thema</button></div>';
     return `<h2 tabindex="-1">So oder so.</h2><p class="vg-satz">Wählen Sie ein Thema und vergleichen Sie zwei Werte. Ihr Plan bleibt unverändert, bis Sie einen Wert übernehmen.</p>${liste}`;
   }
-  function entwurfHtml(key) {
-    const S = app.S, k = karteZu(key), f = formularFuer(entwurf.ref, null), z = zielText(key);
+  function entwurfHtml(key: string) {
+    const S = app.S, k = karteZu(key)!, f = formularFuer(entwurf!.ref, null), z = zielText(key);
     return `<h2 tabindex="-1">So oder so.</h2><h3 id="vglFrage" tabindex="-1">${esc(kartenName(S, k))}: zwei Werte.</h3>${z ? `<p class="vg-ziel">${esc(z)}</p>` : ''}
       <p class="cap">Erfassen Sie für A und B je einen Wert. Ihr Plan bleibt unverändert, bis Sie einen Wert übernehmen.</p>
-      <div class="vg-form">${formHtml(f, k.karte, { laufend: false })}</div>`;
+      <div class="vg-form">${formHtml(f, k.karte!, { laufend: false })}</div>`;
   }
 
   /** Zustand der Rechnung zum laufenden Vergleich: unterwegs (busy) und je Seite das Ergebnis oder null (gescheitert). */
-  function rechnung() {
+  function rechnung(): { busy: boolean; r: (Auswertung | null | undefined)[] } {
     const R = app.R, S = app.S;
     const busy = !R || R.leer || R.vsig !== vergleichSig(S) || !Array.isArray(R.varianten) || R.varianten.length < 2;
-    return { busy, r: busy ? [undefined, undefined] : R.varianten };
+    return { busy, r: busy ? [undefined, undefined] : R!.varianten as (Auswertung | null)[] };
   }
   /** Kernaussage einer Variante: «reicht bis N» bzw. «aufgebraucht mit N». */
-  function kern(Rv) {
+  function kern(Rv: Auswertung) {
     const dep = reachData(Rv, app.E, app.S).base.dep;
     const p1 = app.S.haushalt === 'single' ? '' : ' (Alter Person 1)';
     return dep == null ? `reicht bis ${Rv.horizont}${p1}` : `aufgebraucht mit ${Math.floor(dep + 1e-9)}${p1}`;
@@ -187,34 +206,34 @@ export function createVergleich(app) {
    * Aussage einer Variante, einmal gebaut für Umschalter und Textalternative: Wort der Ampel wie im Urteil
    * («Reicht», «Knapp», «Reicht nicht»), Kernaussage und die Kennzahl «Tragbare Ausgaben pro Monat» wie in der Kachel.
    */
-  function aussage(Rv) {
-    const a = { st: Rv.amp.st, wort: ST[Rv.amp.st], kern: kern(Rv), trag: `tragbare Ausgaben ${tragbar(Rv)}/Mt.` };
+  function aussage(Rv: Auswertung) {
+    const a = { st: Rv.amp.st, wort: ST[Rv.amp.st], kern: kern(Rv), trag: `tragbare Ausgaben ${tragbar(Rv)}/Mt.` } as Aussage;
     // Tragbarkeit der Hypothek aus Sicht der Bank: bei einer Amortisation oder einem Verkauf der eigentliche Zweck
     const w = Rv.tr?.worst;
     a.hyp = w ? `Hypothek ${TRAG_ST[w.st]} (${Math.round(w.quote * 100)}%)` : '';
     a.txt = `${a.wort}, ${a.kern}, ${a.trag}${a.hyp ? `, ${a.hyp}` : ''}`;
     return a;
   }
-  function seite(Rv, busy) {
+  function seite(Rv: Auswertung | null | undefined, busy: boolean): SeitenText {
     if (busy) return { txt: 'wird gerechnet …', st: '' };
     if (!Rv) return { txt: 'Diese Variante liess sich nicht rechnen. Bitte die Werte prüfen.', st: '', fehlt: true };
     return aussage(Rv);
   }
 
-  function laufendHtml(v) {
-    const S = app.S, k = karteZu(v.key), { busy, r } = rechnung(), z = zielText(v.key);
-    const sx = { a: seite(r[0], busy), b: seite(r[1], busy) };
-    const radio = (w) => {
+  function laufendHtml(v: Aktiv) {
+    const S = app.S, k = karteZu(v.key)!, { busy, r } = rechnung(), z = zielText(v.key);
+    const sx: Record<string, SeitenText> = { a: seite(r[0], busy), b: seite(r[1], busy) };
+    const radio = (w: string) => {
       const x = sx[w], an = w === gewaehlt;
       // Leerzeichen und verborgenes Komma trennen die Teile im Namen, den Bildschirmleser vorlesen
       const inhalt = x.wort ? `<span class="vg-amp" data-st="${x.st}"><i aria-hidden="true"></i>${x.wort}</span><span class="vh">, </span><span class="vg-kern">${x.kern}</span><span class="vh">, </span><span class="vg-trag">${esc(x.trag)}</span>${x.hyp ? `<span class="vh">, </span><span class="vg-trag vg-hyp">${esc(x.hyp)}</span>` : ''}` : `<span class="vg-kern" id="vg_fehlt_${w}">${x.txt}</span>`;
       return `<button type="button" role="radio" class="vg-r" data-ab="${w}" aria-checked="${an}" tabindex="${an ? 0 : -1}"><b class="vg-ab">${gross(w)}</b> ${inhalt}</button>`;
     };
-    const knopf = (w) => {
+    const knopf = (w: string) => {
       const gesperrt = busy || sx[w].fehlt;
       return `<button type="button" class="bbz-button bbz-button--secondary sm" data-uebernehmen="${w}"${gesperrt ? ' disabled' : ''}${sx[w].fehlt ? ` aria-describedby="vg_fehlt_${w}"` : ''}>${gross(w)} übernehmen</button>`;
     };
-    const f = formularFuer(refVon(v.key), v.thema);
+    const f = formularFuer(refVon(v.key)!, v.thema);
     // Verschiedene Werte, gleiches Ergebnis: meist eine Eingabe ohne Wirkung, nicht «macht keinen Unterschied»
     const gleich = !busy && r[0] && r[1] && sx.a.txt === sx.b.txt && JSON.stringify(v.thema.a) !== JSON.stringify(v.thema.b) && Math.abs(r[0].maxA - r[1].maxA) < 0.5;
     return `<h2 class="vh" tabindex="-1">So oder so.</h2>
@@ -224,7 +243,7 @@ export function createVergleich(app) {
       <div class="bildkopf" data-vgl-legende></div>
       <div class="bild" id="vglBild"></div>
       <div class="vg-knoepfe" data-vgl-knoepfe>${knopf('a')}${knopf('b')}<button type="button" class="bbz-button bbz-button--ghost sm" data-verwerfen>Verwerfen</button></div>
-      <details class="vg-werte"${werteOffen ? ' open' : ''}><summary>Werte anpassen</summary><div class="vg-form">${formHtml(f, k.karte, { laufend: true })}</div></details>`;
+      <details class="vg-werte"${werteOffen ? ' open' : ''}><summary>Werte anpassen</summary><div class="vg-form">${formHtml(f, k.karte!, { laufend: true })}</div></details>`;
   }
   /** Bild und Legende des laufenden Vergleichs mit der gewählten Seite zeichnen. */
   function zeichneBild() {
@@ -241,7 +260,7 @@ export function createVergleich(app) {
 
   /** Fokus merken (als Selektor), damit er nach dem Neuaufbau an derselben Stelle steht. */
   function fokusSel() {
-    const a = document.activeElement;
+    const a = document.activeElement as HTMLElement | null;
     if (!a || !host.contains(a)) return null;
     if (a.dataset.vg) return `[data-vg="${a.dataset.vg}"][data-k="${a.dataset.k}"]`;
     for (const x of ['ab', 'uebernehmen', 'vglKarte']) if (a.dataset[x]) return `[data-${x === 'vglKarte' ? 'vgl-karte' : x}="${a.dataset[x]}"]`;
@@ -267,35 +286,35 @@ export function createVergleich(app) {
     const sel = fokusSel();
     res?.toggleAttribute('data-vgl', !!v && !entwurf);
     host.removeAttribute('aria-busy');
-    if (entwurf) host.innerHTML = entwurfHtml(keyVon(entwurf.ref));
+    if (entwurf) host.innerHTML = entwurfHtml(keyVon(entwurf.ref)!);
     else if (v) {
       host.innerHTML = laufendHtml(v);
       if (rechnung().busy) host.setAttribute('aria-busy', 'true');
     } else { fm = null; host.innerHTML = listeHtml(); }
     if (entwurf || v) formBinden();
     if (v && !entwurf) zeichneBild();
-    if (sel) host.querySelector(sel)?.focus();
+    if (sel) host.querySelector<HTMLElement>(sel)?.focus();
   }
 
   // ---------- Handlungen ----------
   /** Vergleich zur Karte key vorbereiten (aus dem Editor oder der Liste); läuft er schon, zeigt Schritt 6 ihn (im Tutor der Block). */
-  function entwurfStarten(key) {
+  function entwurfStarten(key: string | null) {
     const ref = refVon(String(key)), k = karteZu(String(key));
-    if (!ref || !k || !VAR_FELDER[k.karte]) return;
+    if (!ref || !k || !VAR_FELDER[k.karte!]) return;
     const v = vergleichAktiv(app.S);
     entwurf = v && refVon(v.key) === ref ? null : { ref };
     if (entwurf) fm = null;
     if (form()) app.schritt?.go('vergleich');
     render();
-    const ziel = entwurf ? host.querySelector('input[data-vg="a"]') : $('vglFrage');
+    const ziel = entwurf ? host.querySelector<HTMLElement>('input[data-vg="a"]') : $('vglFrage');
     ziel?.focus();
   }
   function starten() {
     if (!fm) return;
     const key = keyVon(fm.ref), k = karteZu(key);
-    if (!key || !k || !vollstaendig(fm, k.karte)) { knopfNachfuehren(); return; }
-    const neu = vergleichStarten(app.S, key, { ...fm.zahl.a }, { ...fm.zahl.b });
-    if (neu == null) { $('vgGrund').textContent = 'Der Vergleich liess sich mit diesen Werten nicht starten. Bitte die Werte prüfen. Sind schon 20 Einkommen oder 30 Amortisationen erfasst, bitte zuerst eine Zeile entfernen.'; return; }
+    if (!key || !k || !vollstaendig(fm, k.karte!)) { knopfNachfuehren(); return; }
+    const neu = vergleichStarten(app.S, key, { ...fm.zahl.a } as VariantenWerte, { ...fm.zahl.b } as VariantenWerte);
+    if (neu == null) { $('vgGrund')!.textContent = 'Der Vergleich liess sich mit diesen Werten nicht starten. Bitte die Werte prüfen. Sind schon 20 Einkommen oder 30 Amortisationen erfasst, bitte zuerst eine Zeile entfernen.'; return; }
     entwurf = null;
     app.changed();
     if (form()) app.schritt?.go('vergleich');
@@ -306,17 +325,17 @@ export function createVergleich(app) {
     const key = entwurf && keyVon(entwurf.ref);
     entwurf = null; fm = null;
     render();
-    (key && host.querySelector(`[data-vgl-karte="${key}"]`) || host.querySelector('h2'))?.focus();
+    (key && host.querySelector<HTMLElement>(`[data-vgl-karte="${key}"]`) || host.querySelector('h2'))?.focus();
   }
   /** Seite im Bild wählen; nur Umschalter und Bild ändern sich, der Fokus bleibt auf dem Umschalter. */
-  function waehle(w, fokus) {
+  function waehle(w: string, fokus?: boolean) {
     if (w !== 'a' && w !== 'b') return;
     gewaehlt = w;
-    host.querySelectorAll('[role="radio"][data-ab]').forEach((r) => { const an = r.dataset.ab === w; r.setAttribute('aria-checked', String(an)); r.tabIndex = an ? 0 : -1; });
+    host.querySelectorAll<HTMLElement>('[role="radio"][data-ab]').forEach((r) => { const an = r.dataset.ab === w; r.setAttribute('aria-checked', String(an)); r.tabIndex = an ? 0 : -1; });
     zeichneBild();
-    if (fokus) host.querySelector(`[role="radio"][data-ab="${w}"]`)?.focus();
+    if (fokus) host.querySelector<HTMLElement>(`[role="radio"][data-ab="${w}"]`)?.focus();
   }
-  function nimm(w) {
+  function nimm(w: string) {
     const S = app.S, v = vergleichAktiv(S), { busy, r } = rechnung();
     if (!v || busy || !r[SEITEN.indexOf(w)]) return;
     const key = v.key;
@@ -338,12 +357,12 @@ export function createVergleich(app) {
     app.changed();
     app.themen?.render();
     render();
-    (host.querySelector(`[data-vgl-karte="${v.key}"]`) || host.querySelector('h2'))?.focus();
+    (host.querySelector<HTMLElement>(`[data-vgl-karte="${v.key}"]`) || host.querySelector('h2'))?.focus();
     app.toast('Der Vergleich ist verworfen. Ihr Plan ist unverändert.');
   }
 
   host.addEventListener('click', (ev) => {
-    const b = ev.target.closest('button');
+    const b = (ev.target as HTMLElement).closest('button');
     if (!b || b.disabled) return;
     const d = b.dataset;
     if (d.ab) waehle(d.ab, true);
@@ -356,21 +375,21 @@ export function createVergleich(app) {
   });
   // Umschalter: Pfeiltasten wechseln und wählen (zwei Seiten: jede Richtung wechselt); Leertaste und Enter wie ein Knopf
   host.addEventListener('keydown', (ev) => {
-    const r = ev.target.closest?.('[role="radio"][data-ab]');
+    const r = (ev.target as HTMLElement).closest?.<HTMLElement>('[role="radio"][data-ab]');
     if (!r || !['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(ev.key)) return;
     ev.preventDefault();
     ev.stopPropagation(); // die allgemeine Bedienung der Auswahlkarten (main.js) wählt nicht ein zweites Mal
     waehle(r.dataset.ab === 'a' ? 'b' : 'a', true);
   });
   host.addEventListener('input', (ev) => {
-    const el = ev.target;
+    const el = ev.target as HTMLInputElement;
     if (!fm || el.tagName !== 'INPUT' || !el.dataset.vg) return;
     pruefeFeld(el);
     knopfNachfuehren();
   });
-  host.addEventListener('toggle', (ev) => { if (ev.target.classList?.contains('vg-werte')) werteOffen = ev.target.open; }, true);
+  host.addEventListener('toggle', (ev) => { if ((ev.target as HTMLDetailsElement).classList?.contains('vg-werte')) werteOffen = (ev.target as HTMLDetailsElement).open; }, true);
   // Aufgeklappt zeigt das Bild darunter das Szenario des Reglers (results.js), zugeklappt wieder den Plan
-  box?.addEventListener('toggle', () => { if (form() && !druck) { sofortOffen = box.open; app.buehne?.renderBody(); } });
+  box?.addEventListener('toggle', () => { if (form() && !druck) { sofortOffen = box!.open; app.buehne?.renderBody(); } });
   // Druck: «früher aufhören» gedruckt wie jeder Block (ein zugeklappter details-Inhalt erscheint nicht), danach wie zuvor
   const druckAuf = () => { if (!box || druck) return; druck = true; vorDruck = box.open; box.open = true; };
   const druckZu = () => { if (!box || !druck) return; druck = false; box.open = form() ? vorDruck : true; };

@@ -8,11 +8,30 @@ import { STUFEN, BUDGET_POS, budgetBereich, musterHtml, lohnCheckHtml } from '..
 import { tragKurzHtml, varianteHtml } from './trag';
 import { ctrlHtml, summaryHtml, bindWhatIf } from './whatif';
 import { gl } from './glossar';
-import { ruhigeRegler, reglerSchritt } from './slider';
+import { reglerSchritt } from './slider';
 import { themaEntfernen, liegenschaftEntfernt, liegenschaftEingefuegt, zielWeg } from '../lib/pension/themen';
+import type { Auswertung } from '../lib/pension/analyse';
+import type { Stufe } from '../lib/pension/budget';
+import type { Engine } from '../lib/pension/engine';
+import type { Liegenschaft, NumLeer, Params, PensState, Wunsch } from '../lib/pension/typen';
+import type { App } from './app';
+
+/** Optionen eines Zahlenfelds (num). */
+interface NumOpt { dec?: boolean; empty?: boolean; ph?: string; big?: boolean; help?: string }
+/** Stand vor dem Öffnen des Budget-Assistenten (S.ui.entwurf). */
+interface Entwurf { budget: Record<string, number>; basis: PensState['budgetBasis']; miete: NumLeer }
+/** Fixkosten, wie sie im Stand stehen: '' bedeutet «Richtwert». */
+type FixLeer = Record<string, NumLeer>;
+/** data-Attribute eines Elements, wie die Ereignisbehandlung sie liest. */
+type Daten = Record<string, string>;
+/** Schalter des Tutors je Person (Kapitalbezug, 3a-Einzahlung). */
+type TKap = 'tkap0' | 'tkap1';
+type T3a = 't3a0' | 't3a1';
+/** Oberfläche des Tutors. */
+export type Tutor = ReturnType<typeof createTutor>;
 
 const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const svg = (d: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const I = {
   person: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'),
   couple: svg('<circle cx="8" cy="8" r="3.5"/><circle cx="16.5" cy="9" r="3"/><path d="M2 21c0-3.5 3-5.5 6-5.5s6 2 6 5.5M14 15.5c3.5-.5 7 1.2 7 5.5"/>'),
@@ -55,21 +74,22 @@ const STEPS = [
   { id: 'sofort', label: 'Sofort aufhören?' },
   { id: 'ergebnis', label: 'Ergebnis' },
 ];
+type Icon = keyof typeof I;
 const IDX = Object.fromEntries(STEPS.map((s, i) => [s.id, i]));
-const WISH = {
+const WISH: Record<string, { icon: Icon; title: string; sub: string; make: () => Wunsch }> = {
   reisen: { icon: 'plane', title: 'Mehr reisen', sub: 'jedes Jahr ein Reisebudget', make: () => ({ typ: 'jahr', aktiv: true, name: 'Reisen', betrag: 10000, von: 65, bis: 75 }) },
   auto: { icon: 'car', title: 'Wohnmobil oder Auto', sub: 'einmalige Anschaffung', make: () => ({ typ: 'einmal', aktiv: true, name: 'Wohnmobil', betrag: 80000, alter: 66 }) },
   ausland: { icon: 'globe', title: 'Zeit im Süden', sub: 'einige Monate pro Jahr im Ausland', make: () => ({ typ: 'ausland', aktiv: true, name: 'Ausland', monate: 3, von: 65, bis: 80, wohnform: 'miete' }) },
   erbe: { icon: 'gift', title: 'Etwas vererben', sub: 'ein Betrag soll übrig bleiben', make: () => ({ typ: 'ziel', aktiv: true, name: 'Erbe', betrag: 300000 }) },
 };
 
-export function createTutor(app) {
-  const root = document.getElementById('tutor');
+export function createTutor(app: App) {
+  const root = document.getElementById('tutor')!;
   const S = () => app.S;
   const E = () => app.E;
   const cpl = () => S().haushalt !== 'single';
   const persons = () => (cpl() ? [0, 1] : [0]);
-  const pname = (i) => (cpl() ? (i === 0 ? 'Person 1 (Sie)' : 'Person 2') : 'Sie');
+  const pname = (i: number) => (cpl() ? (i === 0 ? 'Person 1 (Sie)' : 'Person 2') : 'Sie');
   const step = () => (IDX[S().ui.tutorStep] != null ? S().ui.tutorStep : 'start');
   // Budget-Assistent: Unteransicht im Schritt «Ausgaben» (kein eigener Schritt)
   let budgetOffen = false, entwurfNeu = false;
@@ -78,15 +98,15 @@ export function createTutor(app) {
   // «Zurück ohne Übernehmen», das Verlassen über die Fortschrittsleiste und der Wechsel ins Formular stellen ihn wieder
   // her; nach Neuladen oder Schliessen der Seite tut das die Prüfung beim Laden (sanitize in state.js).
   // Vor «Eigenheim» erfasste Miete, gebunden an den Datenbestand: «Zur Miete» stellt sie wieder her
-  let mieteVorEigenheim = null;
+  let mieteVorEigenheim: { s: PensState; wert: number } | null = null;
   /** Nicht übernommenen Entwurf verwerfen: Budget, Grundlage und Miete gelten wie vor dem Öffnen. */
-  const verwerfeEntwurf = (s) => {
-    const e = s.ui.entwurf;
+  const verwerfeEntwurf = (s: PensState) => {
+    const e = s.ui.entwurf as Entwurf | undefined;
     if (!e) return;
     s.budget = { ...e.budget };
     s.budgetBasis = e.basis;
     // Wurde inzwischen ein Eigenheim erfasst, folgt Wohnen der Liegenschaft
-    s.fix.wohnen = hatEigenheim(s, app.E) ? '' : e.miete;
+    (s.fix as FixLeer).wohnen = hatEigenheim(s, app.E) ? '' : e.miete;
   };
   /**
    * Assistent schliessen, ohne zu übernehmen (Fortschrittsleiste, Wechsel ins Formular, «Zurück ohne Übernehmen»).
@@ -102,61 +122,61 @@ export function createTutor(app) {
   const imBudget = () => budgetOffen && step() === 'ausgaben';
 
   // ---------- Bausteine ----------
-  const choice = (path, val, title, sub, icon) => {
+  const choice = (path: string, val: string | number, title: string, sub: string, icon?: Icon) => {
     const cur = getPath(S(), path);
     return `<button type="button" class="tchoice" role="radio" aria-checked="${String(cur) === String(val)}" data-tset="${path}" data-val='${esc(JSON.stringify(val))}'>${icon ? `<span class="ico">${I[icon]}</span>` : ''}<b>${title}</b>${sub ? `<span>${sub}</span>` : ''}</button>`;
   };
   // role: 'radio' = eine von mehreren, 'checkbox' = an/aus, '' = Schaltfläche, die etwas auslöst
-  const action = (act, title, sub, icon, checked = false, role = 'radio') => `<button type="button" class="tchoice"${role ? ` role="${role}" aria-checked="${checked}"` : ''} data-tact="${act}">${icon ? `<span class="ico">${I[icon]}</span>` : ''}<b>${title}</b>${sub ? `<span>${sub}</span>` : ''}</button>`;
-  const num = (path, label, o = {}) => {
+  const action = (act: string, title: string, sub: string, icon: Icon, checked = false, role = 'radio') => `<button type="button" class="tchoice"${role ? ` role="${role}" aria-checked="${checked}"` : ''} data-tact="${act}">${icon ? `<span class="ico">${I[icon]}</span>` : ''}<b>${title}</b>${sub ? `<span>${sub}</span>` : ''}</button>`;
+  const num = (path: string, label: string, o: NumOpt = {}) => {
     const id = 't_' + path.replace(/\./g, '_');
     return `<div class="tfield"><label for="${id}">${label}</label><input type="text" id="${id}" inputmode="decimal" autocomplete="off" data-tpath="${path}"${o.dec ? ' data-dec="1"' : ''}${o.empty ? ' data-empty="1"' : ''} value="${fmtIn(getPath(S(), path), o.dec)}" placeholder="${esc(o.ph || '')}"${o.big ? ' class="tbig"' : ''}${o.help ? ` aria-describedby="${id}_h"` : ''}>${o.help ? `<span class="thelp" id="${id}_h">${o.help}</span>` : ''}</div>`;
   };
   // Regler mit Schrittknöpfen: «−» und «+» für genaue Schritte, auch ohne den Regler zu ziehen
-  const rkopf = (path, label, stepv, wert, offen = false) => `<div class="tr-head"><span class="tval" data-rout="${path}">${wert}</span><span class="tr-btns"><button type="button" class="tr-btn" data-rstep="${path}" data-d="${-stepv}"${offen ? ' data-offen="1"' : ''} aria-label="${esc(label)}: ${stepv} weniger">−</button><button type="button" class="tr-btn" data-rstep="${path}" data-d="${stepv}"${offen ? ' data-offen="1"' : ''} aria-label="${esc(label)}: ${stepv} mehr">+</button></span></div>`;
-  const range = (path, label, min, max, stepv, fmt) => {
+  const rkopf = (path: string, label: string, stepv: number, wert: string, offen = false) => `<div class="tr-head"><span class="tval" data-rout="${path}">${wert}</span><span class="tr-btns"><button type="button" class="tr-btn" data-rstep="${path}" data-d="${-stepv}"${offen ? ' data-offen="1"' : ''} aria-label="${esc(label)}: ${stepv} weniger">−</button><button type="button" class="tr-btn" data-rstep="${path}" data-d="${stepv}"${offen ? ' data-offen="1"' : ''} aria-label="${esc(label)}: ${stepv} mehr">+</button></span></div>`;
+  const range = (path: string, label: string, min: number, max: number, stepv: number, fmt: (v: number) => string) => {
     const id = 'r_' + path.replace(/\./g, '_'), v = +getPath(S(), path) || min;
     return `<div class="tfield trange"><label for="${id}">${label}</label>${rkopf(path, label, stepv, fmt(v))}<input type="range" id="${id}" min="${min}" max="${max}" step="${stepv}" value="${v}" data-tpath="${path}" data-range="1" aria-valuetext="${esc(fmt(v))}"><span class="tr-scale"><span>${fmt(min)}</span><span>${fmt(max)}</span></span></div>`;
   };
-  const stepper = (path, label, min, max) => {
+  const stepper = (path: string, label: string, min: number, max: number) => {
     const id = 't_' + path.replace(/\./g, '_');
     return `<div class="tfield"><label for="${id}">${label}</label><div class="tstepper"><button type="button" data-tinc="${path}" data-d="-1" data-min="${min}" data-max="${max}" aria-label="${label} minus 1">−</button><input type="text" id="${id}" inputmode="numeric" data-tpath="${path}" data-dec="1" data-errbox="${id}_e" value="${fmtIn(getPath(S(), path), true)}" class="tbig" aria-describedby="${id}_e"><button type="button" data-tinc="${path}" data-d="1" data-min="${min}" data-max="${max}" aria-label="${label} plus 1">+</button></div><span class="thelp terr" id="${id}_e" role="status" data-err="${path}"></span></div>`;
   };
-  const sel = (path, label, opts) => {
+  const sel = (path: string, label: string, opts: (string | number)[][]) => {
     const id = 't_' + path.replace(/\./g, '_'), cur = String(getPath(S(), path));
     return `<div class="tfield"><label for="${id}">${label}</label><select id="${id}" data-tpath="${path}" data-sel="1">${opts.map(([v, l]) => `<option value="${esc(v)}"${String(v) === cur ? ' selected' : ''}>${l}</option>`).join('')}</select></div>`;
   };
-  const why = (txt, q = 'Warum fragen wir das?') => `<details class="twhy"><summary>${q}</summary><p>${txt}</p></details>`;
-  const tip = (txt) => `<div class="ttip"><b>Gut zu wissen.</b> ${txt}</div>`;
-  const q = (txt) => `<p class="tq">${txt}</p>`;
-  const live = (key) => `<div class="tlive" data-live="${key}" aria-live="polite"></div>`;
-  const pblock = (i, inner) => `<div class="tperson${i ? ' p2' : ''}" role="group" aria-label="${esc(pname(i))}"><div class="tph"><span class="dot" aria-hidden="true"></span>${pname(i)}</div>${inner}</div>`;
-  const forPersons = (fn) => `<div class="tpersons">${persons().map((i) => pblock(i, fn(i))).join('')}</div>`;
+  const why = (txt: string, q = 'Warum fragen wir das?') => `<details class="twhy"><summary>${q}</summary><p>${txt}</p></details>`;
+  const tip = (txt: string) => `<div class="ttip"><b>Gut zu wissen.</b> ${txt}</div>`;
+  const q = (txt: string) => `<p class="tq">${txt}</p>`;
+  const live = (key: string) => `<div class="tlive" data-live="${key}" aria-live="polite"></div>`;
+  const pblock = (i: number, inner: string) => `<div class="tperson${i ? ' p2' : ''}" role="group" aria-label="${esc(pname(i))}"><div class="tph"><span class="dot" aria-hidden="true"></span>${pname(i)}</div>${inner}</div>`;
+  const forPersons = (fn: (i: number) => string) => `<div class="tpersons">${persons().map((i) => pblock(i, fn(i))).join('')}</div>`;
   // Titel mit der Vertikallinie aus dem Logo; der Schrittname steht in der Fortschrittszeile
-  const head = (_kick, title, lead) => `<div class="thead"><h2 tabindex="-1">${title}</h2>${lead ? `<p class="tlead">${lead}</p>` : ''}</div>`;
+  const head = (_kick: string, title: string, lead?: string) => `<div class="thead"><h2 tabindex="-1">${title}</h2>${lead ? `<p class="tlead">${lead}</p>` : ''}</div>`;
 
   // ---------- Budget-Assistent ----------
-  const bslider = (path, label, hint, v, min, max) => {
+  const bslider = (path: string, label: string, hint: string, v: number, min: number, max: number) => {
     const id = 'r_' + path.replace(/\./g, '_');
     return `<div class="tfield trange"><label for="${id}">${label}</label>${hint ? `<span class="thelp" id="${id}_h">${hint}</span>` : ''}${rkopf(path, label, 50, chf(v), true)}<input type="range" id="${id}" min="${min}" max="${max}" step="50" value="${v}" data-tpath="${path}" data-range="1" aria-valuetext="${esc(chf(v))}"${hint ? ` aria-describedby="${id}_h"` : ''}><span class="tr-scale"><span>${chf(min)}</span><span>${chf(max)}</span></span></div>`;
   };
   /** Entspricht das Budget (ohne Wohnen) genau einem Musterbudget? */
-  const istMuster = (s, m) => BUDGET_KEYS.slice(1).every((k) => +s.budget?.[k] === m[k]);
+  const istMuster = (s: PensState, m: Record<string, number>) => BUDGET_KEYS.slice(1).every((k) => +s.budget?.[k] === m[k]);
   /** «Grundlage: komfortabel» bzw. «…, angepasst», solange das Budget von einem Beispiel ausgeht. */
-  const basisText = (s, mb) => (s.budgetBasis && mb[s.budgetBasis] ? `Grundlage: ${STUFEN[s.budgetBasis]}${istMuster(s, mb[s.budgetBasis]) ? '' : ', angepasst'}` : '');
-  function budgetView(s, P, e, typ) {
+  const basisText = (s: PensState, mb: Record<string, Record<string, number>>) => (s.budgetBasis && mb[s.budgetBasis] ? `Grundlage: ${STUFEN[s.budgetBasis]}${istMuster(s, mb[s.budgetBasis]) ? '' : ', angepasst'}` : '');
+  function budgetView(s: PensState, P: Params, e: Engine, typ: 'paar' | 'single') {
     const mb = P.annahmen.musterbudget[typ], w = budgetWerte(s, e), eigen = hatEigenheim(s, e);
     const k = (s.liegenschaften || []).findIndex((l) => (l.typ || 'eigen') === 'eigen');
     const n = cpl() ? 2 : 1, praemie = Math.round(P.kk.praemieErw * n);
-    const hint = {
+    const hint: Record<string, string> = {
       kk: `Mittlere Prämie ${P.meta.jahr} laut BAG: ${chf(praemie)} für ${n === 2 ? 'zwei Erwachsene' : 'eine erwachsene Person'}, ohne Franchise und Selbstbehalt. Ihre genaue Prämie zeigt der <a href="https://www.priminfo.admin.ch/de/praemien" target="_blank" rel="noopener">Prämienrechner des Bundes<span class="vh"> (öffnet in neuem Fenster)</span></a>.`,
     };
-    const pos = (key) => {
-      const [, label, h] = BUDGET_POS.find(([p]) => p === key), b = budgetBereich(mb, key, w[key]);
+    const pos = (key: string) => {
+      const [, label, h] = BUDGET_POS.find(([p]) => p === key)!, b = budgetBereich(mb, key, w[key]);
       return bslider(`budget.${key}`, label, hint[key] || h, w[key], b.min, b.max);
     };
     return `${head('', 'Ihr Budget im Ruhestand', 'Stellen Sie Ihre Ausgaben pro Monat zusammen. Beginnen Sie mit einem Beispiel und passen Sie die Positionen an. Steuern gehören nicht dazu: Einkommens- und Vermögenssteuern rechnen wir separat.')}
-      <div class="tbstart" role="group" aria-label="Mit einem Beispiel beginnen"><span class="chiplbl">Beispiel laden:</span>${Object.keys(STUFEN).map((x) => `<button type="button" class="chip" data-tact="budget-preset" data-k="${x}" aria-pressed="${s.budgetBasis === x}">${STUFEN[x]}</button>`).join('')}</div>
+      <div class="tbstart" role="group" aria-label="Mit einem Beispiel beginnen"><span class="chiplbl">Beispiel laden:</span>${Object.keys(STUFEN).map((x) => `<button type="button" class="chip" data-tact="budget-preset" data-k="${x}" aria-pressed="${s.budgetBasis === x}">${STUFEN[x as Stufe]}</button>`).join('')}</div>
       ${live('budgettop')}
       <h3 class="gh">Wohnen</h3>
       <div class="tchoices" role="radiogroup" aria-label="Wohnform">${action('wohnen-eigen', 'Im Eigenheim', 'Haus oder Eigentumswohnung', 'home', eigen)}${action('wohnen-miete', 'Zur Miete', '', 'key', !eigen)}</div>
@@ -173,7 +193,7 @@ export function createTutor(app) {
   }
 
   // ---------- Schritte ----------
-  function body(id) {
+  function body(id: string) {
     const s = S(), P = app.P, e = E();
     switch (id) {
       case 'start': {
@@ -194,7 +214,7 @@ export function createTutor(app) {
             ${choice('haushalt', 'verheiratet', 'Für uns als Ehepaar', 'verheiratet oder eingetragene Partnerschaft', 'couple')}
             ${choice('haushalt', 'konkubinat', 'Für uns als Paar', 'unverheiratet zusammenlebend', 'heart')}
           </div>
-          ${sel('kanton', 'In welchem Kanton wohnen Sie?', Object.entries(P.kapSteuer.kantone).sort().map(([k, v]) => [k, `${v.ort} (${k})`]))}
+          ${sel('kanton', 'In welchem Kanton wohnen Sie?', Object.entries<{ ort: string }>(P.kapSteuer.kantone).sort().map(([k, v]) => [k, `${v.ort} (${k})`]))}
           ${why(`Der Kanton bestimmt, wie hoch die Steuer ist, wenn Sie Geld aus der Pensionskasse oder der Säule 3a als ${gl('kapitalbezug', 'Kapital beziehen')}. Die Unterschiede zwischen den Kantonen betragen schnell einige Tausend Franken.`)}
           ${s.haushalt === 'konkubinat' ? tip(`Unverheiratete Paare erhalten zwei volle AHV-Renten. Bei Ehepaaren sind die beiden Renten zusammen ${gl('plafonierung', 'auf 150% einer Maximalrente begrenzt')}.`) : ''}`;
       case 'personen':
@@ -212,7 +232,7 @@ export function createTutor(app) {
         const typ = cpl() ? 'paar' : 'single', erf = P.annahmen.erfahrung[typ];
         if (budgetOffen) return budgetView(s, P, e, typ);
         // Richtwert-Karten: gewählt nur, solange kein eigenes Budget gilt
-        const rw = (k) => `<button type="button" class="tchoice" role="radio" aria-checked="${!s.budgetAktiv && +s.ausgabenRuhestand === erf[k]}" data-tset="ausgabenRuhestand" data-val='${erf[k]}'><span class="ico">${I.coins}</span><b>${chf(erf[k])}</b><span>${STUFEN[k]}</span></button>`;
+        const rw = (k: Stufe) => `<button type="button" class="tchoice" role="radio" aria-checked="${!s.budgetAktiv && +s.ausgabenRuhestand === erf[k]}" data-tset="ausgabenRuhestand" data-val='${erf[k]}'><span class="ico">${I.coins}</span><b>${chf(erf[k])}</b><span>${STUFEN[k]}</span></button>`;
         return `${head(STEPS[IDX[id]].label, 'Wie viel brauchen Sie im Ruhestand pro Monat?', 'Gemeint ist alles, was Sie zum Leben ausgeben, inklusive Wohnen, Krankenkasse, Ferien und Freizeit, aber ohne Steuern: Einkommens- und Vermögenssteuern rechnen wir separat dazu. Wählen Sie einen Richtwert, stellen Sie Ihr Budget selbst zusammen oder passen Sie den Betrag an.')}
           <div class="tchoices" role="radiogroup" aria-label="Richtwerte">
             ${rw('bescheiden')}${rw('mittel')}${rw('gehoben')}
@@ -257,7 +277,7 @@ export function createTutor(app) {
               <button type="button" class="bbz-button bbz-button--secondary sm" data-tact="pkschaetzen" data-p="${i}">Rente aus dem Guthaben schätzen</button>
               ${q('Einen Teil als Kapital beziehen?')}
               <div class="tchoices" role="radiogroup" aria-label="Kapitalbezug ${pname(i)}">${action('kap-nein-' + i, 'Nein', 'nur Rente', 'no', !(p.pkKapital > 0))}${action('kap-ja-' + i, 'Ja', 'Betrag festlegen', 'coins', p.pkKapital > 0)}</div>
-              ${p.pkKapital > 0 || s.ui['tkap' + i] ? num(`personen.${i}.pkKapital`, 'Kapitalbezug (CHF)') + num(`personen.${i}.pkFrist`, 'Anmeldefrist für den Kapitalbezug (Monate)', { dec: true, empty: true, ph: 'unbekannt', help: 'Steht im Reglement der Pensionskasse, oft 1 bis 3 Jahre vor dem Bezug. Leer lassen, wenn unbekannt; der Aktionsplan rechnet dann mit 3 Jahren.' }) : ''}
+              ${p.pkKapital > 0 || s.ui[('tkap' + i) as TKap] ? num(`personen.${i}.pkKapital`, 'Kapitalbezug (CHF)') + num(`personen.${i}.pkFrist`, 'Anmeldefrist für den Kapitalbezug (Monate)', { dec: true, empty: true, ph: 'unbekannt', help: 'Steht im Reglement der Pensionskasse, oft 1 bis 3 Jahre vor dem Bezug. Leer lassen, wenn unbekannt; der Aktionsplan rechnet dann mit 3 Jahren.' }) : ''}
               ${live('pk' + i)}`;
           })}
           ${why(`Die Rente ist lebenslang sicher, das ${gl('kapitalbezug', 'Kapital')} gibt Flexibilität, wird aber beim Bezug besteuert und muss angelegt werden. Viele kombinieren beides.`)}`;
@@ -268,7 +288,7 @@ export function createTutor(app) {
             return `${num(`personen.${i}.s3a`, 'Säule 3a heute (CHF)', { big: true, help: 'alle 3a-Konten und -Depots zusammen' })}
               ${q('Zahlen Sie jedes Jahr in die Säule 3a ein?')}
               <div class="tchoices" role="radiogroup" aria-label="3a-Einzahlung ${pname(i)}">${action('3a-max-' + i, 'Ja, das Maximum', chf(P.s3a.maxMitPK) + ' pro Jahr', 'yes', (p.s3aModus || 'max') === 'max' && p.brutto > 0)}${action('3a-teil-' + i, 'Einen Teil', 'eigener Betrag', 'coins', p.s3aModus === 'eigen' && p.s3aEinz > 0)}${action('3a-nein-' + i, 'Nein', '', 'no', p.s3aModus === 'eigen' && !(p.s3aEinz > 0))}</div>
-              ${p.s3aModus === 'eigen' && (p.s3aEinz > 0 || s.ui['t3a' + i]) ? num(`personen.${i}.s3aEinz`, 'Einzahlung pro Jahr (CHF)') : ''}
+              ${p.s3aModus === 'eigen' && (p.s3aEinz > 0 || s.ui[('t3a' + i) as T3a]) ? num(`personen.${i}.s3aEinz`, 'Einzahlung pro Jahr (CHF)') : ''}
               ${q('Wie ist das 3a-Geld angelegt?')}
               <div class="tchoices" role="radiogroup" aria-label="3a-Anlage ${pname(i)}">${choice(`personen.${i}.s3aAnlage`, 'konto', '3a-Konto', 'mit Zins', 'bank')}${choice(`personen.${i}.s3aAnlage`, 'ausgewogen', '3a-Wertschriften', 'mit Fonds angelegt', 'chart')}</div>
               ${num(`personen.${i}.fz`, 'Freizügigkeitsguthaben (CHF)', { help: `nur falls Sie ein ${gl('freizuegigkeit', 'Freizügigkeitskonto')} haben, sonst 0` })}`;
@@ -295,7 +315,7 @@ export function createTutor(app) {
           ${live('wohnen')}`;
       }
       case 'wuensche': {
-        const has = (key) => (s.wuensche || []).findIndex((w) => w.tkey === key);
+        const has = (key: string) => (s.wuensche || []).findIndex((w) => w.tkey === key);
         return `${head(STEPS[IDX[id]].label, 'Was möchten Sie sich im Ruhestand gönnen?', 'Wählen Sie, was für Sie dazugehört. Wir zeigen Ihnen danach, was jeder Wunsch kostet.')}
           <div class="tchoices" role="group" aria-label="Wünsche">${Object.entries(WISH).map(([key, w]) => action('wish-' + key, w.title, w.sub, w.icon, has(key) >= 0, 'checkbox')).join('')}</div>
           ${Object.entries(WISH).map(([key, w]) => {
@@ -330,26 +350,26 @@ export function createTutor(app) {
     return `<p class="cap"><b>Zusätzlich im Formular erfasst:</b> ${liste}. ${w.some((x) => x.aktiv !== false) ? 'Diese Wünsche sind eingerechnet; ändern lassen sie sich im Formular.' : ''}</p>`;
   }
 
-  function bezugOpts(i) {
+  function bezugOpts(i: number) {
     const p = S().personen[i], e = E();
     return [-3, -2, -1, 0, 1, 2, 3, 4, 5].filter((b) => b >= -e.maxVorbezug(p)).map((b) => [b, b === 0 ? 'zum Referenzalter' : b < 0 ? `${-b} Jahr${b < -1 ? 'e' : ''} früher (Rente -${dec((1 - e.ahvFaktor(b, p)) * 100)}%)` : `${b} Jahr${b > 1 ? 'e' : ''} später (Rente +${dec(app.P.ahv.aufschub[b] * 100)}%)`]);
   }
 
   /** Tragbarkeit (F1) mit der Rechenvariante; leer ohne Liegenschaft. */
-  const tragHtml = (r) => `${tragKurzHtml(r.tr, S())}${r.tr ? varianteHtml(r.vs, S(), E()) : ''}`;
+  const tragHtml = (r: Auswertung) => `${tragKurzHtml(r.tr, S())}${r.tr ? varianteHtml(r.vs, S(), E()) : ''}`;
   /**
    * Neue Rechnung im Ergebnis-Schritt: Steht das Urteil schon in der Karte, nur die Tragbarkeit erneuern. Das Urteil
    * (mit seiner Live-Region) bleibt dabei im Baum, damit Bildschirmleser die neue Aussage ansagen; sonst neu aufbauen.
    */
   function onResult() {
     if (step() !== 'ergebnis') { updateLive(); return; }
-    const r = app.R, platz = root.querySelector('[data-tkopf]'), trag = root.querySelector('[data-ttrag]');
+    const r = app.R, platz = root.querySelector<HTMLElement>('[data-tkopf]'), trag = root.querySelector<HTMLElement>('[data-ttrag]');
     if (!r || r.leer || !platz || !trag || !platz.contains(document.getElementById('urteilBlock')) || S().ui.mode !== 'tutor') { render(); return; }
     const html = tragHtml(r);
     if (trag.innerHTML !== html) {
       const fokus = trag.contains(document.activeElement);
       trag.innerHTML = html;
-      if (fokus) trag.querySelector('[data-apply]')?.focus();
+      if (fokus) trag.querySelector<HTMLElement>('[data-apply]')?.focus();
     }
     updateLive();
   }
@@ -379,7 +399,7 @@ export function createTutor(app) {
   // ---------- Live-Rückmeldungen ----------
   function updateLive() {
     const s = S(), e = E(), P = app.P, hz = horizon(s, e);
-    const set = (key, html) => { const el = root.querySelector(`[data-live="${key}"]`); if (el && el.innerHTML !== html) el.innerHTML = html; };
+    const set = (key: string, html: string) => { const el = root.querySelector(`[data-live="${key}"]`); if (el && el.innerHTML !== html) el.innerHTML = html; };
     persons().forEach((i) => {
       const p = s.personen[i];
       const alter = e.BASIS - p.jahrgang, ref = e.refAlter(p), le = e.leAlter(p);
@@ -393,13 +413,13 @@ export function createTutor(app) {
       if (vorMin) ptxt += ` <b>Hinweis:</b> Vor ${p.minAlter || P.bvg.minAlter} gibt es keine Leistung der Pensionskasse; das Guthaben geht auf ein Freizügigkeitskonto.`;
       set('pension' + i, ptxt);
       // dieselbe Schätzung wie in der Rechnung: bei Ehepaaren mit Einkommensteilung und Plafond
-      const plEst = e.ahvPlan({ ...s, personen: s.personen.map((x, j) => ({ ...x, ahvBezug: 0, ...(j === i ? { ahvModus: 'schaetzung' } : {}) })) });
+      const plEst = e.ahvPlan({ ...s, personen: s.personen.map((x, j) => ({ ...x, ahvBezug: 0, ...(j === i ? { ahvModus: 'schaetzung' } : {}) })) } as PensState);
       const ahvEst = plEst.dauer[i] - plEst.zuschlag[i], verh = s.haushalt === 'verheiratet';
       set('lohn' + i, p.brutto > 0 ? `Daraus schätzen wir die AHV-Rente auf <b>${chf(ahvEst)} pro Monat</b>${verh ? `, sobald beide das Referenzalter erreicht haben (Einkommen geteilt; sobald beide eine Rente beziehen, zusammen höchstens ${chf(P.ahv.plafondEhepaar)})` : ahvEst >= P.ahv.maxRente - 1 ? ' (Maximalrente)' : ''}.` : 'Ohne Erwerbseinkommen rechnen wir mit der AHV-Minimalrente, sofern keine Beitragslücken bestehen.');
       const plan = e.ahvPlan(s), ahv = plan.dauer[i] - plan.zuschlag[i], zs = plan.zuschlag[i];
       set('ahv' + i, `Ihre AHV-Rente: <b>${chf(ahv + zs)} pro Monat</b>, mit der 13. Rente <b>${chf(ahv * P.ahv.monatsrentenProJahr + zs * 12)} pro Jahr</b>${zs > 0 ? ` (darin ${chf(zs)} Rentenzuschlag der Übergangsgeneration)` : ''}.${plan.plafoniert ? ` Gerechnet für die Zeit, in der beide das Referenzalter erreicht haben: mit Einkommensteilung und begrenzt auf zusammen ${chf(P.ahv.plafondEhepaar)} pro Monat.` : ''}`);
       const tot = +p.pkRente || 0;
-      set('pk' + i, vorMin && (p.pkRente > 0 || p.pkKapital > 0 || p.pkGuthabenPlan > 0) ? `Mit ${p.pensAlter} gibt es noch keine Leistung der Pensionskasse (frühestens mit ${p.minAlter || P.bvg.minAlter}): Gerechnet wird das Guthaben als Freizügigkeit, nicht die hier erfasste Rente oder das Kapital.` : p.pkRente > 0 ? `Das sind <b>${chf(p.pkRente / 12)} pro Monat</b> aus der Pensionskasse${p.pkKapital > 0 ? `, dazu einmalig ${chf(p.pkKapital)} Kapital` : ''}.` : tot === 0 && !(p.pkKapital > 0) ? 'Noch keine Leistung erfasst. Ohne Pensionskasse rechnen wir nur mit AHV und Erspartem.' : `Kapitalbezug ${chf(p.pkKapital)}.`);
+      set('pk' + i, vorMin && (p.pkRente > 0 || p.pkKapital > 0 || (p.pkGuthabenPlan as number) > 0) ? `Mit ${p.pensAlter} gibt es noch keine Leistung der Pensionskasse (frühestens mit ${p.minAlter || P.bvg.minAlter}): Gerechnet wird das Guthaben als Freizügigkeit, nicht die hier erfasste Rente oder das Kapital.` : p.pkRente > 0 ? `Das sind <b>${chf(p.pkRente / 12)} pro Monat</b> aus der Pensionskasse${p.pkKapital > 0 ? `, dazu einmalig ${chf(p.pkKapital)} Kapital` : ''}.` : tot === 0 && !(p.pkKapital > 0) ? 'Noch keine Leistung erfasst. Ohne Pensionskasse rechnen wir nur mit AHV und Erspartem.' : `Kapitalbezug ${chf(p.pkKapital)}.`);
     });
     const fixTyp = cpl() ? 'paar' : 'single', erf = P.annahmen.erfahrung[fixTyp];
     const a = +s.ausgabenRuhestand || 0;
@@ -445,7 +465,7 @@ export function createTutor(app) {
     }
     side.classList.toggle('early', !r || r.leer);
     side.classList.toggle('none', step() === 'start');
-    const cls = (i) => (i === cur ? 'cur' : i < cur || i <= max ? 'done' : 'todo');
+    const cls = (i: number) => (i === cur ? 'cur' : i < cur || i <= max ? 'done' : 'todo');
     side.innerHTML = `${status}<ol class="tchecklist" aria-label="Schritte">${STEPS.map((x, i) => `<li><button type="button" data-tgo="${x.id}" class="${cls(i)}"${i === cur ? ' aria-current="step"' : ''}${i > max && i !== cur ? ' disabled' : ''}><span class="mk" aria-hidden="true"></span>${x.label}</button></li>`).join('')}</ol>`;
   }
 
@@ -462,8 +482,8 @@ export function createTutor(app) {
     const total = n - 1, nr = Math.min(i, total), rest = total - i;
     const lbl = id === 'ergebnis' ? `Alle ${total} Schritte erledigt` : `Schritt <b>${nr}</b> von ${total}: ${STEPS[i].label}`;
     const sub = id === 'ergebnis' ? '' : rest > 0 ? `noch ${rest} Schritt${rest === 1 ? '' : 'e'} bis zum Ergebnis` : 'als Nächstes: Ihr Ergebnis';
-    const reach = (k) => k <= s.ui.tutorMax || k === i;
-    const dot = (x, k, txt = '') => `<button type="button" data-tgo="${x.id}" aria-label="${x.label}"${k === i ? ' aria-current="step"' : ''}${reach(k) ? '' : ' disabled'} class="${txt ? 'tres ' : ''}${k === i ? 'cur' : k < i || k <= s.ui.tutorMax ? 'done' : ''}">${txt}</button>`;
+    const reach = (k: number) => k <= s.ui.tutorMax || k === i;
+    const dot = (x: { id: string; label: string }, k: number, txt = '') => `<button type="button" data-tgo="${x.id}" aria-label="${x.label}"${k === i ? ' aria-current="step"' : ''}${reach(k) ? '' : ' disabled'} class="${txt ? 'tres ' : ''}${k === i ? 'cur' : k < i || k <= s.ui.tutorMax ? 'done' : ''}">${txt}</button>`;
     const prog = id === 'start' ? '' : `<div class="tprog"><div class="tsteps">${STEPS.slice(1, -1).map((x, k) => dot(x, k + 1)).join('')}${dot(STEPS[n], n, 'Ergebnis')}</div><div class="tp-head"><span>${lbl}</span>${sub ? `<span class="tp-sub">${sub}</span>` : ''}</div></div>`;
     const nav = id === 'start' || imBudget() ? '' : `<div class="tnav"><button type="button" class="bbz-button bbz-button--ghost" data-tnav="back">Zurück</button><span class="grow"></span>${id !== 'ergebnis' ? `<button type="button" class="bbz-button bbz-button--primary" data-tnav="next">${i === n - 1 ? 'Zum Ergebnis' : 'Weiter'}</button>` : ''}</div>`;
     // Das Urteil der Bühne steht im Ergebnis-Schritt in der Karte: vor dem Neuaufbau zurück nach #results, danach wieder hinein
@@ -479,7 +499,7 @@ export function createTutor(app) {
     }
   }
 
-  function go(id) {
+  function go(id: string) {
     if (IDX[id] == null) return;
     if (entwurfBeenden()) app.stopChanged();
     S().ui.tutorStep = id;
@@ -490,7 +510,7 @@ export function createTutor(app) {
   const back = () => go(STEPS[Math.max(0, IDX[step()] - 1)].id);
 
   // ---------- Aktionen ----------
-  async function act(a, btn) {
+  async function act(a: string, btn: HTMLElement) {
     const s = S();
     const m = a.match(/^(kap|3a)-(\w+)-(\d)$/);
     // Rückfrage, bevor erfasste Angaben verloren gehen
@@ -501,7 +521,7 @@ export function createTutor(app) {
       if (!ok) return;
     }
     if (a === 'wohnen-miete' && !s.ui.practice) {
-      const eig = s.liegenschaften.map((l, k) => [l, k]).filter(([l]) => (l.typ || 'eigen') === 'eigen');
+      const eig = s.liegenschaften.map((l, k): [Liegenschaft, number] => [l, k]).filter(([l]) => (l.typ || 'eigen') === 'eigen');
       if (eig.length) {
         const nAm = s.amortisationen.filter((x) => eig.some(([, k]) => k === x.lg)).length;
         const was = `${eig.length === 1 ? `Die Liegenschaft «${eig[0][0].name || 'Eigenheim'}»` : `${eig.length} selbst bewohnte Liegenschaften`}${nAm ? ` und ${nAm} Amortisation${nAm > 1 ? 'en' : ''}` : ''}`;
@@ -532,18 +552,18 @@ export function createTutor(app) {
       if (a === 'neben-nein' && k >= 0) s.einkommen.splice(k, 1);
     } else if (m && m[1] === 'kap') {
       const p = s.personen[+m[3]];
-      if (m[2] === 'nein') { p.pkKapital = 0; s.ui['tkap' + m[3]] = false; } else { s.ui['tkap' + m[3]] = true; if (!(p.pkKapital > 0)) p.pkKapital = 100000; }
+      if (m[2] === 'nein') { p.pkKapital = 0; s.ui[('tkap' + m[3]) as TKap] = false; } else { s.ui[('tkap' + m[3]) as TKap] = true; if (!(p.pkKapital > 0)) p.pkKapital = 100000; }
     } else if (m && m[1] === '3a') {
       const p = s.personen[+m[3]];
-      if (m[2] === 'max') { p.s3aModus = 'max'; s.ui['t3a' + m[3]] = false; }
-      else if (m[2] === 'teil') { p.s3aModus = 'eigen'; s.ui['t3a' + m[3]] = true; if (!(p.s3aEinz > 0) || p.s3aEinz >= app.P.s3a.maxMitPK) p.s3aEinz = 3000; }
-      else { p.s3aModus = 'eigen'; p.s3aEinz = 0; s.ui['t3a' + m[3]] = false; }
+      if (m[2] === 'max') { p.s3aModus = 'max'; s.ui[('t3a' + m[3]) as T3a] = false; }
+      else if (m[2] === 'teil') { p.s3aModus = 'eigen'; s.ui[('t3a' + m[3]) as T3a] = true; if (!(p.s3aEinz > 0) || p.s3aEinz >= app.P.s3a.maxMitPK) p.s3aEinz = 3000; }
+      else { p.s3aModus = 'eigen'; p.s3aEinz = 0; s.ui[('t3a' + m[3]) as T3a] = false; }
     } else if (a === 'pkschaetzen') {
-      const i = +btn.dataset.p, p = s.personen[i], A = app.P.annahmen;
-      if (p.pkGuthabenPlan > 0) {
+      const i = +btn.dataset.p!, p = s.personen[i], A = app.P.annahmen;
+      if ((p.pkGuthabenPlan as number) > 0) {
         const uws = (A.uws65 - A.uwsProJahr * Math.max(0, 65 - p.pensAlter)) / 100;
-        p.pkRente = Math.round(((p.pkGuthabenPlan - (+p.pkKapital || 0)) * uws) / 100) * 100;
-      } else { const el = root.querySelector(`[data-tpath="personen.${i}.pkGuthabenPlan"]`); el?.focus(); return; }
+        p.pkRente = Math.round((((p.pkGuthabenPlan as number) - (+p.pkKapital || 0)) * uws) / 100) * 100;
+      } else { const el = root.querySelector<HTMLElement>(`[data-tpath="personen.${i}.pkGuthabenPlan"]`); el?.focus(); return; }
     } else if (a === 'budget-open') {
       // Start mit dem Musterbudget, das dem bisherigen Betrag am nächsten liegt; gilt erst nach «Übernehmen»
       entwurfNeu = !budgetVoll(s);
@@ -555,9 +575,9 @@ export function createTutor(app) {
       return;
     } else if (a === 'budget-preset') {
       // ausdrücklich gewählt: Bei Miete gilt auch die Miete des Beispiels
-      ladeMuster(s, btn.dataset.k, true);
+      ladeMuster(s, btn.dataset.k!, true);
       const eig = hatEigenheim(s, app.E);
-      app.toast(`Beispiel «${STUFEN[btn.dataset.k]}» geladen: ${chf(budgetSumme(s, app.E))} pro Monat.${eig ? ' Wohnen bleibt gemäss Ihrer Liegenschaft.' : ''}`);
+      app.toast(`Beispiel «${STUFEN[btn.dataset.k as Stufe]}» geladen: ${chf(budgetSumme(s, app.E))} pro Monat.${eig ? ' Wohnen bleibt gemäss Ihrer Liegenschaft.' : ''}`);
     } else if (a === 'budget-apply') {
       if (!budgetVoll(s)) return;
       // Die Miete aus dem Budget gilt auch für den Vergleich mit den Fixkosten
@@ -577,10 +597,10 @@ export function createTutor(app) {
       return;
     } else if (a === 'wohnen-eigen') {
       s.ui.twohnen = 'eigen';
-      if (s.fix.wohnen !== '' && s.fix.wohnen != null) {
-        const vorher = s.ui.entwurf && !s.budgetAktiv ? s.ui.entwurf.miete : s.fix.wohnen;
+      if ((s.fix.wohnen as NumLeer) !== '' && s.fix.wohnen != null) {
+        const vorher = s.ui.entwurf && !s.budgetAktiv ? (s.ui.entwurf as Entwurf).miete : s.fix.wohnen;
         mieteVorEigenheim = vorher !== '' && vorher != null ? { s, wert: vorher } : null;
-        s.fix.wohnen = '';
+        (s.fix as FixLeer).wohnen = '';
       }
       if (!s.liegenschaften.some((l) => (l.typ || 'eigen') === 'eigen')) {
         s.liegenschaften.unshift({ name: 'Eigenheim', typ: 'eigen', verkehrswert: 900000, hypothek: 500000, zins: 1.8, unterhalt: 0.5, nebenkosten: 400, mietertrag: 0, verkaufAlter: 0 });
@@ -589,46 +609,46 @@ export function createTutor(app) {
       }
     } else if (a === 'wohnen-miete') {
       s.ui.twohnen = 'miete';
-      if ((s.fix.wohnen === '' || s.fix.wohnen == null) && mieteVorEigenheim && mieteVorEigenheim.s === s) s.fix.wohnen = mieteVorEigenheim.wert;
+      if (((s.fix.wohnen as NumLeer) === '' || s.fix.wohnen == null) && mieteVorEigenheim && mieteVorEigenheim.s === s) s.fix.wohnen = mieteVorEigenheim.wert;
       mieteVorEigenheim = null;
-      const keep = s.liegenschaften.map((l, k) => [l, k]).filter(([l]) => (l.typ || 'eigen') !== 'eigen');
+      const keep = s.liegenschaften.map((l, k): [Liegenschaft, number] => [l, k]).filter(([l]) => (l.typ || 'eigen') !== 'eigen');
       const map = new Map(keep.map(([, k], n) => [k, n]));
       // Karten und Amortisationen der entfernten Eigenheime fallen weg, die übrigen rücken auf (von hinten, solange die
       // Liste noch die alte ist)
-      s.liegenschaften.map((l, k) => k).filter((k) => !map.has(k)).reverse().forEach((k) => liegenschaftEntfernt(s, k));
+      s.liegenschaften.map((_l, k) => k).filter((k) => !map.has(k)).reverse().forEach((k) => liegenschaftEntfernt(s, k));
       s.liegenschaften = keep.map(([l]) => l);
     } else if (a.startsWith('wish-')) {
       const key = a.slice(5), k = s.wuensche.findIndex((w) => w.tkey === key);
       // Entfernen über die Themen: Bezüge auf spätere Wünsche rücken nach
       if (k >= 0) themaEntfernen(s, `w${k}`);
-      else { const w = WISH[key].make(); w.tkey = key; if (w.von) w.von = Math.max(w.von, s.personen[0].pensAlter); s.wuensche.push(w); }
+      else { const w = WISH[key].make(); w.tkey = key as Wunsch['tkey']; if (w.von) w.von = Math.max(w.von, s.personen[0].pensAlter); s.wuensche.push(w); }
     } else if (a === 'toform') { app.setMode('form'); return; }
     app.changed();
     render();
     restoreFocus(btn);
   }
   /** Musterbudget in den Entwurf laden; die Miete nur, wenn keine eigene erfasst ist bzw. das Budget bereits gilt. */
-  function ladeMuster(s, k, mitMiete = false) {
+  function ladeMuster(s: PensState, k: string, mitMiete = false) {
     const mb = app.P.annahmen.musterbudget[cpl() ? 'paar' : 'single'][k];
     if (!mb) return;
-    const erfasst = s.fix.wohnen !== '' && s.fix.wohnen != null;
+    const erfasst = (s.fix.wohnen as NumLeer) !== '' && s.fix.wohnen != null;
     const miete = erfasst && !mitMiete ? +s.fix.wohnen : mb.wohnen;
     s.budget = { ...Object.fromEntries(BUDGET_KEYS.map((p) => [p, mb[p]])), wohnen: miete };
-    s.budgetBasis = k;
+    s.budgetBasis = k as PensState['budgetBasis'];
     // eine bereits erfasste Miete folgt dem Beispiel (nicht beim Eigenheim: dort gilt die Liegenschaft)
     if (mitMiete && !hatEigenheim(s, app.E) && (erfasst || s.budgetAktiv)) s.fix.wohnen = miete;
   }
-  function restoreFocus(btn) {
+  function restoreFocus(btn: HTMLElement) {
     if (!btn) return;
     const sel = btn.dataset.tact ? `[data-tact="${btn.dataset.tact}"]${btn.dataset.p != null ? `[data-p="${btn.dataset.p}"]` : ''}${btn.dataset.k != null ? `[data-k="${btn.dataset.k}"]` : ''}` : btn.dataset.tset ? `[data-tset="${btn.dataset.tset}"][data-val='${btn.dataset.val}']` : null;
-    if (sel) root.querySelector(sel)?.focus();
+    if (sel) root.querySelector<HTMLElement>(sel)?.focus();
   }
 
   // ---------- Ereignisse ----------
   root.addEventListener('click', (ev) => {
-    const b = ev.target.closest('button');
+    const b = (ev.target as Element).closest('button');
     if (!b) return;
-    const d = b.dataset, s = S();
+    const d = b.dataset as Daten, s = S();
     if (d.apply) app.varianteUebernehmen?.();
     else if (d.tnav === 'next') next();
     else if (d.tnav === 'back') back();
@@ -645,31 +665,31 @@ export function createTutor(app) {
       render();
       restoreFocus(b);
     } else if (d.rstep) {
-      const el = root.querySelector(`input[type=range][data-tpath="${d.rstep}"]`);
+      const el = root.querySelector<HTMLInputElement>(`input[type=range][data-tpath="${d.rstep}"]`);
       if (el) reglerSchritt(el, +d.d, { offen: !!d.offen });
     } else if (d.tinc) {
       const cur = +getPath(s, d.tinc) || 0, v = Math.max(+d.min, Math.min(+d.max, cur + +d.d));
       setPath(s, d.tinc, v);
       s.ui.edited = true; s.ui.practice = false;
-      const inp = root.querySelector(`input[data-tpath="${d.tinc}"]`);
-      if (inp) { inp.value = v; clearErr(inp); }
+      const inp = root.querySelector<HTMLInputElement>(`input[data-tpath="${d.tinc}"]`);
+      if (inp) { inp.value = v as unknown as string; clearErr(inp); }
       app.changed({ soft: true });
       updateLive();
     }
   });
   root.addEventListener('input', (ev) => {
-    const el = ev.target, d = el.dataset, s = S();
+    const el = ev.target as HTMLInputElement, d = el.dataset as Daten, s = S();
     if (!d.tpath) return;
-    let v;
+    let v: number | string;
     if (d.sel) v = /^-?\d+(\.\d+)?$/.test(el.value) ? Number(el.value) : el.value;
     else if (d.range) v = Number(el.value);
     else {
       // Ungültiges (keine Zahl, ausserhalb des Wertebereichs) wird nicht gespeichert; der Grund steht beim Feld
-      const key = d.tpath.split('.').pop(), scope = d.tpath.startsWith('wuensche.') ? 'w' : null;
+      const key = d.tpath.split('.').pop()!, scope = d.tpath.startsWith('wuensche.') ? 'w' : null;
       const r = readNum(el, key, scope);
       let msg = r.ok ? null : r.msg;
-      v = r.v;
-      if (r.ok && v === '' && !d.empty) { v = 0; if (rangeError(key, 0, scope)) msg = 'Bitte einen Wert eingeben.'; }
+      v = r.v as NumLeer;
+      if (r.ok && v === '' && !d.empty) { v = 0; if (rangeError(key, 0, scope!)) msg = 'Bitte einen Wert eingeben.'; }
       if (msg) { setErr(el, msg); return; }
       clearErr(el);
     }
@@ -677,46 +697,46 @@ export function createTutor(app) {
     if (d.tpath === 'ausgabenRuhestand' && s.budgetAktiv) { s.budgetAktiv = false; root.querySelector('[data-tact="budget-open"]')?.setAttribute('aria-checked', 'false'); }
     setPath(s, d.tpath, v);
     // Miete im Budget: gilt auch als Miete für den Vergleich mit den Fixkosten, sobald dort eine erfasst ist oder das Budget gilt
-    if (d.tpath === 'budget.wohnen' && (s.budgetAktiv || (s.fix.wohnen !== '' && s.fix.wohnen != null))) s.fix.wohnen = v;
+    if (d.tpath === 'budget.wohnen' && (s.budgetAktiv || ((s.fix.wohnen as NumLeer) !== '' && s.fix.wohnen != null))) s.fix.wohnen = v as number;
     s.ui.edited = true; s.ui.practice = false;
     // gekoppelte Regler und Felder nachführen
-    root.querySelectorAll(`[data-tpath="${d.tpath}"]`).forEach((o) => {
+    root.querySelectorAll<HTMLInputElement>(`[data-tpath="${d.tpath}"]`).forEach((o) => {
       if (o === el) return;
-      if (o.dataset.range) { o.value = v; o.setAttribute('aria-valuetext', d.tpath.endsWith('pensAlter') ? `${v} Jahren` : chf(v)); }
-      else if (!o.dataset.sel) o.value = fmtIn(v, o.dataset.dec);
+      if (o.dataset.range) { o.value = v as string; o.setAttribute('aria-valuetext', d.tpath.endsWith('pensAlter') ? `${v} Jahren` : chf(v as number)); }
+      else if (!o.dataset.sel) o.value = fmtIn(v, o.dataset.dec as unknown as boolean);
     });
     const out = root.querySelector(`[data-rout="${d.tpath}"]`);
     if (out) {
       const isAlter = d.tpath.endsWith('pensAlter');
-      out.textContent = isAlter ? `${v} Jahren` : chf(v);
+      out.textContent = isAlter ? `${v} Jahren` : chf(v as number);
       if (d.range) el.setAttribute('aria-valuetext', out.textContent);
     }
-    root.querySelectorAll(`.tchoice[data-tset="${d.tpath}"]`).forEach((c) => c.setAttribute('aria-checked', String(JSON.parse(c.dataset.val)) === String(v)));
+    root.querySelectorAll<HTMLElement>(`.tchoice[data-tset="${d.tpath}"]`).forEach((c) => c.setAttribute('aria-checked', (String(JSON.parse(c.dataset.val!)) === String(v)) as unknown as string));
     app.changed({ soft: true });
     updateLive();
     if (d.sel && d.tpath === 'kanton') return;
     if (d.tpath.endsWith('.pensAlter') && step() === 'pension') return;
   });
   root.addEventListener('change', (ev) => {
-    const el = ev.target;
+    const el = ev.target as HTMLElement;
     // Pensionsalter beeinflusst Beschriftungen in späteren Schritten; Haushalt die Personenblöcke
     if (el.dataset.tpath && /pensAlter|ahvBezug|ahvModus/.test(el.dataset.tpath) && step() !== 'pension') render();
   });
   root.addEventListener('focusout', (ev) => {
-    const el = ev.target, d = el.dataset || {};
+    const el = ev.target as HTMLInputElement, d = (el.dataset || {}) as Daten;
     // Ungültige Eingabe: zuletzt gültigen Wert wieder einsetzen und sagen, dass und warum
-    if (d.tpath && el.tagName === 'INPUT' && !d.range) { const shown = fmtIn(getPath(S(), d.tpath), d.dec); if (!revertErr(el, shown)) el.value = shown; }
+    if (d.tpath && el.tagName === 'INPUT' && !d.range) { const shown = fmtIn(getPath(S(), d.tpath), d.dec as unknown as boolean); if (!revertErr(el, shown)) el.value = shown; }
   });
   root.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Enter' && ev.target.tagName === 'INPUT' && ev.target.type !== 'range') {
+    if (ev.key === 'Enter' && (ev.target as HTMLInputElement).tagName === 'INPUT' && (ev.target as HTMLInputElement).type !== 'range') {
       ev.preventDefault();
       // Ungültige Eingabe: beim Feld bleiben, die Meldung steht direkt darunter
-      if (ev.target.classList.contains('bad')) { ev.target.select?.(); return; }
+      if ((ev.target as HTMLInputElement).classList.contains('bad')) { (ev.target as HTMLInputElement).select?.(); return; }
       if (!imBudget()) next();
     }
   });
 
-  bindWhatIf(root, app);
+  (bindWhatIf as (root: HTMLElement, app: App) => void)(root, app);
 
   return { render, updateLive, onResult, go, entwurfBeenden };
 }

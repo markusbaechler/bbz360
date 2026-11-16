@@ -9,18 +9,31 @@ import { STUFEN, BUDGET_POS } from '../lib/pension/budget';
 import { naechster, abschnittTexte } from './schritte';
 import { liegenschaftEntfernt, zielWeg } from '../lib/pension/themen';
 import { HINWEIS_VERKAUF_WOHNEN } from '../lib/pension/config';
+import type { Horizont } from '../lib/pension/analyse';
+import type { Roh } from '../lib/pension/state';
+import type { Amortisation, EinkommenArt, Liegenschaft, NumLeer, PensState } from '../lib/pension/typen';
+import type { App } from './app';
 
-const $ = (id) => document.getElementById(id);
+/** Auswahl [Wert, Beschriftung] für Auswahllisten und Schaltflächengruppen. */
+type Opt = (string | number)[];
+/** Optionen eines Zahlenfelds (inp). */
+interface InpOpt { dec?: number; empty?: number; ph?: string; aria?: string }
+/** data-Attribute eines Elements, wie die Ereignisbehandlung sie liest. */
+type Daten = Record<string, string>;
+/** Oberfläche des Eingabeformulars. */
+export type Form = ReturnType<typeof createForm>;
+
+const $ = (id: string) => document.getElementById(id)!;
 const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 const MON3 = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
 export { WTYP };
 export const LGTYP = { eigen: 'Selbst bewohnt', ferien: 'Ferienliegenschaft', rendite: 'Vermietet' };
 /** Schritt der Schrittleiste je Formularabschnitt. Wünsche werden über die Themenkarten erfasst (themenui.js). */
-const SEC_SCHRITT = { haushalt: 'situation', personen: 'situation', einkommen: 'einkommen', teil: 'einkommen', vermoegen: 'vermoegen', annahmen: 'vermoegen', liegenschaften: 'liegenschaft' };
+const SEC_SCHRITT: Record<string, string> = { haushalt: 'situation', personen: 'situation', einkommen: 'einkommen', teil: 'einkommen', vermoegen: 'vermoegen', annahmen: 'vermoegen', liegenschaften: 'liegenschaft' };
 /** Abschnitte, die auch im aktiven Schritt nach der letzten Wahl auf- oder zugeklappt sind. */
 const FREI_OFFEN = new Set(['teil', 'annahmen']);
 
-export function createForm(app) {
+export function createForm(app: App) {
   const root = $('form');
   const S = () => app.S;
   const single = () => S().haushalt === 'single';
@@ -29,23 +42,23 @@ export function createForm(app) {
    * Geschätzte AHV-Rente der Person i pro Monat im Referenzalter, so wie sie gerechnet wird: bei Ehepaaren mit
    * Einkommensteilung und Plafond, sobald beide eine Rente beziehen (ohne Rentenzuschlag, ohne Vorbezug oder Aufschub).
    */
-  const ahvGeschaetzt = (s, i) => {
-    const pl = app.E.ahvPlan({ ...s, personen: s.personen.map((p, j) => ({ ...p, ahvBezug: 0, ...(j === i ? { ahvModus: 'schaetzung' } : {}) })) });
+  const ahvGeschaetzt = (s: PensState, i: number) => {
+    const pl = app.E.ahvPlan({ ...s, personen: s.personen.map((p, j) => ({ ...p, ahvBezug: 0, ...(j === i ? { ahvModus: 'schaetzung' } : {}) })) } as PensState);
     return pl.dauer[i] - pl.zuschlag[i];
   };
 
   // ---------- Bausteine ----------
   const NEGATIV = /(^|\.)(kontoZins|zins3aKonto|renditeOverride|inflation|ahvAnpassung)$/;
-  const inp = (path, o = {}) =>
+  const inp = (path: string, o: InpOpt = {}) =>
     `<input type="text" inputmode="${NEGATIV.test(path) ? 'text' : 'decimal'}"${NEGATIV.test(path) ? ' class="neg"' : ''} autocomplete="off" id="f_${path.replace(/\./g, '_')}" data-path="${path}"${o.dec ? ' data-dec="1"' : ''}${o.empty ? ' data-empty="1"' : ''}${o.ph ? ` placeholder="${esc(o.ph)}"` : ''} aria-label="${esc(o.aria || path)}">`;
-  const txt = (path, aria, ph = '') => `<input type="text" class="txt" id="f_${path.replace(/\./g, '_')}" maxlength="80" data-path="${path}" data-text="1" aria-label="${esc(aria)}" placeholder="${esc(ph)}">`;
-  const sel = (path, opts, aria, numeric) => `<select id="f_${path.replace(/\./g, '_')}" data-path="${path}"${numeric ? ' data-num="1"' : ''} aria-label="${esc(aria)}">${opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>`;
-  const seg = (path, opts, aria) => `<div class="seg"${aria ? ` role="group" aria-label="${esc(aria)}"` : ''}>${opts.map(([v, l]) => `<button type="button" data-seg="${path}" data-val="${v}"${typeof v === 'number' ? ' data-num="1"' : ''} aria-pressed="false">${l}</button>`).join('')}</div>`;
-  const prow = (label, sub, fn) => `<div class="lb">${label}${sub ? `<small>${sub}</small>` : ''}</div><div class="p1">${fn(0)}</div><div class="p2">${fn(1)}</div>`;
-  const pgrid = (rows) => `<div class="pgrid" data-persons><div class="hd lb0"></div><div class="hd p1">Person 1</div><div class="hd p2">Person 2</div>${rows}</div>`;
+  const txt = (path: string, aria: string, ph = '') => `<input type="text" class="txt" id="f_${path.replace(/\./g, '_')}" maxlength="80" data-path="${path}" data-text="1" aria-label="${esc(aria)}" placeholder="${esc(ph)}">`;
+  const sel = (path: string, opts: Opt[], aria: string, numeric?: boolean) => `<select id="f_${path.replace(/\./g, '_')}" data-path="${path}"${numeric ? ' data-num="1"' : ''} aria-label="${esc(aria)}">${opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>`;
+  const seg = (path: string, opts: Opt[], aria?: string) => `<div class="seg"${aria ? ` role="group" aria-label="${esc(aria)}"` : ''}>${opts.map(([v, l]) => `<button type="button" data-seg="${path}" data-val="${v}"${typeof v === 'number' ? ' data-num="1"' : ''} aria-pressed="false">${l}</button>`).join('')}</div>`;
+  const prow = (label: string, sub: string, fn: (i: number) => string) => `<div class="lb">${label}${sub ? `<small>${sub}</small>` : ''}</div><div class="p1">${fn(0)}</div><div class="p2">${fn(1)}</div>`;
+  const pgrid = (rows: string) => `<div class="pgrid" data-persons><div class="hd lb0"></div><div class="hd p1">Person 1</div><div class="hd p2">Person 2</div>${rows}</div>`;
   // Die Beschriftung zeigt auf das erste Feld mit id; Gruppen von Schaltflächen erhalten sie als Gruppenname
   let fldNr = 0;
-  const fld = (label, html, hint) => {
+  const fld = (label: string, html: string, hint?: string) => {
     const id = (html.match(/^\s*<(?:input|select)[^>]*\sid="([^"]+)"/) || [])[1];
     if (id) {
       // Das Feld heisst wie seine sichtbare Beschriftung (mit Einheit); ein abweichendes aria-label entfällt
@@ -55,27 +68,27 @@ export function createForm(app) {
     const lid = `fl_${++fldNr}`;
     return `<div class="field" role="group" aria-labelledby="${lid}"${hint ? ` aria-describedby="${lid}_h"` : ''}><span class="flabel" id="${lid}">${label}</span>${html}${hint ? `<div class="hint" id="${lid}_h">${hint}</div>` : ''}</div>`;
   };
-  const anl = (path, aria) => `<select data-path="${path}" aria-label="${esc(aria)}"><option value="konto">Konto</option><optgroup label="Wertschriften"><option value="vorsichtig">Vorsichtig</option><option value="ausgewogen">Ausgewogen</option><option value="dynamisch">Dynamisch</option></optgroup></select>`;
-  const combo = (a, b) => `<div class="combo">${a}${b}</div>`;
+  const anl = (path: string, aria: string) => `<select data-path="${path}" aria-label="${esc(aria)}"><option value="konto">Konto</option><optgroup label="Wertschriften"><option value="vorsichtig">Vorsichtig</option><option value="ausgewogen">Ausgewogen</option><option value="dynamisch">Dynamisch</option></optgroup></select>`;
+  const combo = (a: string, b: string) => `<div class="combo">${a}${b}</div>`;
   // Jeder Abschnitt gehört zu einem Schritt; sichtbar sind nur die Abschnitte des aktiven Schritts, und diese sind
   // aufgeklappt (ausser «Teilpensionierung» und «Weitere Annahmen»: diese bleiben, wie zuletzt gewählt)
-  const sec = (key, title, inner, defOpen) => {
+  const sec = (key: string, title: string, inner: string, defOpen: boolean) => {
     const schritt = SEC_SCHRITT[key], aktiv = schritt === S().ui.schritt;
     const offen = aktiv && (FREI_OFFEN.has(key) ? (S().ui.open[key] ?? defOpen) : true);
     return `<details class="sec" data-sec="${key}" data-schritt="${schritt}"${offen ? ' open' : ''}${aktiv ? '' : ' hidden'}><summary><span class="st">${title}</span><span class="ss" data-sum="${key}"></span></summary><div class="secbody">${inner}</div></details>`;
   };
   /** Knopf am Ende eines Schritts 1 bis 4: weiter zum nächsten Schritt (nach Schritt 4 erst mit einem Ergebnis). */
-  const weiter = (id) => {
-    const n = naechster(id), ohne = n.id === 'urteil' && (!app.R || app.R.leer);
+  const weiter = (id: string) => {
+    const n = naechster(id)!, ohne = n.id === 'urteil' && (!app.R || app.R.leer);
     return `<div class="weiter" data-schritt="${id}"${id === S().ui.schritt ? '' : ' hidden'}><button type="button" class="bbz-button bbz-button--primary" data-weiter="${n.id}"${ohne ? ' disabled' : ''}>Weiter: ${n.titel}</button></div>`;
   };
-  const sub = (key, title, inner, defOpen) => `<details class="sub" data-sec="${key}"${(S().ui.open[key] ?? defOpen) ? ' open' : ''}><summary><span class="st">${title}</span><span class="ss" data-sum="${key}"></span></summary><div class="subbody">${inner}</div></details>`;
+  const sub = (key: string, title: string, inner: string, defOpen: boolean) => `<details class="sub" data-sec="${key}"${(S().ui.open[key] ?? defOpen) ? ' open' : ''}><summary><span class="st">${title}</span><span class="ss" data-sum="${key}"></span></summary><div class="subbody">${inner}</div></details>`;
 
   function render() {
     fldNr = 0;
-    const P = app.P, KT = Object.entries(P.kapSteuer.kantone).map(([k, v]) => [k, `${k} – ${v.ort}`]).sort((a, b) => a[0].localeCompare(b[0]));
+    const P = app.P, KT = Object.entries<{ ort: string }>(P.kapSteuer.kantone).map(([k, v]) => [k, `${k} – ${v.ort}`]).sort((a, b) => a[0].localeCompare(b[0]));
     // Vorbezug/Aufschub pro Person (Übergangsgeneration: bis 3 Jahre, tiefere Kürzung je nach Einkommen)
-    const bezOpts = (i) => {
+    const bezOpts = (i: number) => {
       const p = S().personen[i], E = app.E;
       return [-E.maxVorbezug(p), ...[-2, -1, 0, 1, 2, 3, 4, 5]].filter((b, k, a) => a.indexOf(b) === k && b >= -E.maxVorbezug(p)).sort((a, b) => a - b)
         .map((b) => [b, b === 0 ? 'Referenzalter' : b < 0 ? `${-b} J. früher (-${dec((1 - E.ahvFaktor(b, p)) * 100)}%)` : `${b} J. später (+${dec(P.ahv.aufschub[b] * 100)}%)`]);
@@ -154,7 +167,7 @@ export function createForm(app) {
       <div class="chips"><button type="button" class="chip" data-lgadd="eigen">+ Selbst bewohnt</button><button type="button" class="chip" data-lgadd="ferien">+ Ferienliegenschaft</button><button type="button" class="chip" data-lgadd="rendite">+ Vermietet</button></div>
       <div class="hint">Beim selbst bewohnten Eigenheim sind Zins und Unterhalt in den Ausgaben enthalten; eine Amortisation senkt die Zinskosten. Bei weiteren Liegenschaften rechnet das Tool Zins, Unterhalt und Mietertrag separat.</div>`, true)}
     ${weiter('liegenschaft')}`;
-    root.querySelectorAll('details.sec, details.sub').forEach((d) => d.addEventListener('toggle', () => { S().ui.open[d.dataset.sec] = d.open; app.persist(); }));
+    root.querySelectorAll<HTMLDetailsElement>('details.sec, details.sub').forEach((d) => d.addEventListener('toggle', () => { S().ui.open[d.dataset.sec!] = d.open; app.persist(); }));
     reflect();
   }
 
@@ -162,7 +175,7 @@ export function createForm(app) {
   function refreshBezOpts() {
     const s = S(), E = app.E, P = app.P;
     [0, 1].forEach((i) => {
-      const el = root.querySelector(`[data-path="personen.${i}.ahvBezug"]`);
+      const el = root.querySelector<HTMLSelectElement>(`[data-path="personen.${i}.ahvBezug"]`);
       if (!el) return;
       const p = s.personen[i];
       const opts = [-3, -2, -1, 0, 1, 2, 3, 4, 5].filter((b) => b >= -E.maxVorbezug(p));
@@ -173,23 +186,23 @@ export function createForm(app) {
   }
 
   // ---------- Werte in die Felder schreiben ----------
-  function reflect(except) {
+  function reflect(except?: Element | null) {
     const s = S(), E = app.E, P = app.P;
-    root.querySelectorAll('[data-path]').forEach((el) => {
+    root.querySelectorAll<HTMLInputElement>('[data-path]').forEach((el) => {
       if (el === except) return;
-      const v = getPath(s, el.dataset.path);
-      el.value = el.tagName === 'SELECT' || el.dataset.text ? (v ?? '') : fmtIn(v, el.dataset.dec);
+      const v = getPath(s, el.dataset.path!);
+      el.value = el.tagName === 'SELECT' || el.dataset.text ? (v ?? '') : fmtIn(v, el.dataset.dec as unknown as boolean);
       el.classList.remove('bad');
     });
-    root.querySelectorAll('[data-seg]').forEach((b) => b.setAttribute('aria-pressed', String(String(getPath(s, b.dataset.seg)) === b.dataset.val)));
+    root.querySelectorAll<HTMLElement>('[data-seg]').forEach((b) => b.setAttribute('aria-pressed', String(String(getPath(s, b.dataset.seg!)) === b.dataset.val)));
     root.querySelectorAll('[data-persons]').forEach((el) => el.classList.toggle('single', single()));
     const typ = single() ? 'single' : 'paar';
-    $('chips').innerHTML = '<span class="chiplbl">Richtwerte:</span>' + Object.entries(P.annahmen.erfahrung[typ]).map(([k, v]) => `<button type="button" class="chip" data-chip="${v}" aria-pressed="${!s.budgetAktiv && +s.ausgabenRuhestand === v}">${(STUFEN[k] || k).replace(/^./, (c) => c.toUpperCase())} ${nf.format(v)}</button>`).join('');
+    $('chips').innerHTML = '<span class="chiplbl">Richtwerte:</span>' + Object.entries<number>(P.annahmen.erfahrung[typ]).map(([k, v]) => `<button type="button" class="chip" data-chip="${v}" aria-pressed="${!s.budgetAktiv && +s.ausgabenRuhestand === v}">${((STUFEN as Record<string, string>)[k] || k).replace(/^./, (c) => c.toUpperCase())} ${nf.format(v)}</button>`).join('');
     const V = (+s.liquiditaet || 0) + (+s.wertschriften || 0);
     $('vsum').innerHTML = chf(V) + (V > 0 ? `<small>${Math.round(E.liqAnteil(s) * 100)}% auf Konten</small>` : '');
     const F = fixHelpers(s, E), d = F.def(), wm = F.wohnenMonat(null);
     FIX_POS.forEach(([k]) => {
-      const el = root.querySelector(`[data-path="fix.${k}"]`);
+      const el = root.querySelector<HTMLInputElement>(`[data-path="fix.${k}"]`);
       const ausBudget = s.budgetAktiv && ['kk', 'ges', 'vers', 'komm', 'geb', 'mob'].includes(k);
       if (el) el.placeholder = k === 'wohnen' ? `${nf.format(Math.round(wm.v))} (${wm.art === 'aus Liegenschaft' ? 'Liegenschaft' : 'Richtwert'})` : `${nf.format(d[k])} (${ausBudget ? 'aus Budget' : 'Richtwert'})`;
     });
@@ -200,45 +213,45 @@ export function createForm(app) {
     bb.textContent = s.budgetAktiv ? 'Budget gilt als Ausgaben ✓' : 'Budget als Ausgaben verwenden';
     $('fixsum').innerHTML = chf(wm.v + F.uebrigeFix()) + '<small>pro Monat, heutige Kaufkraft</small>';
     const hz = horizon(s, E);
-    root.querySelectorAll('[data-le]').forEach((el) => { el.textContent = `≈ ${dec(E.leAlter(s.personen[+el.dataset.le]))} Jahre`; });
-    root.querySelectorAll('[data-ref]').forEach((el) => {
-      const p = s.personen[+el.dataset.ref], r = E.refAlter(p), y = Math.floor(r), m = Math.round((r - y) * 12);
+    root.querySelectorAll<HTMLElement>('[data-le]').forEach((el) => { el.textContent = `≈ ${dec(E.leAlter(s.personen[+el.dataset.le!]))} Jahre`; });
+    root.querySelectorAll<HTMLElement>('[data-ref]').forEach((el) => {
+      const p = s.personen[+el.dataset.ref!], r = E.refAlter(p), y = Math.floor(r), m = Math.round((r - y) * 12);
       el.textContent = m ? `${y} Jahre ${m} Monate` : `${y} Jahre`;
     });
-    root.querySelectorAll('[data-showhz]').forEach((el) => { el.hidden = s.horizontModus !== 'eigen'; });
+    root.querySelectorAll<HTMLElement>('[data-showhz]').forEach((el) => { el.hidden = s.horizontModus !== 'eigen'; });
     const ps = s.personen.slice(0, single() ? 1 : 2), le = ps.map((p) => Math.round(E.leAlter(p)));
     $('hzInfo').textContent = `Lebenserwartung ${ps.length > 1 ? `P1 ${le[0]}, P2 ${le[1]}` : le[0]}; gerechnet bis ${ps.length > 1 ? `P1 ${hz.horizontP[0]}, P2 ${hz.horizontP[1]}` : hz.horizont}. Stresstest bis 100.`;
     const vs = E.vermSteuerHeute({ ...s }), vsEl = $('vsInfo');
     if (vsEl) vsEl.textContent = vs.eigen ? `Eigener Satz: rund ${chf(vs.steuer)} pro Jahr auf einem Reinvermögen von ${chf(vs.rein)}.` : `Heute: rund ${chf(vs.steuer)} pro Jahr (${dec(vs.promille)}‰) in ${vs.ort || s.kanton} auf einem Reinvermögen von ${chf(vs.rein)} (Liegenschaften zu 70% des Verkehrswerts, abzüglich Hypotheken).`;
-    root.querySelectorAll('[data-showahv]').forEach((el) => { el.hidden = s.personen[+el.dataset.showahv].ahvModus !== 'betrag'; });
-    root.querySelectorAll('[data-ahvest]').forEach((el) => {
-      const p = s.personen[+el.dataset.ahvest];
+    root.querySelectorAll<HTMLElement>('[data-showahv]').forEach((el) => { el.hidden = s.personen[+el.dataset.showahv!].ahvModus !== 'betrag'; });
+    root.querySelectorAll<HTMLElement>('[data-ahvest]').forEach((el) => {
+      const p = s.personen[+el.dataset.ahvest!];
       el.hidden = p.ahvModus === 'betrag';
-      el.textContent = `≈ ${nf.format(Math.round(ahvGeschaetzt(s, +el.dataset.ahvest)))}/Mt.`;
+      el.textContent = `≈ ${nf.format(Math.round(ahvGeschaetzt(s, +el.dataset.ahvest!)))}/Mt.`;
       el.title = s.haushalt === 'verheiratet' ? 'Bei Ehepaaren begrenzt auf zusammen 150% der Maximalrente, sobald beide eine Rente beziehen; die Einkommen werden geteilt, sobald beide das Referenzalter erreicht haben' : 'Schätzung aus dem heutigen Lohn';
     });
-    root.querySelectorAll('[data-show3a]').forEach((el) => { el.hidden = (s.personen[+el.dataset.show3a].s3aModus || 'max') === 'max'; });
+    root.querySelectorAll<HTMLElement>('[data-show3a]').forEach((el) => { el.hidden = (s.personen[+el.dataset.show3a!].s3aModus || 'max') === 'max'; });
     renderSums(hz);
-    const a = document.activeElement?.dataset || {};
+    const a: DOMStringMap = (document.activeElement as HTMLElement | null)?.dataset || {};
     if (!(a.path || '').endsWith('.ahvBezug')) refreshBezOpts();
     if (a.ek == null) renderEink();
     if (a.lg == null && a.am == null) renderLgs();
   }
 
-  function renderSums(hz) {
+  function renderSums(hz: Horizont) {
     const s = S(), E = app.E, ps = s.personen.slice(0, single() ? 1 : 2), F = fixHelpers(s, E);
     // Haushalt, Personen, Einkommen, Vermögen und Liegenschaften: gleiche Texte wie in der Schrittleiste
-    const t = {
+    const t: Record<string, string> = {
       ...abschnittTexte(s),
       lohn: `${ps.map((p) => chf(p.brutto || 0)).join(' / ')}${s.einkommen.length ? ` + ${chf(s.einkommen.reduce((x, e) => x + (+e.betrag || 0), 0))} übrige` : ''}`,
-      ahv: ps.map((p, i) => `P${i + 1}: ${p.ahvModus === 'betrag' && p.ahvBetrag > 0 ? chf(p.ahvBetrag) : '≈ ' + chf(ahvGeschaetzt(s, i))}/Mt.`).join(' · '),
+      ahv: ps.map((p, i) => `P${i + 1}: ${p.ahvModus === 'betrag' && (p.ahvBetrag as number) > 0 ? chf(p.ahvBetrag as number) : '≈ ' + chf(ahvGeschaetzt(s, i))}/Mt.`).join(' · '),
       pk: ps.map((p, i) => `P${i + 1}: ${chf(p.pkRente || 0)}/J.${p.pkKapital > 0 ? ' + ' + chf(p.pkKapital) : ''}`).join(' · '),
       s3a: ps.map((p, i) => `P${i + 1}: ${chf((+p.s3a || 0) + (+p.fz || 0))}`).join(' · '),
       teil: ps.some((p) => p.teilAb > 0) ? ps.map((p, i) => (p.teilAb > 0 ? `P${i + 1} ab ${p.teilAb} zu ${p.teilPensum}%` : '')).filter(Boolean).join(' · ') : 'keine',
       fixk: `${chf(F.wohnenMonat(null).v + F.uebrigeFix())} pro Monat`,
       annahmen: `Inflation ${s.inflation}%, AHV +${s.ahvAnpassung}%, bis ${hz.horizont}${s.horizontModus === 'le5' ? ' (LE + 5)' : ''}`,
     };
-    root.querySelectorAll('[data-sum]').forEach((el) => { el.textContent = t[el.dataset.sum] || ''; });
+    root.querySelectorAll<HTMLElement>('[data-sum]').forEach((el) => { el.textContent = t[el.dataset.sum!] || ''; });
   }
 
   function renderEink() {
@@ -251,11 +264,11 @@ export function createForm(app) {
 
   function renderLgs() {
     const el = $('lgList'), s = S(), cpl = !single();
-    const f = (k, lbl, key, o = {}) => `<div class="field"><label for="lg_${k}_${key}">${lbl}</label><input type="text" inputmode="decimal" id="lg_${k}_${key}" data-lg="${k}" data-k="${key}"${o.dec ? ' data-dec="1"' : ''} value="${fmtIn(s.liegenschaften[k][key] ?? '', o.dec)}">${o.hint ? `<div class="hint">${o.hint}</div>` : ''}</div>`;
+    const f = (k: number, lbl: string, key: keyof Liegenschaft, o: { dec?: number; hint?: string } = {}) => `<div class="field"><label for="lg_${k}_${key}">${lbl}</label><input type="text" inputmode="decimal" id="lg_${k}_${key}" data-lg="${k}" data-k="${key}"${o.dec ? ' data-dec="1"' : ''} value="${fmtIn(s.liegenschaften[k][key] ?? '', o.dec as unknown as boolean)}">${o.hint ? `<div class="hint">${o.hint}</div>` : ''}</div>`;
     const q = Object.entries(QUELLEN).filter(([k]) => cpl || !k.endsWith('1'));
     el.innerHTML = s.liegenschaften.map((l, k) => {
       const typ = l.typ || 'eigen';
-      const ams = s.amortisationen.map((x, j) => [x, j]).filter(([x]) => x.lg === k);
+      const ams = s.amortisationen.map((x, j): [Amortisation, number] => [x, j]).filter(([x]) => x.lg === k);
       return `<div class="wcard"><div class="whead lg"><select data-lg="${k}" data-k="typ" aria-label="Art">${Object.entries(LGTYP).map(([v, t]) => `<option value="${v}"${v === typ ? ' selected' : ''}>${t}</option>`).join('')}</select><input type="text" class="wname" maxlength="60" data-lg="${k}" data-k="name" data-text="1" value="${esc(l.name)}" aria-label="Bezeichnung"><button type="button" class="x" data-lgdel="${k}" aria-label="${esc(`Liegenschaft ${l.name || k + 1} entfernen`)}">×</button></div>
         <div class="grid3">${f(k, 'Verkehrswert (CHF)', 'verkehrswert')}${f(k, 'Hypothek (CHF)', 'hypothek')}${f(k, 'Zins (%)', 'zins', { dec: 1 })}</div>
         <div class="grid3">${typ !== 'eigen' ? f(k, 'Unterhalt (% p. a.)', 'unterhalt', { dec: 1 }) + f(k, 'Mietertrag netto (CHF/Jahr)', 'mietertrag') : f(k, 'Unterhalt (% des Verkehrswerts p. a.)', 'unterhalt', { dec: 1, hint: 'Faustregel 1% des Gebäudeversicherungswerts, meist 0.4–0.7% des Verkehrswerts' }) + f(k, 'Nebenkosten (CHF/Mt.)', 'nebenkosten', { hint: 'Heizung, Strom, Wasser, Kehricht, Versicherung' })}${f(k, 'Verkauf mit Alter (0 = nie)', 'verkaufAlter', { dec: 1, ...(typ === 'eigen' ? { hint: HINWEIS_VERKAUF_WOHNEN } : {}) })}</div>
@@ -269,27 +282,27 @@ export function createForm(app) {
 
   // ---------- Ereignisse ----------
   // Zahlen lesen und übernehmen: takeNum (fielderr.js), gemeinsam mit Karteneditor und So oder so
-  const setNum = (obj, key, el, scope) => takeNum(el, key, scope, false, (v) => { obj[key] = v; });
+  const setNum = (obj: Roh, key: string, el: HTMLInputElement, scope?: string) => takeNum(el, key, scope, false, (v) => { obj[key] = v; });
   root.addEventListener('input', (ev) => {
-    const el = ev.target, s = S(), d = el.dataset;
+    const el = ev.target as HTMLInputElement, s = S(), d = el.dataset as Daten;
     if (d.lg != null) {
-      const l = s.liegenschaften[+d.lg];
+      const l: Roh = s.liegenschaften[+d.lg];
       if (el.tagName === 'SELECT' || d.text) l[d.k] = el.value;
       else if (!setNum(l, d.k, el)) return;
-      app.changed({ soft: el.tagName !== 'SELECT', rerender: el.tagName === 'SELECT' ? renderLgs : null });
-      if (el.tagName === 'SELECT') root.querySelector(`select[data-lg="${d.lg}"][data-k="${d.k}"]`)?.focus();
+      app.changed({ soft: el.tagName !== 'SELECT', rerender: el.tagName === 'SELECT' ? renderLgs : null! });
+      if (el.tagName === 'SELECT') root.querySelector<HTMLElement>(`select[data-lg="${d.lg}"][data-k="${d.k}"]`)?.focus();
       return;
     }
     if (d.am != null) {
-      const x = s.amortisationen[+d.am];
+      const x: Roh = s.amortisationen[+d.am];
       if (el.tagName === 'SELECT') x[d.k] = d.num ? Number(el.value) : el.value;
       else if (!setNum(x, d.k, el)) return;
-      app.changed({ soft: el.tagName !== 'SELECT', rerender: el.tagName === 'SELECT' ? renderLgs : null });
-      if (el.tagName === 'SELECT') root.querySelector(`select[data-am="${d.am}"][data-k="${d.k}"]`)?.focus();
+      app.changed({ soft: el.tagName !== 'SELECT', rerender: el.tagName === 'SELECT' ? renderLgs : null! });
+      if (el.tagName === 'SELECT') root.querySelector<HTMLElement>(`select[data-am="${d.am}"][data-k="${d.k}"]`)?.focus();
       return;
     }
     if (d.ek != null) {
-      const x = s.einkommen[+d.ek];
+      const x: Roh = s.einkommen[+d.ek];
       if (d.k === 'abPens') { if (el.value === '1') x.abPens = true; else if (x.tkey) x.abPens = false; else delete x.abPens; }
       else if (el.tagName === 'SELECT') x[d.k] = d.num ? Number(el.value) : el.value;
       else if (d.text) x[d.k] = el.value;
@@ -298,7 +311,7 @@ export function createForm(app) {
         // «Beginn» gibt es nur beim Nebenerwerb: Zeile neu aufbauen, Fokus bleibt auf der Auswahl
         if (x.art !== 'nebenerwerb') delete x.abPens;
         renderEink();
-        root.querySelector(`select[data-ek="${d.ek}"][data-k="art"]`)?.focus();
+        root.querySelector<HTMLElement>(`select[data-ek="${d.ek}"][data-k="art"]`)?.focus();
       }
       app.changed({ soft: true });
       return;
@@ -319,35 +332,35 @@ export function createForm(app) {
       return;
     }
     // Betrag von Hand gesetzt: Das Budget gilt nicht mehr (bleibt aber gespeichert)
-    if (!takeNum(el, d.path.split('.').pop(), null, !!d.empty, (v) => setPath(s, d.path, v))) return;
+    if (!takeNum(el, d.path.split('.').pop()!, null, !!d.empty, (v) => setPath(s, d.path, v))) return;
     if (d.path === 'ausgabenRuhestand') s.budgetAktiv = false;
     app.changed({ except: el });
   });
   root.addEventListener('focusout', (ev) => {
-    const el = ev.target, d = el.dataset || {};
+    const el = ev.target as HTMLInputElement, d = (el.dataset || {}) as Daten;
     // Ungültige Eingabe: zuletzt gültigen Wert wieder einsetzen und sagen, dass und warum
-    if (d.path && el.tagName === 'INPUT' && !d.text) { const shown = fmtIn(getPath(S(), d.path), d.dec); if (!revertErr(el, shown)) el.value = shown; }
+    if (d.path && el.tagName === 'INPUT' && !d.text) { const shown = fmtIn(getPath(S(), d.path), d.dec as unknown as boolean); if (!revertErr(el, shown)) el.value = shown; }
     if (el.tagName === 'INPUT' && !d.text && !d.path && el.classList.contains('bad')) app.toast(`«${el.value}» wurde nicht übernommen: ${el.nextElementSibling?.classList.contains('ferr') ? el.nextElementSibling.textContent : 'ungültige Eingabe.'} Der bisherige Wert gilt weiter.`);
     if (d.path && d.path.endsWith('.jahrgang')) refreshBezOpts();
     setTimeout(() => {
-      const a = document.activeElement?.dataset || {};
+      const a: DOMStringMap = (document.activeElement as HTMLElement | null)?.dataset || {};
       if (d.ek != null && a.ek == null) renderEink();
       if ((d.lg != null || d.am != null) && a.lg == null && a.am == null) renderLgs();
     }, 0);
   });
   /** Höchstzahl der Einträge je Liste (gleich wie beim Laden eines Stands). */
   const MAX = { einkommen: 20, liegenschaften: 10, amortisationen: 30 };
-  const voll = (liste, was) => {
+  const voll = (liste: keyof typeof MAX, was: string) => {
     if (S()[liste].length < MAX[liste]) return false;
     app.toast(`Mehr als ${MAX[liste]} ${was} lassen sich nicht erfassen.`);
     return true;
   };
   /** Nach dem Neuaufbau einer Liste den Fokus setzen: auf den neuen Eintrag bzw. den Nachbarn des entfernten. */
-  const fokus = (...sel) => { for (const q of sel) { const el = q && root.querySelector(q); if (el) { el.focus(); return; } } };
+  const fokus = (...sel: (string | null)[]) => { for (const q of sel) { const el = q && root.querySelector<HTMLElement>(q); if (el) { el.focus(); return; } } };
   root.addEventListener('click', async (ev) => {
-    const b = ev.target.closest('button');
+    const b = (ev.target as Element).closest('button');
     if (!b) return;
-    const s = S(), d = b.dataset;
+    const s = S(), d = b.dataset as Daten;
     if ((d.ekadd && voll('einkommen', 'Einkommen')) || (d.lgadd && voll('liegenschaften', 'Liegenschaften')) || (d.amadd != null && voll('amortisationen', 'Amortisationen'))) return;
     if (d.lgdel != null) {
       const k = +d.lgdel, nAm = s.amortisationen.filter((x) => x.lg === k).length;
@@ -362,9 +375,9 @@ export function createForm(app) {
       if (d.seg === 'haushalt') zielWeg(s);
       app.changed();
     }
-    else if (d.ekadd) { s.einkommen.push({ person: 0, art: d.ekadd, betrag: { dividende: 20000, nebenerwerb: 15000, spesen: 6000, sonstiges: 10000 }[d.ekadd], bisJahr: 0, text: '' }); app.changed(); }
+    else if (d.ekadd) { s.einkommen.push({ person: 0, art: d.ekadd as EinkommenArt, betrag: { dividende: 20000, nebenerwerb: 15000, spesen: 6000, sonstiges: 10000 }[d.ekadd as EinkommenArt], bisJahr: 0, text: '' }); app.changed(); }
     else if (d.ekdel != null) { s.einkommen.splice(+d.ekdel, 1); app.changed(); }
-    else if (d.lgadd) { s.liegenschaften.push({ name: LGTYP[d.lgadd], typ: d.lgadd, verkehrswert: 800000, hypothek: 400000, zins: 2, unterhalt: d.lgadd === 'eigen' ? 0.5 : 1, nebenkosten: 400, mietertrag: d.lgadd === 'rendite' ? 30000 : 0, verkaufAlter: 0 }); app.changed(); }
+    else if (d.lgadd) { s.liegenschaften.push({ name: LGTYP[d.lgadd as Liegenschaft['typ']], typ: d.lgadd as Liegenschaft['typ'], verkehrswert: 800000, hypothek: 400000, zins: 2, unterhalt: d.lgadd === 'eigen' ? 0.5 : 1, nebenkosten: 400, mietertrag: d.lgadd === 'rendite' ? 30000 : 0, verkaufAlter: 0 }); app.changed(); }
     // Karten und Amortisationen der Liegenschaft fallen mit ihr weg (liegenschaftEntfernt)
     else if (d.lgdel != null) { const k = +d.lgdel; s.liegenschaften.splice(k, 1); liegenschaftEntfernt(s, k); app.changed(); }
     else if (d.amadd != null) { s.amortisationen.push({ lg: +d.amadd, betrag: 100000, jahr: Math.max(app.E.BASIS + 1, s.personen[0].jahrgang + s.personen[0].pensAlter), monat: 1, quelle: 'frei' }); app.changed(); }
@@ -374,12 +387,12 @@ export function createForm(app) {
       if (s.budgetAktiv) s.budgetAktiv = false;
       else if (budgetVoll(s)) {
         s.budgetAktiv = true;
-        if (!hatEigenheim(s, app.E) && s.budget.wohnen !== '' && s.budget.wohnen != null && (s.fix.wohnen === '' || s.fix.wohnen == null)) s.fix.wohnen = s.budget.wohnen;
+        if (!hatEigenheim(s, app.E) && (s.budget.wohnen as NumLeer) !== '' && s.budget.wohnen != null && ((s.fix.wohnen as NumLeer) === '' || s.fix.wohnen == null)) s.fix.wohnen = s.budget.wohnen;
       }
       else { app.toast('Bitte zuerst alle Positionen des Budgets ausfüllen.'); return; }
       app.changed();
     }
-    const n = (liste) => S()[liste].length, nah = (k, anz) => Math.min(+k, anz - 1);
+    const n = (liste: keyof typeof MAX) => S()[liste].length, nah = (k: string, anz: number) => Math.min(+k, anz - 1);
     if (d.ekadd) fokus(`[data-ek="${n('einkommen') - 1}"][data-k="betrag"]`, `[data-ek="${n('einkommen') - 1}"]`);
     else if (d.lgadd) fokus(`[data-lg="${n('liegenschaften') - 1}"][data-k="name"]`);
     else if (d.amadd != null) fokus(`[data-am="${n('amortisationen') - 1}"][data-k="betrag"]`);

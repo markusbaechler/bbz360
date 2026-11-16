@@ -1,6 +1,6 @@
 # bbz360 — Beratungsdialog v2
 
-Digitales Beratungsgespräch der bbz bank st.gallen: 13 Module von der Agenda
+Digitales Beratungsgespräch der bbz bank st.gallen: 14 Module von der Agenda
 bis zum Gesprächsbericht, neu aufgebaut nach **Design-Grammatik v3**
 (`design/DESIGN-SPEC.md`) mit Vite + TypeScript.
 
@@ -17,6 +17,7 @@ bis zum Gesprächsbericht, neu aufgebaut nach **Design-Grammatik v3**
 | 06 | Ziele & Wünsche — Zeitachse, Lebensthemen, Wunschliste (zweistufige Erfassung) | Zielkarten + Sequenz |
 | 07a | Eigenheimfinanzierung — Tragbarkeit, Varianten | 05-Simulations-Muster |
 | 07b | Anlegen — Profilierung (6 Phasen) + Umsetzung (3 Phasen) | referenz-08 |
+| 07c | Pensionierung — Standortbestimmung nach PensCheck: Bühne mit Bild und Ampel, geführte Erfassung, Themenkarten, «So oder so», Aktionsplan, PDF-Bericht | bbz Brand System (ADR-16) |
 | 08 | Vereinbarungen — Wizard | referenz-08 |
 | 09 | Feedback — Slider-Zeilen, grosse Daumen | 01-Panel-Muster |
 | 10 | Abschluss — Zusammenfassung + Druckbericht | 01-Grammatik |
@@ -46,7 +47,7 @@ npm run build        # Produktion nach dist/
   PensCheck (monatsgenau: AHV, PK, 3a, Freizügigkeit, Liegenschaften,
   Steuern), geprüfte Grundlagen in `public/data/params.json`. Gemeinsamer
   Haushalts-Stand `haushalt` über `src/lib/haushalt.ts` (ADR-16, Zielbild in
-  `docs/ZIELBILD-FUSION.md`). Noch ohne Oberfläche — Modul folgt in Phase 2.
+  `docs/ZIELBILD-FUSION.md`). Oberfläche: `src/pension-ui/` (Modul 07c).
 - **Design**: `src/styles/theme.css` ist Single Source of Truth;
   verbindliche Regeln in `design/DESIGN-SPEC.md` (Bühnen-Grammatik,
   6 Regeln, Inventar-Pflicht §5 inkl. Vereinfachungs-Verbot §5.4).

@@ -1,6 +1,11 @@
 // Panel «Grundlagen und Quellen»: alle gesetzlichen Werte mit Gültigkeit, Quellen und Prüfstatus.
 import { paramOverview } from '../lib/pension/params';
 import { nf, chf, dec, esc } from '../lib/pension/format';
+import type { PruefDatei, PruefStand } from '../lib/pension/params';
+import type { ParamQuelle } from '../lib/pension/typen';
+import type { App } from './app';
+
+type ParamZeile = ReturnType<typeof paramOverview>[number];
 
 const GROUPS = [
   ['ahv.', 'AHV-Renten'],
@@ -12,7 +17,7 @@ const GROUPS = [
   ['kk.', 'Krankenkasse'],
 ];
 
-function fmtVal(p, v) {
+function fmtVal(p: Pick<ParamZeile, 'unit' | 'key'>, v: any) {
   if (v == null) return '–';
   if (p.unit === 'CHF/Monat') return chf(v) + ' / Mt.';
   if (p.unit === 'CHF/Jahr') return chf(v) + ' / Jahr';
@@ -25,15 +30,15 @@ function fmtVal(p, v) {
   return nf.format(v) + (p.unit && p.unit !== 'Renten' ? ' ' + p.unit : '');
 }
 
-const dateCH = (iso) => (iso ? new Date(iso).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–');
+const dateCH = (iso: any) => (iso ? new Date(iso).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–');
 
-function badge(v, kind, ok) {
+function badge(v: PruefStand | undefined, kind: string | undefined, ok: (c: PruefStand | undefined) => boolean) {
   if (kind === 'annahme') return '<span class="vb a">Annahme</span>';
   if (!v) return '<span class="vb n" title="Noch nicht automatisch geprüft">ungeprüft</span>';
   const t = `${v.confirmed}/${v.total} Quellen`;
   // Amtliche Statistik: Die Tabelle stammt aus der ESTV-Schnittstelle und wird mit ihr abgeglichen (keine zweite Quelle)
   if (kind === 'amtlich') {
-    const api = (v.sources || []).find((x) => x.id === 'estv-kapital' || x.id === 'estv-vermoegen');
+    const api = (v.sources || []).find((x: any) => x.id === 'estv-kapital' || x.id === 'estv-vermoegen');
     return api?.ok ? '<span class="vb ok" title="Stimmt mit der ESTV-Statistik überein">✓ mit ESTV abgeglichen</span>' : '<span class="vb mid" title="Abgleich mit der ESTV-Statistik steht aus oder weicht ab">Abgleich offen</span>';
   }
   if (ok(v)) return `<span class="vb ok" title="Automatisch bestätigt: mindestens zwei Quellen, davon eine amtliche, laufend nachgeführte">✓ ${t}</span>`;
@@ -41,27 +46,27 @@ function badge(v, kind, ok) {
   return `<span class="vb bad" title="Keine Quelle bestätigt den Wert">${t}</span>`;
 }
 
-export function renderSources(app) {
+export function renderSources(app: App) {
   const el = document.getElementById('sources');
   if (!el) return;
-  const data = app.params, ver = app.verification || {}, jahr = app.P.meta.jahr;
+  const data = app.params, ver = (app.verification || {}) as PruefDatei & { alerts?: string[] }, jahr = app.P.meta.jahr;
   const items = paramOverview(data, jahr);
-  const groups = new Map();
+  const groups = new Map<string | null, ParamZeile[]>();
   items.forEach((it) => {
     const g = (GROUPS.find(([pre]) => it.key.startsWith(pre)) || [null, 'Weitere'])[1];
     if (!groups.has(g)) groups.set(g, []);
-    groups.get(g).push(it);
+    groups.get(g)!.push(it);
   });
   // Prüfstatus für den Wert, der im Rechnungsjahr gilt
   const vp = Object.fromEntries(items.map((i) => {
     const v = (ver.params || {})[i.key];
-    const y = v?.byYear?.[i.gueltigAb];
+    const y = v?.byYear?.[i.gueltigAb!];
     return [i.key, y ? { ...y, checkedAt: v.checkedAt } : v];
   }));
   const all = items.filter((i) => i.kind === 'gesetz');
   const istOk = app.bestaetigt || ((c) => !!c && c.confirmed >= 2);
   const ok = all.filter((i) => istOk(vp[i.key])).length;
-  const srcList = (sources, vsrc) => sources.length
+  const srcList = (sources: ParamQuelle[], vsrc?: any[]) => sources.length
     ? `<ul class="srcs">${sources.map((s) => {
         const st = (vsrc || []).find((x) => x.id === s.id);
         const mark = st ? (st.ok ? '<span class="sok">✓</span>' : `<span class="sno" title="${esc(st.error || 'Wert nicht gefunden')}">✗</span>`) : '<span class="sna">·</span>';
@@ -84,7 +89,7 @@ export function renderSources(app) {
   }
   for (const [key, t] of Object.entries(data.tables || {})) {
     const v = (ver.tables || {})[key];
-    const srcs = (t.sources || []).map((s) => ({ ...s, ...(data.sources[s.id] || {}) }));
+    const srcs = ((t.sources || []) as ParamQuelle[]).map((s) => ({ ...s, ...(data.sources[s.id] || {}) }));
     html += `<h2 class="srcg">${esc(t.label)}</h2><details class="srow"><summary><span class="sl">${t.kind === 'amtlich' ? 'Amtliche Statistik, täglich abgeglichen' : t.kind === 'schaetzung' ? 'Schätzung aus Vergleichstabellen' : t.kind === 'annahme' ? 'Planungsannahmen, im Formular anpassbar' : 'Gesetzliche Tabelle'}</span><span class="sv"></span>${badge(v, t.kind, istOk)}</summary>
       <div class="sdet">${t.note ? `<p class="cap">${esc(t.note)}</p>` : ''}${key === 'kapSteuer' ? kapTable(t.data) : ''}${key === 'vermSteuer' ? kapTable(t.data, 'ein Reinvermögen', [200000, 500000, 1000000, 5000000]) : ''}${key === 'referenzalter' ? refTable(t.data) : ''}${srcList(srcs, v?.sources)}</div></details>`;
   }
@@ -93,11 +98,11 @@ export function renderSources(app) {
   document.getElementById('btnCheckUpdate')?.addEventListener('click', () => app.checkForUpdate(true));
 }
 
-function kapTable(d, was = 'einen Kapitalbezug', stufen = [50000, 100000, 200000, 500000, 1000000]) {
-  const cols = d.stuetzstellen.map((x, i) => [x, i]).filter(([x]) => stufen.includes(x));
+function kapTable(d: any, was = 'einen Kapitalbezug', stufen = [50000, 100000, 200000, 500000, 1000000]) {
+  const cols = d.stuetzstellen.map((x: number, i: number) => [x, i]).filter(([x]: number[]) => stufen.includes(x));
   return `<p class="cap">Steuerjahr ${d.steuerjahr}${d.abgerufen ? `, abgerufen am ${new Date(d.abgerufen).toLocaleDateString('de-CH')}` : ''}. Steuer in CHF für ${was} von … (ledig / verheiratet).</p>
-    <div class="tblwrap"><table class="cmp"><thead><tr><th>Kanton</th>${cols.map(([x]) => `<th>${nf.format(x)}</th>`).join('')}</tr></thead><tbody>${Object.entries(d.kantone).sort().map(([k, v]) => `<tr><td>${k} – ${esc(v.ort)}</td>${cols.map(([, i]) => `<td>${nf.format(v.ledig[i])} / ${nf.format(v.verheiratet[i])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    <div class="tblwrap"><table class="cmp"><thead><tr><th>Kanton</th>${cols.map(([x]: number[]) => `<th>${nf.format(x)}</th>`).join('')}</tr></thead><tbody>${(Object.entries(d.kantone) as [string, any][]).sort().map(([k, v]) => `<tr><td>${k} – ${esc(v.ort)}</td>${cols.map(([, i]: number[]) => `<td>${nf.format(v.ledig[i])} / ${nf.format(v.verheiratet[i])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
-function refTable(d) {
-  return `<p class="cap">Männer: ${d.m} Jahre. Frauen: ${d.w.map(([jg, a], i) => `${i === 0 ? `bis Jahrgang ${d.w[1][0] - 1}` : i === d.w.length - 1 ? `ab Jahrgang ${jg}` : `Jahrgang ${jg}`} ${dec(a, Number.isInteger(a) ? 0 : 2)}`).join(', ')}.</p>`;
+function refTable(d: any) {
+  return `<p class="cap">Männer: ${d.m} Jahre. Frauen: ${d.w.map(([jg, a]: number[], i: number) => `${i === 0 ? `bis Jahrgang ${d.w[1][0] - 1}` : i === d.w.length - 1 ? `ab Jahrgang ${jg}` : `Jahrgang ${jg}`} ${dec(a, Number.isInteger(a) ? 0 : 2)}`).join(', ')}.</p>`;
 }

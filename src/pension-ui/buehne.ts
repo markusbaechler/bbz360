@@ -4,26 +4,33 @@
 import { ANSICHT_IDS } from '../lib/pension/state';
 import { bildDaten, bildSvg, renderMiniBild } from './bild';
 import { esc } from '../lib/pension/format';
+import type { App, AppErgebnis } from './app';
+import type { Results } from './results';
+import type { PensState } from '../lib/pension/typen';
 
-export const ANSICHTEN = [['bild', 'Bild'], ['ablauf', 'Ablauf'], ['jahre', 'Jahresrechnung'], ['kapital', 'Kapitalbezüge und Steuern'], ['bilanz', 'Vermögensbilanz'], ['fix', 'Renten und Fixkosten'], ['wuensche', 'Wünsche und Ziele'], ['hinweise', 'Hinweise']];
+export type Buehne = ReturnType<typeof createBuehne>;
+/** Element, dessen append() auch das Ergebnis von querySelector() annimmt (der Block steht fest in der Seite). */
+type MitAnhang = HTMLElement & { append(...nodes: (Node | string | null)[]): void };
+
+export const ANSICHTEN: [id: string, titel: string][] = [['bild', 'Bild'], ['ablauf', 'Ablauf'], ['jahre', 'Jahresrechnung'], ['kapital', 'Kapitalbezüge und Steuern'], ['bilanz', 'Vermögensbilanz'], ['fix', 'Renten und Fixkosten'], ['wuensche', 'Wünsche und Ziele'], ['hinweise', 'Hinweise']];
 
 /** Frage der Kopfzeile, solange kein Ergebnis vorliegt (Schritte 1 bis 4). */
-const FRAGEN = { situation: 'Wann möchten Sie aufhören?', einkommen: 'Wovon leben Sie nach der Pensionierung?', vermoegen: 'Was brauchen Sie, und was ist da?', liegenschaft: 'Wie wohnen Sie?' };
+const FRAGEN: Record<string, string> = { situation: 'Wann möchten Sie aufhören?', einkommen: 'Wovon leben Sie nach der Pensionierung?', vermoegen: 'Was brauchen Sie, und was ist da?', liegenschaft: 'Wie wohnen Sie?' };
 
 /** Kopfzeile je Schritt: ohne Ergebnis die Frage des Schritts, mit Ergebnis leer (dann gilt der Urteilsblock). */
-export function kopfHtml(S, R) {
+export function kopfHtml(S: Pick<PensState, 'ui'>, R: AppErgebnis | null | undefined) {
   if (R && !R.leer) return '';
   const t = FRAGEN[S.ui?.schritt];
   return t ? `<h2>${t}</h2>` : '';
 }
 
-const $ = (id) => document.getElementById(id);
+const $ = (id: string) => document.getElementById(id)!;
 
 // Anmeldung der Druckereignisse der bisherigen Instanz; jede neue ersetzt sie (Tests bauen die Seite mehrfach auf)
-let abmeldenDruck = null, abmeldenBreite = null;
-export function createBuehne(app, results) {
+let abmeldenDruck: (() => void) | null = null, abmeldenBreite: (() => void) | null = null;
+export function createBuehne(app: App, results: Pick<Results, 'ansichtHtml' | 'ansichtNach'>) {
   /** Verfügbare Ansichten: «Wünsche und Ziele» nur mit Wünschen, «Renten und Fixkosten» nur mit Fixkosten-Rechnung. */
-  const liste = () => ANSICHTEN.filter(([id]) => (id !== 'wuensche' || app.S.wuensche.length > 0) && (id !== 'fix' || !!app.R?.fix));
+  const liste = () => ANSICHTEN.filter(([id]) => (id !== 'wuensche' || app.S.wuensche.length > 0) && (id !== 'fix' || !!(app.R as Extract<AppErgebnis, { leer: false }> | null)?.fix));
   /** Gewählte Ansicht; ist sie nicht verfügbar, gilt das Bild. */
   const aktuell = () => (liste().some(([id]) => id === app.S.ui.ansicht) ? app.S.ui.ansicht : 'bild');
   const form = () => app.S.ui.mode === 'form';
@@ -36,9 +43,9 @@ export function createBuehne(app, results) {
   // Formularmodus ab 1025 px am Bildschirm: Ergänzung, Kennzahlen und Tragbarkeit stehen unter Bild und Themenleiste
   // (Schritte 4 und 5, styles.css); im Dokument dann ebenso, damit der Tabulator sie nach den Registern erreicht.
   // Schmaler, im Tutor und im Druck gilt die Reihenfolge von index.html.
-  const res = $('results'), erk = $('erkunden'), edit = $('themaEdit');
+  const res = $('results'), erk = $('erkunden') as MitAnhang, edit = $('themaEdit');
   const ordnung = [...res.children];
-  const editHeim = [edit.parentElement, edit.nextSibling];
+  const editHeim: [HTMLElement, ChildNode | null] = [edit.parentElement!, edit.nextSibling];
   const UNTEN = ['subUnten', 'kpis', 'tragBox'], OBEN = ['kpis', 'subUnten', 'tragBox']; // breit bzw. wie in index.html
   const breit = window.matchMedia?.('screen and (min-width: 1025px)');
   let imDruck = false;
@@ -51,14 +58,14 @@ export function createBuehne(app, results) {
     res.insertBefore(v, unter); res.insertBefore(k, unter);
   }
   /** Urteil und Kennzahlen in den Platz der Tutor-Karte (nur im Tutor-Ergebnis). */
-  function kopfIn(platz) {
+  function kopfIn(platz: Element | null | undefined) {
     if (!platz || form()) return;
     platz.append(...kopfEl());
   }
   function ordne() {
     const m = form() ? (breit?.matches && !imDruck ? 'form-breit' : 'form') : 'tutor';
     if (res.dataset.ordnung === m) return;
-    const vorher = res.dataset.ordnung, fokus = document.activeElement;
+    const vorher = res.dataset.ordnung, fokus = document.activeElement as HTMLElement | null;
     res.dataset.ordnung = m;
     if (m === 'tutor') {
       // aus dem breiten Formular: Ergänzung, Kennzahlen und Tragbarkeit zuerst zurück an ihren Platz vor «vergleich»
@@ -84,30 +91,30 @@ export function createBuehne(app, results) {
     const html = form() ? kopfHtml(app.S, app.R) : '', el = $('kopfFrage');
     if (el.innerHTML !== html) el.innerHTML = html;
     el.hidden = !html;
-    el.closest('[data-block="kopf"]').classList.toggle('frage', !!html);
+    el.closest('[data-block="kopf"]')!.classList.toggle('frage', !!html);
     // Kompakte Kopfzeile (ab 1025 px, styles.css): die ersten zwei Kennzahlen ohne Zusatzzeile. In Schritt 5 stehen
     // alle drei Kennzahlen unter dem Bild; dann ist die Kopie für Bildschirmleser verborgen.
     const kk = $('kopfKpis'), mitErgebnis = form() && app.R && !app.R.leer;
     kk.innerHTML = '';
     if (mitErgebnis) {
-      [...$('kpis').querySelectorAll('.kpi')].slice(0, 2).forEach((k) => { const c = k.cloneNode(true); c.querySelectorAll('.s').forEach((x) => x.remove()); kk.append(c); });
+      [...$('kpis').querySelectorAll('.kpi')].slice(0, 2).forEach((k) => { const c = k.cloneNode(true) as Element; c.querySelectorAll('.s').forEach((x) => x.remove()); kk.append(c); });
     }
     kk.setAttribute('aria-hidden', String(app.S.ui.schritt === 'urteil'));
     $('subUnten').textContent = mitErgebnis ? $('verdictSub').textContent : '';
   }
 
   /** Abschnitt id anspringen (Sprungleiste, Tutor): Fokus auf seine erste Überschrift, sonst auf den Abschnitt. */
-  function springe(id) {
+  function springe(id: string) {
     const ziel = $(id);
     if (!ziel) return;
-    const h = ziel.matches('h1, h2, h3') ? ziel : ziel.querySelector('h2, h3') || ziel;
+    const h = (ziel.matches('h1, h2, h3') ? ziel : ziel.querySelector('h2, h3') || ziel) as HTMLElement;
     if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
     h.scrollIntoView?.({ behavior: matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth', block: 'start' });
     h.focus({ preventScroll: true });
   }
 
   function renderMini() {
-    const host = $('miniBild')?.querySelector('[data-minibild]');
+    const host = $('miniBild')?.querySelector<HTMLElement>('[data-minibild]');
     if (!host) return;
     if (form()) renderMiniBild(host, bildDaten(app.S, app.R, app.E)); else host.innerHTML = '';
   }
@@ -125,7 +132,7 @@ export function createBuehne(app, results) {
     const tb = $('tabBody');
     // Im Tutor heisst das Auswahlfeld «Mehr Auswertungen» und steht auf jeder Breite statt der Register (styles.css)
     $('ansichtLabel').textContent = form() ? 'Ansicht' : 'Mehr Auswertungen';
-    const reg = $('resTabs'), box = $('ansichtBox'), sel = $('ansichtWahl');
+    const reg = $('resTabs'), box = $('ansichtBox'), sel = $('ansichtWahl') as HTMLSelectElement;
     if (!aktiv()) {
       // Ohne Ergebnis: nur das wachsende Bild, ohne Ansichtswahl
       reg.innerHTML = ''; sel.innerHTML = ''; box.hidden = true;
@@ -136,12 +143,12 @@ export function createBuehne(app, results) {
     const id = aktuell(), L = liste(), ids = L.map(([k]) => k).join();
     box.hidden = false;
     // Register und Auswahlfeld nur neu aufbauen, wenn sich die Liste ändert; sonst bleibt der Fokus, wo er ist
-    if ([...reg.querySelectorAll('button[data-ansicht]')].map((b) => b.dataset.ansicht).join() !== ids) {
+    if ([...reg.querySelectorAll<HTMLElement>('button[data-ansicht]')].map((b) => b.dataset.ansicht).join() !== ids) {
       const fokus = reg.contains(document.activeElement);
       reg.innerHTML = L.map(([k, t]) => `<button type="button" role="tab" id="ansicht-${k}" data-ansicht="${k}" aria-controls="tabBody">${t}</button>`).join('');
       if (fokus) $(`ansicht-${id}`)?.focus();
     }
-    reg.querySelectorAll('button[data-ansicht]').forEach((b) => { const an = b.dataset.ansicht === id; b.setAttribute('aria-selected', String(an)); b.tabIndex = an ? 0 : -1; });
+    reg.querySelectorAll<HTMLElement>('button[data-ansicht]').forEach((b) => { const an = b.dataset.ansicht === id; b.setAttribute('aria-selected', String(an)); b.tabIndex = an ? 0 : -1; });
     if ([...sel.options].map((o) => o.value).join() !== ids) sel.innerHTML = L.map(([k, t]) => `<option value="${k}">${t}</option>`).join('');
     sel.value = id;
     tb.setAttribute('role', 'tabpanel'); tb.removeAttribute('aria-label'); tb.setAttribute('tabindex', '0');
@@ -150,7 +157,7 @@ export function createBuehne(app, results) {
   }
 
   /** Ansicht wählen; mit refokus bleibt der Fokus auf dem gewählten Register. */
-  function waehle(id, refokus) {
+  function waehle(id: string, refokus: boolean) {
     if (!ANSICHT_IDS.includes(id)) return;
     app.S.ui.ansicht = id;
     app.persist();
@@ -159,8 +166,8 @@ export function createBuehne(app, results) {
   }
 
   $('resTabs').addEventListener('click', (ev) => {
-    const b = ev.target.closest('button[data-ansicht]');
-    if (b) waehle(b.dataset.ansicht, true);
+    const b = (ev.target as Element).closest<HTMLElement>('button[data-ansicht]');
+    if (b) waehle(b.dataset.ansicht!, true);
   });
   $('resTabs').addEventListener('keydown', (ev) => {
     const L = liste(), n = L.length, i = L.findIndex(([k]) => k === aktuell());
@@ -169,13 +176,13 @@ export function createBuehne(app, results) {
     ev.preventDefault();
     waehle(L[j][0], true);
   });
-  $('ansichtWahl').addEventListener('change', (ev) => waehle(ev.target.value, false));
+  $('ansichtWahl').addEventListener('change', (ev) => waehle((ev.target as HTMLSelectElement).value, false));
   // Sprungleiste des Tutor-Ergebnisses: kein Wechsel der Adresse (#angaben=… bleibt dem Link vorbehalten)
   $('sprung')?.addEventListener('click', (ev) => {
-    const a = ev.target.closest('a[href^="#"]');
+    const a = (ev.target as Element).closest('a[href^="#"]');
     if (!a) return;
     ev.preventDefault();
-    springe(a.getAttribute('href').slice(1));
+    springe(a.getAttribute('href')!.slice(1));
   });
   // Das kleine Bild führt zum Bild in der Ansicht «Ergebnis»
   $('miniBild')?.addEventListener('click', () => {
@@ -202,7 +209,7 @@ export function createBuehne(app, results) {
     // Ohne Inhalt entfällt der Block der Ansicht im Druck (styles.css); die Ansichten stehen in #druckAnsichten
     $('tabBody').innerHTML = ''; tabGeleert = true; $('ansichtenBlock').setAttribute('data-druck-leer', '');
     // Aktionsplan: im Druck die vollständige Liste (sonst nur beim Aufklappen vorhanden)
-    const alle = document.querySelector('#akt [data-akt-alle][aria-expanded="false"]');
+    const alle = document.querySelector<HTMLElement>('#akt [data-akt-alle][aria-expanded="false"]');
     if (alle) { alle.click(); alleAufgeklappt = true; }
   }
   function druckLeeren() {
@@ -210,7 +217,7 @@ export function createBuehne(app, results) {
     if (kopfGedruckt) { kopfIn(document.querySelector('#tutor [data-tkopf]')); kopfGedruckt = false; }
     const host = $('druckAnsichten');
     if (host) host.innerHTML = '';
-    if (alleAufgeklappt) { document.querySelector('#akt [data-akt-alle][aria-expanded="true"]')?.click(); alleAufgeklappt = false; }
+    if (alleAufgeklappt) { document.querySelector<HTMLElement>('#akt [data-akt-alle][aria-expanded="true"]')?.click(); alleAufgeklappt = false; }
     if (tabGeleert) { tabGeleert = false; $('ansichtenBlock').removeAttribute('data-druck-leer'); renderBody(); }
     imDruck = false; ordne();
   }

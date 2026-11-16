@@ -5,35 +5,42 @@
 import { AKT_ART, aktGruppe, buildIcs } from '../lib/pension/aktion';
 import { esc } from '../lib/pension/format';
 import { karten, kartenName, STELLE_TXT } from '../lib/pension/themen';
+import type { AktionEintrag } from '../lib/pension/aktion';
+import type { Auswertung } from '../lib/pension/analyse';
+import type { App } from './app';
 
-export function createAktion(app) {
-  const el = document.getElementById('akt');
-  const done = (id) => !!(app.S.aktion && app.S.aktion[id]);
+/** Fokussiertes Element des Aktionsplans (fokusInfo/fokusSetzen). */
+type AktFokus = { art: 'cb'; id: string | undefined; liste: string | undefined } | { art: 'agr'; g: string | undefined } | { art: 'alle' } | { art: 'ics' };
+export type AktionUi = ReturnType<typeof createAktion>;
+
+export function createAktion(app: App) {
+  const el = document.getElementById('akt')!;
+  const done = (id: string) => !!(app.S.aktion && app.S.aktion[id]);
   const cpl = () => app.S.haushalt !== 'single';
   const tutor = () => app.S.ui?.mode === 'tutor';
 
   // Oberflächenzustand: gewählte Gruppe, «alle zeigen»; nicht im Link
-  let gruppeGew = null, alleOffen = false;
+  let gruppeGew: string | null | undefined = null, alleOffen = false;
 
   /** Beschreibt das fokussierte Element, damit ein Neuaufbau den Fokus halten kann. */
-  function fokusInfo() {
-    const a = document.activeElement;
+  function fokusInfo(): AktFokus | null {
+    const a = document.activeElement as HTMLElement | null;
     if (!a || !el.contains(a)) return null;
-    if (a.dataset.akt != null) return { art: 'cb', id: a.dataset.akt, liste: a.closest('[data-liste]')?.dataset.liste };
+    if (a.dataset.akt != null) return { art: 'cb', id: a.dataset.akt, liste: a.closest<HTMLElement>('[data-liste]')?.dataset.liste };
     if (a.dataset.agr != null) return { art: 'agr', g: a.dataset.agr };
     if (a.hasAttribute('data-akt-alle')) return { art: 'alle' };
     if (a.hasAttribute('data-ics')) return { art: 'ics' };
     return null;
   }
-  function fokusSetzen(f) {
+  function fokusSetzen(f: AktFokus | null) {
     if (!f) return;
-    let t = null;
+    let t: HTMLElement | null | undefined = null;
     if (f.art === 'cb') {
       const sel = f.liste ? `[data-liste="${f.liste}"] [data-akt]` : '[data-akt]';
-      t = [...el.querySelectorAll(sel)].find((x) => x.dataset.akt === f.id);
-    } else if (f.art === 'agr') t = [...el.querySelectorAll('[data-agr]')].find((x) => x.dataset.agr === f.g);
-    else if (f.art === 'alle') t = el.querySelector('[data-akt-alle]');
-    else if (f.art === 'ics') t = el.querySelector('[data-ics]');
+      t = [...el.querySelectorAll<HTMLElement>(sel)].find((x) => x.dataset.akt === f.id);
+    } else if (f.art === 'agr') t = [...el.querySelectorAll<HTMLElement>('[data-agr]')].find((x) => x.dataset.agr === f.g);
+    else if (f.art === 'alle') t = el.querySelector<HTMLElement>('[data-akt-alle]');
+    else if (f.art === 'ics') t = el.querySelector<HTMLElement>('[data-ics]');
     t?.focus();
   }
 
@@ -56,7 +63,7 @@ export function createAktion(app) {
     const offen = L.filter((x) => !done(x.id));
     const vorbei = offen.filter((x) => x.A != null && x.A < now && x.art !== 'empfehlung');
     const termine = offen.filter((x) => x.ics && x.A != null).length;
-    const gr = [];
+    const gr: { g: string; items: AktionEintrag[] }[] = [];
     L.forEach((x) => {
       const g = aktGruppe(x, now);
       let e = gr.find((z) => z.g === g);
@@ -64,7 +71,7 @@ export function createAktion(app) {
       e.items.push(x);
     });
     // Jede Liste hat eigene Element-Ids (pre), da dieselbe Aufgabe an mehreren Stellen stehen kann
-    const item = (x, pre, n) => {
+    const item = (x: AktionEintrag, pre: string, n: number) => {
       const d = done(x.id), late = !d && x.A != null && x.A < now;
       return `<li class="ai${d ? ' done' : ''}${late ? ' late' : ''}">
         <input type="checkbox" id="${pre}${n}" data-akt="${esc(x.id)}"${d ? ' checked' : ''} aria-labelledby="${pre}${n}t ${pre}${n}w">
@@ -72,18 +79,18 @@ export function createAktion(app) {
         <div class="ab"><div class="at"><label for="${pre}${n}" id="${pre}${n}t">${esc(x.titel)}</label>${cpl() && x.person != null ? `<span class="ap">P${x.person + 1}</span>` : ''}<span class="aa a-${x.art}">${AKT_ART[x.art]}</span></div>
         <p class="ax">${esc(x.text)}</p><p class="as">Bei: ${esc(x.stelle)}</p></div></li>`;
     };
-    const liste = (items, pre) => `<ul class="alist">${items.map((x, n) => item(x, pre, n)).join('')}</ul>`;
-    const volle = (pre) => {
+    const liste = (items: AktionEintrag[], pre: string) => `<ul class="alist">${items.map((x, n) => item(x, pre, n)).join('')}</ul>`;
+    const volle = (pre: string) => {
       let k = 0;
       return gr.map((g) => `<h4 class="agr">${esc(g.g)}</h4><ul class="alist">${g.items.map((x) => item(x, pre, k++)).join('')}</ul>`).join('');
     };
-    const kopf = (titel) => `<div class="ahd">${titel}<span class="acnt">${L.length - offen.length} von ${L.length} erledigt</span><button type="button" class="bbz-button bbz-button--secondary sm" data-ics${termine ? '' : ' disabled'}>In den Kalender (.ics)</button></div>
+    const kopf = (titel: string) => `<div class="ahd">${titel}<span class="acnt">${L.length - offen.length} von ${L.length} erledigt</span><button type="button" class="bbz-button bbz-button--secondary sm" data-ics${termine ? '' : ' disabled'}>In den Kalender (.ics)</button></div>
       <p class="cap">Was wann zu tun ist, aus Ihren Angaben abgeleitet und rückwärts ab der Pensionierung gerechnet. Haken setzen, sobald erledigt.</p>
       ${vorbei.length ? `<p class="awarn"><b>${vorbei.length} ${vorbei.length === 1 ? 'Frist ist' : 'Fristen sind'} bereits vorbei.</b> Sofort mit der betreffenden Stelle klären, ob es noch möglich ist (z. B. Kapitalbezug bei der Pensionskasse).</p>` : ''}`;
     const schluss = '<p class="cap">Die Termine folgen Ihrem Plan, nicht dem Was-wäre-wenn-Szenario. Fristen der Pensionskasse unterscheiden sich stark; massgebend ist das Reglement. Die Haken bleiben in diesem Browser gespeichert und reisen mit dem Link mit.</p>';
 
     // Die drei frühesten offenen Aufgaben; null (jederzeit) zuletzt, bei Gleichstand Reihenfolge der Engine
-    const naechste = offen.map((x, i) => [x, i]).sort((a, b) => (a[0].A ?? Infinity) - (b[0].A ?? Infinity) || a[1] - b[1]).slice(0, 3).map((z) => z[0]);
+    const naechste = offen.map((x, i) => [x, i] as [AktionEintrag, number]).sort((a, b) => (a[0].A ?? Infinity) - (b[0].A ?? Infinity) || a[1] - b[1]).slice(0, 3).map((z) => z[0]);
     if (!gr.some((g) => g.g === gruppeGew)) gruppeGew = gr[0]?.g ?? null;
     const gew = gr.find((g) => g.g === gruppeGew);
     // Im Tutor steht die Liste der nächsten Aufgaben direkt unter der Überschrift des Blocks
@@ -101,7 +108,7 @@ export function createAktion(app) {
   }
 
   function download() {
-    const r = app.R;
+    const r = app.R as Auswertung | null;
     if (!r || !r.akt) return;
     const ics = buildIcs(r.akt, app.E.A0, { done, cpl: cpl() });
     const kname = (app.S.bericht.kunde || '').replace(/[^A-Za-z0-9ÄÖÜäöüéèà_-]+/g, '_').slice(0, 40);
@@ -116,10 +123,10 @@ export function createAktion(app) {
   }
 
   el.addEventListener('change', (ev) => {
-    const cb = ev.target;
+    const cb = ev.target as HTMLInputElement;
     if (!cb.dataset || cb.dataset.akt == null) return;
     const id = cb.dataset.akt, s = app.S;
-    const liste = cb.closest('[data-liste]')?.dataset.liste;
+    const liste = cb.closest<HTMLElement>('[data-liste]')?.dataset.liste;
     s.aktion = s.aktion || {};
     if (cb.checked) s.aktion[id] = 1;
     else delete s.aktion[id];
@@ -127,14 +134,14 @@ export function createAktion(app) {
     render();
     if (liste === 'next') {
       // Die Aufgabe verlässt «Als Nächstes»: Fokus auf das erste Kästchen dort, sonst auf die Gruppenknöpfe
-      (el.querySelector('.anext [data-akt]') || el.querySelector('[data-agr]'))?.focus();
+      (el.querySelector<HTMLElement>('.anext [data-akt]') || el.querySelector<HTMLElement>('[data-agr]'))?.focus();
     } else fokusSetzen({ art: 'cb', id, liste });
   });
   el.addEventListener('click', (ev) => {
-    if (ev.target.closest('[data-ics]')) { download(); return; }
-    const g = ev.target.closest('[data-agr]');
+    if ((ev.target as Element).closest('[data-ics]')) { download(); return; }
+    const g = (ev.target as Element).closest<HTMLElement>('[data-agr]');
     if (g) { gruppeGew = g.dataset.agr; render(); return; }
-    if (ev.target.closest('[data-akt-alle]')) { alleOffen = !alleOffen; render(); }
+    if ((ev.target as Element).closest('[data-akt-alle]')) { alleOffen = !alleOffen; render(); }
   });
 
   return { render };

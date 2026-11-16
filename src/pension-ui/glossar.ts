@@ -1,23 +1,28 @@
 // Fachbegriffe zum Antippen: kurze Erklärung in einem kleinen Fenster beim Begriff (Toggletip).
 // gl(key, text) erzeugt den Begriff im Text; initGlossar(app) richtet das Fenster einmal für die ganze App ein.
 import { chf, dec } from '../lib/pension/format';
+import type { PensState } from '../lib/pension/typen';
+import type { App } from './app';
 
-const pc = (v) => `${dec(v * 100)}%`;
+/** Stufen der Ampel. */
+export type AmpelStufe = 'gruen' | 'gelb' | 'rot';
+
+const pc = (v: number) => `${dec(v * 100)}%`;
 
 /** Was die drei Stufen der Ampel bedeuten, je ein Satz (Glossar, Ausdruck und PDF-Bericht verwenden denselben Wortlaut). */
-export function ampelSaetze(S = {}) {
+export function ampelSaetze(S: Partial<Pick<PensState, 'reserveJahre'>> = {}) {
   return {
-    gruen: `Das freie Vermögen reicht im Basisszenario bis zum Planungshorizont, am Schluss bleibt die Reserve${+S.reserveJahre > 0 ? ` von ${+S.reserveJahre} Jahresausgaben` : ''}, und auch im Stresstest geht das Geld nicht aus.`,
+    gruen: `Das freie Vermögen reicht im Basisszenario bis zum Planungshorizont, am Schluss bleibt die Reserve${+S.reserveJahre! > 0 ? ` von ${+S.reserveJahre!} Jahresausgaben` : ''}, und auch im Stresstest geht das Geld nicht aus.`,
     gelb: 'Im Basisszenario reicht es, aber die Reserve wird unterschritten oder das Geld geht im Stresstest aus.',
     rot: 'Schon im Basisszenario ist das freie Vermögen vor dem Planungshorizont aufgebraucht.',
     liegenschaft: 'Eine Liegenschaft kann die Ampel um eine Stufe verbessern, wenn eine Lücke erst ab 85 entsteht und ihr Eigenkapital sie deckt (für «Reicht» muss zudem die Hypothek tragbar sein).',
   };
 }
 /** Ein Satz zur erreichten Stufe für Ausdruck und PDF-Bericht: «Reicht» bedeutet: … */
-export const ampelSatz = (st, S) => `«${{ gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' }[st]}» bedeutet: ${ampelSaetze(S)[st]}`;
+export const ampelSatz = (st: string, S?: Partial<Pick<PensState, 'reserveJahre'>>) => `«${{ gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' }[st as AmpelStufe]}» bedeutet: ${ampelSaetze(S)[st as AmpelStufe]}`;
 
 /** Begriff → [Titel, Erklärung]; Werte aus den Grundlagen des laufenden Jahres. */
-export function terms(app) {
+export function terms(app: Pick<App, 'P' | 'S'>): Record<string, string[]> {
   const P = app.P, S = app.S || {}, A = P.ahv, U = A.uebergang, T = P.annahmen.tragbarkeit, j = P.meta.jahr;
   return {
     referenzalter: ['AHV-Referenzalter', `Das Alter, ab dem die AHV-Rente ohne Kürzung oder Zuschlag ausbezahlt wird: 65 Jahre für Männer und Frauen. Für Frauen der Jahrgänge 1961 bis 1963 gelten Übergangsstufen zwischen 64 Jahren und 3 Monaten und 64 Jahren und 9 Monaten.`],
@@ -41,26 +46,26 @@ export function terms(app) {
 }
 
 /** Begriff im Text, der beim Antippen seine Erklärung zeigt. */
-export const gl = (key, text) => `<button type="button" class="gl" data-gl="${key}" aria-expanded="false" aria-controls="glTip">${text}</button>`;
+export const gl = (key: string, text: string) => `<button type="button" class="gl" data-gl="${key}" aria-expanded="false" aria-controls="glTip">${text}</button>`;
 
-export function initGlossar(app) {
+export function initGlossar(app: Pick<App, 'P' | 'S'>) {
   const tip = document.createElement('div');
   tip.id = 'glTip';
   tip.className = 'gltip';
   tip.hidden = true;
   tip.innerHTML = '<div class="gl-body" role="status" aria-live="polite"></div><button type="button" class="gl-x" aria-label="Erklärung schliessen">×</button>';
   document.body.appendChild(tip);
-  const body = tip.querySelector('.gl-body');
-  let cur = null;
+  const body = tip.querySelector('.gl-body')!;
+  let cur: HTMLElement | null = null;
 
-  function close(focus) {
+  function close(focus?: boolean) {
     if (!cur) return;
     tip.hidden = true;
     cur.setAttribute('aria-expanded', 'false');
     if (focus && cur.isConnected) cur.focus();
     cur = null;
   }
-  function place(btn) {
+  function place(btn: HTMLElement) {
     const r = btn.getBoundingClientRect(), w = Math.min(340, window.innerWidth - 32);
     tip.style.width = `${w}px`;
     const left = Math.max(16, Math.min(window.innerWidth - 16 - w, r.left));
@@ -68,8 +73,8 @@ export function initGlossar(app) {
     tip.style.left = `${left + window.scrollX}px`;
     tip.style.top = `${(below ? r.bottom + 8 : r.top - 8 - h) + window.scrollY}px`;
   }
-  function open(btn) {
-    const t = terms(app)[btn.dataset.gl];
+  function open(btn: HTMLElement) {
+    const t = terms(app)[btn.dataset.gl!];
     if (!t) return;
     if (cur) cur.setAttribute('aria-expanded', 'false');
     cur = btn;
@@ -83,17 +88,17 @@ export function initGlossar(app) {
   let schwebt = false;
   document.addEventListener('pointerover', (ev) => {
     if (ev.pointerType !== 'mouse') return;
-    const b = ev.target.closest?.('[data-gl]');
+    const b = (ev.target as Element).closest?.<HTMLElement>('[data-gl]');
     if (!b || cur === b) return;
     open(b); schwebt = true;
   });
   document.addEventListener('pointerout', (ev) => {
     if (!schwebt || !cur) return;
-    const von = ev.target.closest?.('[data-gl]') === cur || tip.contains(ev.target), nach = ev.relatedTarget;
+    const von = (ev.target as Element).closest?.('[data-gl]') === cur || tip.contains(ev.target as Node), nach = ev.relatedTarget as Node | null;
     if (von && !(nach && (tip.contains(nach) || cur.contains(nach)))) { schwebt = false; close(); }
   });
   document.addEventListener('click', (ev) => {
-    const b = ev.target.closest('[data-gl]');
+    const b = (ev.target as Element).closest<HTMLElement>('[data-gl]');
     if (b) {
       // Begriffe stehen auch in Feldbeschriftungen: das Feld dahinter nicht auslösen
       ev.preventDefault();
@@ -102,8 +107,8 @@ export function initGlossar(app) {
       schwebt = false;
       return;
     }
-    if (ev.target.closest('.gl-x')) { close(true); return; }
-    if (!tip.contains(ev.target)) close();
+    if ((ev.target as Element).closest('.gl-x')) { close(true); return; }
+    if (!tip.contains(ev.target as Node)) close();
   });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && cur) close(true); });
   window.addEventListener('resize', () => close());

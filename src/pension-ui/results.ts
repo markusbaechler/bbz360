@@ -13,16 +13,26 @@ import { pufferText } from '../lib/pension/budget';
 import { QUELLEN, W_DEF } from '../lib/pension/engine';
 import { GRENZEN } from '../lib/pension/config';
 import { tragPill, tragSatz, varianteHtml } from './trag';
+import type { App, AppErgebnis } from './app';
+import type { Auswertung, FixJahr, SimZeile } from '../lib/pension/analyse';
 
-const $ = (id) => document.getElementById(id);
+/** Volles Ergebnis (mit Ausgaben): So liest die Resultatansicht app.R, wo sie wie bisher ohne Prüfung zugreift. */
+type VollErgebnis = Extract<AppErgebnis, { leer: false }>;
+/** Spalte der Vermögensbilanz (Stand zu einem Zeitpunkt, nominal; I = Teuerungsfaktor). */
+export interface BilanzSpalte { fv: number; s3: number; fz: number; lw: number[]; lh: number[]; la: number; I: number }
+/** Spalten und Zeilen der Vermögensbilanz (app.bilanz, auch für den Bericht). */
+export interface BilanzDaten { cols: [string, BilanzSpalte][]; lines: [string, (c: BilanzSpalte) => number][]; net: (c: BilanzSpalte) => number }
+export type Results = ReturnType<typeof createResults>;
+
+const $ = (id: string) => document.getElementById(id)!;
 /** Wort der Ampel wie im Kicker des Urteils. */
-export const ST = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' };
+export const ST: Record<string, string> = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' };
 /** Kennzahl «Tragbare Ausgaben pro Monat» eines Ergebnisses (Kachel, Kopfzeile, So oder so). */
-export const tragbar = (r) => chf(r.maxA);
-const real = (r) => 1 / r.I;
+export const tragbar = (r: Pick<Auswertung, 'maxA'>) => chf(r.maxA);
+const real = (r: { I: number }) => 1 / r.I;
 
-export function createResults(app) {
-  const S = () => app.S, R = () => app.R, E = () => app.E;
+export function createResults(app: App) {
+  const S = () => app.S, R = () => app.R as VollErgebnis, E = () => app.E;
   const single = () => S().haushalt === 'single';
   const ps = () => S().personen.slice(0, single() ? 1 : 2);
   const aktion = createAktion(app);
@@ -90,7 +100,7 @@ export function createResults(app) {
       sub = 'Prüfen Sie Lohn, heutige Ausgaben und Vermögen. Fehlt eine Angabe, rechnet das Tool mit 0.';
     } else {
       h = `${ageText()} ist Ihr Vermögen voraussichtlich mit ${base.depleted}${who} aufgebraucht.`;
-      sub = `Tragbar wären rund ${chf(maxA)} pro Monat statt ${chf(s.ausgabenRuhestand)}.${amp.ekEnde > 1000 ? ` Nicht eingerechnet ist die Liegenschaft: Eigenkapital mit ${H} rund ${chf(amp.ekEnde)}, Lücke bis ${H} rund ${chf(amp.defBase)} (heutige Kaufkraft).${base.depleted < 85 ? ' Die Lücke beginnt früh; die Liegenschaft müsste dann schon verkauft oder höher belehnt werden.' : ''}` : ''}`;
+      sub = `Tragbar wären rund ${chf(maxA)} pro Monat statt ${chf(s.ausgabenRuhestand)}.${amp.ekEnde > 1000 ? ` Nicht eingerechnet ist die Liegenschaft: Eigenkapital mit ${H} rund ${chf(amp.ekEnde)}, Lücke bis ${H} rund ${chf(amp.defBase)} (heutige Kaufkraft).${base.depleted! < 85 ? ' Die Lücke beginnt früh; die Liegenschaft müsste dann schon verkauft oder höher belehnt werden.' : ''}` : ''}`;
     }
     $('verdictText').textContent = h;
     $('verdictSub').textContent = sub;
@@ -100,7 +110,7 @@ export function createResults(app) {
     const tb = $('tragBox');
     if (r.tr) {
       tb.hidden = false;
-      const am = s.amortisationen.length ? `<p class="amlist2">Erfasste Amortisationen: ${s.amortisationen.map((x) => `${chf(x.betrag)} im ${E().fmtA(E().amortMonat(s, x))} aus ${(x.quelle || 'frei') === 'frei' ? 'freiem Vermögen' : QUELLEN[x.quelle]}${r.tr.pts[0] && E().amortMonat(s, x) > r.tr.pts[0].A ? ' (nach dem ersten Prüfzeitpunkt, wirkt dort noch nicht)' : ''}`).join(', ')}.</p>` : '';
+      const am = s.amortisationen.length ? `<p class="amlist2">Erfasste Amortisationen: ${s.amortisationen.map((x) => `${chf(x.betrag)} im ${E().fmtA(E().amortMonat(s, x))} aus ${(x.quelle || 'frei') === 'frei' ? 'freiem Vermögen' : QUELLEN[x.quelle]}${r.tr!.pts[0] && E().amortMonat(s, x) > r.tr!.pts[0].A ? ' (nach dem ersten Prüfzeitpunkt, wirkt dort noch nicht)' : ''}`).join(', ')}.</p>` : '';
       tb.innerHTML = `${tragPill(r.tr)}<p>${tragSatz(r.tr, s)}</p>${am}${varianteHtml(r.vs, s, E())}`;
     } else tb.hidden = true;
   }
@@ -112,17 +122,17 @@ export function createResults(app) {
     const einTxt = ein.length ? `<p class="cap"><b>Berücksichtigt:</b> ${ein.map((x) => `${{ dividende: 'Dividenden', nebenerwerb: 'Nebenerwerb', spesen: 'Pauschalspesen', sonstiges: 'Sonstiges Einkommen' }[x.art]}${x.text ? ' ' + esc(x.text) : ''}${single() ? '' : ' P' + ((x.person || 0) + 1)} ${chf(x.betrag)} pro Jahr ${x.art === 'nebenerwerb' && x.abPens ? 'ab der Pensionierung, ' : ''}${x.art === 'spesen' ? 'bis zum Ausstieg' : x.bisJahr > 0 ? 'bis ' + x.bisJahr : 'unbefristet'}`).join('; ')} (brutto; gerechnet nach ${s.steuerEink}% Steuern${ein.some((x) => x.art === 'nebenerwerb') ? ', Nebenerwerb auch nach Sozialabgaben' : ''}).</p>` : '';
     // Regler nur neu aufbauen, wenn er gerade nicht bedient wird
     if (!el.querySelector('.wi-ctrlbox')) el.innerHTML = '<div class="sh"></div><div class="wi-ctrlbox"></div><div class="wi-body"></div>';
-    el.querySelector('.sh').innerHTML = `<h3>Was wäre, wenn Sie früher aufhören?</h3><p class="cap">Schieben Sie den Regler und finden Sie den frühesten Zeitpunkt, an dem die Ampel grün wird. Ihr Plan bleibt dabei unverändert.</p>`;
-    const box = el.querySelector('.wi-ctrlbox');
+    el.querySelector('.sh')!.innerHTML = `<h3>Was wäre, wenn Sie früher aufhören?</h3><p class="cap">Schieben Sie den Regler und finden Sie den frühesten Zeitpunkt, an dem die Ampel grün wird. Ihr Plan bleibt dabei unverändert.</p>`;
+    const box = el.querySelector('.wi-ctrlbox')!;
     if (!box.contains(document.activeElement)) box.innerHTML = ctrlHtml(app);
-    const body = el.querySelector('.wi-body');
+    const body = el.querySelector('.wi-body')!;
     body.removeAttribute('aria-busy');
     const r85 = so.now.base.rows.find((x) => x.age === 85);
     body.innerHTML = `${summaryHtml(app, true)}
       ${r85 && dep == null ? `<p class="cap">In diesem Szenario: freies Vermögen mit 85 rund ${chf(r85.V / r85.I)} (heutige Kaufkraft)${cpl ? ', Alter Person 1' : ''}.${so.now.reserveLg ? ` Reserve: Liegenschaft. Im Stresstest bräuchte es rund ${chf(so.now.reserveLg.bedarf)} aus der Liegenschaft (Eigenkapital rund ${chf(so.now.reserveLg.ek)}).` : ''}</p>` : ''}
       ${einTxt}
       ${so.now.lgRot ? `<p class="cap"><b>Knapp dank Liegenschaft:</b> Das freie Vermögen ist mit ${so.now.lgRot.ab}${cpl ? ' (Person 1)' : ''} aufgebraucht. Bis ${H} fehlen rund ${chf(so.now.lgRot.bedarf)}, das Eigenkapital der Liegenschaft beträgt dann rund ${chf(so.now.lgRot.ek)} (heutige Kaufkraft).</p>` : dep != null && so.now.ekEnde > 1000 ? `<p class="cap">Die Liegenschaft ist nicht eingerechnet: Eigenkapital mit ${H} rund ${chf(so.now.ekEnde)} (heutige Kaufkraft).</p>` : ''}
-      <p class="cap">Die Ampel beurteilt das freie Vermögen. ${r.base.lgs.length ? 'Die Liegenschaft zählt als Reserve, wenn das Geld erst ab 85 ausgeht und ihr Eigenkapital die Lücke deckt. ' : ''}Die Kennzahlen oben gelten für Ihren Plan, nicht für dieses Szenario.${ps().some((p) => !(p.pkGuthabenHeute > 0)) ? ' Genauer wird es mit dem PK-Guthaben heute (Formular, Abschnitt Pensionskasse).' : ''}</p>`;
+      <p class="cap">Die Ampel beurteilt das freie Vermögen. ${r.base.lgs.length ? 'Die Liegenschaft zählt als Reserve, wenn das Geld erst ab 85 ausgeht und ihr Eigenkapital die Lücke deckt. ' : ''}Die Kennzahlen oben gelten für Ihren Plan, nicht für dieses Szenario.${ps().some((p) => !((p.pkGuthabenHeute as number) > 0)) ? ' Genauer wird es mit dem PK-Guthaben heute (Formular, Abschnitt Pensionskasse).' : ''}</p>`;
   }
 
   function renderKpis() {
@@ -140,13 +150,13 @@ export function createResults(app) {
   function fixHtml() {
     const F = R().fix, s = S();
     if (!F) return '';
-    const mo = (v) => chf(v / 12), cols = [F.a, F.b].filter(Boolean);
-    const tr = (l, fn, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${l}</td>${cols.map((x) => `<td>${fn(x)}</td>`).join('')}</tr>`;
-    const qcls = (q) => (q >= 1.1 ? 'ok' : q >= 1 ? 'mid' : 'bad');
+    const mo = (v: number) => chf(v / 12), cols = [F.a, F.b].filter(Boolean) as FixJahr[];
+    const tr = (l: string, fn: (x: FixJahr) => string, cls?: string) => `<tr${cls ? ` class="${cls}"` : ''}><td>${l}</td>${cols.map((x) => `<td>${fn(x)}</td>`).join('')}</tr>`;
+    const qcls = (q: number) => (q >= 1.1 ? 'ok' : q >= 1 ? 'mid' : 'bad');
     const endQ = (F.b || F.a).q;
     let t;
     if (F.a.q >= 1 && endQ >= 1) t = `<b>Die Renten decken die Fixkosten${F.b ? ' auch mit 85' : ''}.</b> Das Vermögen und die Kapitalbezüge stehen für den übrigen Lebensunterhalt, Freizeit, Reisen und Reserven zur Verfügung.${-F.kapDelta > 50000 ? ` Rechnerisch blieben die Fixkosten auch mit einem um rund ${chf(Math.floor(-F.kapDelta / 10000) * 10000)} höheren Kapitalbezug gedeckt; ob das passt, ist eine persönliche Abwägung.` : ''}`;
-    else if (F.a.q >= 1) t = `<b>Die Renten decken die Fixkosten zu Beginn, mit 85 nicht mehr ganz</b>, weil die PK-Rente nicht an die Teuerung angepasst wird. Die Lücke von rund ${mo(-F.b.saldo)} pro Monat deckt das Vermögen.`;
+    else if (F.a.q >= 1) t = `<b>Die Renten decken die Fixkosten zu Beginn, mit 85 nicht mehr ganz</b>, weil die PK-Rente nicht an die Teuerung angepasst wird. Die Lücke von rund ${mo(-F.b!.saldo)} pro Monat deckt das Vermögen.`;
     else t = `<b>Die Renten decken die Fixkosten nicht.</b> Es fehlen rund ${mo(-F.a.saldo)} pro Monat, die das Vermögen decken muss.${F.kapHeute > 0 ? ` Prüfen: mehr Rente statt Kapital (bis rund ${chf(Math.min(F.kapHeute, Math.ceil(F.kapDelta / 10000) * 10000))} weniger Kapitalbezug).` : ''}`;
     return `<h3>Renten und Fixkosten</h3>
       <p class="cap">Deckt das sichere Einkommen (AHV und PK-Rente) die Kosten, die sich kaum senken lassen? Beträge pro Monat, nominal wie in der Jahresrechnung.</p>
@@ -165,20 +175,20 @@ export function createResults(app) {
   function wbHtml() {
     const s = S(), r = R();
     if (!s.wuensche.length) return '';
-    const stTxt = { gruen: 'grün', gelb: 'gelb', rot: 'rot' };
+    const stTxt: Record<string, string> = { gruen: 'grün', gelb: 'gelb', rot: 'rot' };
     let html = `<h3>Wünsche und Ziele</h3><p class="cap">Wirkung jedes Wunsches: Vergleich der Rechnung mit und ohne diesen Wunsch, in heutiger Kaufkraft. Eine gekaufte Liegenschaft im Ausland ist nicht im freien Vermögen enthalten, sondern in der Vermögensbilanz.</p>
       <div class="tblwrap" tabindex="0" role="region" aria-label="Tabelle, seitlich scrollbar"><table class="cmp"><thead><tr><th scope="col">Wunsch</th><th scope="col">Freies Vermögen am Horizont</th><th scope="col">Tragbare Ausgaben</th><th scope="col">Ampel ohne</th></tr></thead><tbody>
       ${s.wuensche.map((w, k) => {
         const x = r.wb[k];
         if (!x) return `<tr class="off"><td>${esc(w.name || WTYP[w.typ])} (aus)</td><td>–</td><td>–</td><td>–</td></tr>`;
-        return `<tr><td>${esc(w.name || WTYP[w.typ])}</td><td>${w.typ === 'ziel' ? 'Ziel ' + chf(w.betrag) : chfSigned(x.dEnd)}</td><td>${w.typ === 'ziel' ? chfSigned(-Math.max(0, x.dMax)) + ' / Mt.' : chfSigned(-x.dMax) + ' / Mt.'}</td><td><span class="pill" data-st="${x.stOhne}">${stTxt[x.stOhne]}</span></td></tr>`;
+        return `<tr><td>${esc(w.name || WTYP[w.typ])}</td><td>${w.typ === 'ziel' ? 'Ziel ' + chf(w.betrag!) : chfSigned(x.dEnd)}</td><td>${w.typ === 'ziel' ? chfSigned(-Math.max(0, x.dMax)) + ' / Mt.' : chfSigned(-x.dMax) + ' / Mt.'}</td><td><span class="pill" data-st="${x.stOhne}">${stTxt[x.stOhne]}</span></td></tr>`;
       }).join('')}
       </tbody></table></div>`;
     s.wuensche.forEach((w, k) => {
       const x = r.wb[k];
       if (w.typ !== 'ausland' || !x || !x.ausland) return;
       const { mi, ka, r: rr } = x.ausland, g = { ...W_DEF, ...w }, cur = w.wohnform || 'miete';
-      const row = (l, a, b, neg) => `<tr><td>${l}</td><td>${a == null ? '–' : chf(neg ? -a : a)}</td><td>${b == null ? '–' : chf(neg ? -b : b)}</td></tr>`;
+      const row = (l: string, a: number | null, b: number | null, neg?: boolean) => `<tr><td>${l}</td><td>${a == null ? '–' : chf(neg ? -a : a)}</td><td>${b == null ? '–' : chf(neg ? -b : b)}</td></tr>`;
       const sg = chfSigned;
       html += `<h3>${esc(w.name || 'Ausland')}: ${g.monate} Monate pro Jahr, Miete oder Kauf</h3>
         <p class="cap">Pro Jahr in heutiger Kaufkraft, bei Ausgaben von ${chf(s.ausgabenRuhestand)} pro Monat in der Schweiz. Die Fixkosten in der Schweiz (Wohnen, Krankenkasse, Versicherungen) laufen weiter.</p>
@@ -204,12 +214,12 @@ export function createResults(app) {
     const r = R(), b = r.base, s = S(), lgs = b.lgs;
     const retRow = b.rows.find((x) => x.allRet) || b.rows[0], last = b.rows[b.rows.length - 1];
     const heute = { fv: (+s.liquiditaet || 0) + (+s.wertschriften || 0), s3: b.ps.reduce((x, p) => x + (+p.s3a || 0), 0), fz: b.ps.reduce((x, p) => x + (+p.fz || 0), 0), lw: lgs.map((l) => l.verkehrswert), lh: lgs.map((l) => -(+l.hypothek || 0)), la: 0, I: 1 };
-    const col = (x) => ({ fv: x.V, s3: x.s3a, fz: x.fz, lw: x.lgWerte || [], lh: (x.lgHyp || []).map((h) => -h), la: x.lgAusland || 0, I: x.I });
-    const cols = [['Heute', heute], [`Ende ${retRow.year} (pensioniert)`, col(retRow)], [`Horizont ${last.year}`, col(last)]];
-    const lines = [['Freies Vermögen', (c) => c.fv], ['Säule 3a', (c) => c.s3], ['Freizügigkeit', (c) => c.fz]];
+    const col = (x: SimZeile): BilanzSpalte => ({ fv: x.V, s3: x.s3a, fz: x.fz, lw: x.lgWerte || [], lh: (x.lgHyp || []).map((h) => -h), la: x.lgAusland || 0, I: x.I });
+    const cols: BilanzDaten['cols'] = [['Heute', heute], [`Ende ${retRow.year} (pensioniert)`, col(retRow)], [`Horizont ${last.year}`, col(last)]];
+    const lines: BilanzDaten['lines'] = [['Freies Vermögen', (c) => c.fv], ['Säule 3a', (c) => c.s3], ['Freizügigkeit', (c) => c.fz]];
     lgs.forEach((l, k) => { lines.push([`${l.name || 'Liegenschaft'} (Verkehrswert)`, (c) => c.lw[k] || 0]); lines.push([`Hypothek ${l.name || ''}`.trim(), (c) => c.lh[k] || 0]); });
     lines.push(['Liegenschaft Ausland', (c) => c.la]);
-    const net = (c) => lines.reduce((x, [, g]) => x + g(c), 0);
+    const net = (c: BilanzSpalte) => lines.reduce((x, [, g]) => x + g(c), 0);
     return { cols, lines, net };
   }
   /** «Vermögensbilanz des Haushalts» als HTML. */
@@ -228,9 +238,9 @@ export function createResults(app) {
   const jviewSeg = () => { const v = S().ui.jview || 'alle'; return `<div class="seg jseg" role="group">${[['alle', 'Vermögen'], ['fix', 'Renten und Fixkosten']].map(([k, l]) => `<button type="button" data-jview="${k}" aria-pressed="${v === k}">${l}</button>`).join('')}</div>`; };
   const xlText = () => (single() ? 'Alter' : 'Alter Person 1');
   /** Tabellen der Ansichten «Ablauf», «Jahresrechnung» und «Kapitalbezüge und Steuern». */
-  function tabHtml(tab) {
+  function tabHtml(tab: string) {
     const r = R(), s = S(), cpl = !single();
-    const c = (v) => (Math.abs(v) < 0.5 ? '–' : nf.format(Math.round(v)));
+    const c = (v: number) => (Math.abs(v) < 0.5 ? '–' : nf.format(Math.round(v)));
     if (tab === 'ablauf') {
       const evs = r.base.events;
       const tief = r.base.retRows.reduce((m, x) => (x.V / x.I < m.V / m.I ? x : m), r.base.retRows[0]);
@@ -267,7 +277,7 @@ export function createResults(app) {
 
   // Lesehilfe unter der Legende: auf- oder zugeklappt bleibt sie über Neuberechnungen hinweg (nur Oberfläche)
   let lesehilfeOffen = false;
-  $('tabBody')?.addEventListener('toggle', (e) => { if (e.target.classList?.contains('lesehilfe')) lesehilfeOffen = e.target.open; }, true);
+  $('tabBody')?.addEventListener('toggle', (e) => { if ((e.target as HTMLDetailsElement).classList?.contains('lesehilfe')) lesehilfeOffen = (e.target as HTMLDetailsElement).open; }, true);
   /**
    * Inhalt einer Ansicht der Bühne; leer, wenn es dazu nichts gibt. «bild» auch ohne Ergebnis (wachsendes Bild); im Tutor
    * mit dem erklärenden Satz unter dem Bild.
@@ -278,12 +288,12 @@ export function createResults(app) {
    */
   function szenario() {
     const s = S(), r = R();
-    if (s.ui.mode !== 'form' || s.ui.schritt !== 'vergleich' || !r || r.leer || !r.so?.now || !$('sofortBox')?.open || vergleichAktiv(s)) return null;
+    if (s.ui.mode !== 'form' || s.ui.schritt !== 'vergleich' || !r || r.leer || !r.so?.now || !($('sofortBox') as HTMLDetailsElement | null)?.open || vergleichAktiv(s)) return null;
     const L = (r.stopA ?? E().A0 + 1) - 1, wer = r.so.wer;
     return `letzter Arbeitstag ${L <= E().A0 ? 'sofort, ' : ''}Ende ${fmtMonat(L)}${single() ? '' : wer == null ? ', beide' : `, Person ${wer + 1}`}`;
   }
   const bildD = () => { const t = szenario(); return t ? bildSzenario(S(), R(), E(), t) : bildDaten(S(), R(), E()); };
-  function ansichtHtml(id) {
+  function ansichtHtml(id: string) {
     if (id === 'bild') {
       const d = bildD();
       const sz = d.szenario ? `<p class="cap bildszen"><b>Das Bild zeigt das Szenario:</b> ${esc(d.szenario.titel)}. Gestrichelt: Ihr heutiger Plan.</p>` : '';
@@ -300,7 +310,7 @@ export function createResults(app) {
     return ['ablauf', 'jahre', 'kapital'].includes(id) ? tabHtml(id) : '';
   }
   /** Nach dem Einsetzen von ansichtHtml(): Diagramm zeichnen. Im Tutor gibt es keine feste Bühne: Die Höhe folgt der Breite. */
-  function ansichtNach(id) {
+  function ansichtNach(id: string) {
     if (id !== 'bild') return;
     const d = bildD();
     // Das Szenario steht unter dem Regler (unterhalb des sichtbaren Bereichs): feste Höhe statt des gemessenen Platzes
@@ -308,10 +318,10 @@ export function createResults(app) {
   }
   // «Gerechnet bis N: anpassen»: Schritt 3, Abschnitt «Weitere Annahmen», Feld «Planungshorizont»
   $('tabBody')?.addEventListener('click', (e) => {
-    if (!e.target.closest?.('[data-horizont]') || S().ui.mode !== 'form') return;
+    if (!(e.target as Element).closest?.('[data-horizont]') || S().ui.mode !== 'form') return;
     app.leiste?.(true);
     app.schritt?.go('vermoegen');
-    const feld = $('f_horizontModus'), sec = feld?.closest('details.sec');
+    const feld = $('f_horizontModus'), sec = feld?.closest<HTMLDetailsElement>('details.sec');
     if (sec) sec.open = true;
     feld?.closest('details.sub')?.setAttribute('open', '');
     feld?.scrollIntoView?.({ block: 'center' });
@@ -326,10 +336,10 @@ export function createResults(app) {
     // Das halbe Bild unter den Karten nur im Formular (Schritt 7 allein auf der Bühne); im Tutor steht das Bild weiter oben
     host.innerHTML = ansatzHtml(R().opt, { offen: ansatzOffen, h2: true }) + (form ? '<div class="bild bild-halb" id="ansatzBild"></div>' : '');
     if (form) renderBild($('ansatzBild'), bildDaten(S(), R(), E()), { halb: true });
-    if (fokus) host.querySelector('[data-mehr-ansatz]')?.focus();
+    if (fokus) host.querySelector<HTMLElement>('[data-mehr-ansatz]')?.focus();
   }
   $('opt')?.addEventListener('click', (e) => {
-    const k = e.target.closest?.('[data-mehr-ansatz]');
+    const k = (e.target as Element).closest?.<HTMLElement>('[data-mehr-ansatz]');
     if (!k) return;
     ansatzOffen = k.getAttribute('aria-expanded') !== 'true';
     k.setAttribute('aria-expanded', String(ansatzOffen));
@@ -338,7 +348,7 @@ export function createResults(app) {
   });
 
   function hintsList() {
-    const h = [], r = R(), base = r.base, s = S(), P = app.P;
+    const h: string[] = [], r = R(), base = r.base, s = S(), P = app.P;
     base.ps.forEach((p, i) => {
       const ab = p.ref - P.vorsorge.bezugJahreVorRef;
       if (p.pensAlter < ab && (p.s3a > 0 || p.fz > 0)) h.push(`<b>${single() ? '' : 'Person ' + (i + 1) + ': '}3a und Freizügigkeit erst ab ${dec(ab, ab % 1 ? 2 : 0)}.</b> Bis dahin tragen das freie Vermögen und das PK-Kapital die Ausgaben. Ausnahme: 3a-Vorbezug zur Amortisation der Hypothek.`);
@@ -375,17 +385,17 @@ export function createResults(app) {
 
   // ---------- Ereignisse im Resultatbereich ----------
   $('results').addEventListener('click', (ev) => {
-    const b = ev.target.closest('button');
+    const b = (ev.target as Element).closest('button');
     if (!b) return;
     const s = S(), d = b.dataset;
-    if (d.jview) { s.ui.jview = d.jview; app.persist(); app.buehne?.renderBody(); }
+    if (d.jview) { s.ui.jview = d.jview as 'alle' | 'fix'; app.persist(); app.buehne?.renderBody(); }
     else if (d.apply) varianteUebernehmen();
   });
   /** Rechenvariante der Tragbarkeit in die Eingaben übernehmen (Block «trag» und Tutor-Ergebnis, trag.js). */
   function varianteUebernehmen() {
     const s = S();
     if (!R()?.vs) return;
-    const neu = JSON.parse(JSON.stringify(R().vs.amortisationen));
+    const neu = JSON.parse(JSON.stringify(R().vs!.amortisationen));
     if (s.amortisationen.length + neu.length > 30) { app.toast('Mehr als 30 Amortisationen lassen sich nicht erfassen.'); return; }
     s.amortisationen.push(...neu);
     s.ui.open.liegenschaften = true;
@@ -395,8 +405,8 @@ export function createResults(app) {
   }
   app.varianteUebernehmen = varianteUebernehmen;
   // Was-wäre-wenn-Regler
-  bindWhatIf($('sofort'), app);
-  let rt;
+  (bindWhatIf as (root: HTMLElement, app: App) => void)($('sofort'), app);
+  let rt: ReturnType<typeof setTimeout>;
   // Das Bild auch ohne Ergebnis neu zeichnen (Höhe aus dem Platz bzw. der Breite)
   window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => app.buehne?.renderBody(), 150); });
 

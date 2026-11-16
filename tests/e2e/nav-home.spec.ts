@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 // Beratercockpit. Fix: bbz-Logo = Home-Link (../index.html) in ALLEN Modulen.
 const MODULES = [
   '01-agenda', '02-bank', '03-berater', '04-philosophie', '05-cockpit',
-  '06-ziele', '07a-finanzieren', '07b-anlegen', '08-vereinbarungen',
+  '06-ziele', '07a-finanzieren', '07b-anlegen', '07c-pension', '08-vereinbarungen',
   '09-feedback', '10-abschluss',
 ];
 

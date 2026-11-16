@@ -222,3 +222,28 @@ prüfen, wandern mit dem jeweiligen UI-Teil in späteren Phasen nach.
 - `haushalt` ist Session-Scope und fällt bei `clearSession` weg.
 - Die bisherigen `cockpit_*`-Schlüssel bleiben vorerst Quelle für 05/07a/07b;
   ihre Ablösung durch `haushalt` ist Phase 4.
+
+**Nachtrag Phase 2 — Modul 07c.**
+- Die Oberfläche des PensCheck liegt typisiert unter `src/pension-ui/`, die
+  Seite ist `modules/07c-pension.html`, der Einstieg `src/modules/07c-pension.ts`
+  (entspricht `main.js` des PensCheck). Für das Beratungsgespräch entfallen
+  Service Worker, Installation, Link-Teilen, Kontakt-Fusszeile und der
+  Datenschutztext der öffentlichen App; der Stand liegt als `haushalt` in bbzData.
+- **Gestaltung:** 07c bringt das bbz Brand System mit (`src/styles/pension/`)
+  und lädt `theme.css` bewusst **nicht** — gleichnamige Tokens (`--bg`,
+  `--ink-2` …) und Klassen (`.panel`) würden sich überschreiben. Die Topbar ist
+  in `07c-pension.css` nachgebaut. Die Seite scrollt (Regel 1 der DESIGN-SPEC
+  gilt hier nicht); die Angleichung der übrigen Module ist Phase 9.
+- **Build-Falle:** 07c darf `lib/speicher-hinweis` nicht statisch importieren,
+  sonst lagert der Build `theme.css` aus und bindet es nach den Modul-Stilen
+  ein (`tests/e2e/css-reihenfolge.spec.ts` hält das fest). Ein voller Speicher
+  wird in 07c als Meldung gezeigt.
+- **Navigation:** 12 Reiter; Abstände in der Topbar sind enger (ADR-15 bleibt:
+  14px fix, kein Überlauf — `typografie.spec.ts`, `enge-schirme.spec.ts`).
+- **Beratercockpit und Abschluss:** Pensionierung ist dritte Vertiefung
+  (`b07c`); Modul 10 zeigt Urteil, tragbare Ausgaben und nächste Schritte
+  (`src/lib/pension/kurz.ts`) und bietet «Bericht Pensionierung» an.
+- **Tests:** Die Oberflächentests des PensCheck laufen unter
+  `tests/unit/pension/` (happy-dom). Angepasst bzw. weggelassen sind nur
+  Prüfungen, die die öffentliche App betreffen (Datenschutztext, Link-Teilen,
+  README, Prüf-Workflow); jede Stelle ist mit «bbz360:» kommentiert.

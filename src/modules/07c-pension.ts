@@ -11,7 +11,6 @@ import '../styles/pension/bbz-base.css';
 import '../styles/pension/bbz-components.css';
 import '../styles/pension/styles.css';
 import '../styles/modules/07c-pension.css';
-import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher (ADR-14)
 import bundledParams from '../../public/data/params.json';
 import bundledVerification from '../../public/data/verification.json';
 import { mountNav } from '../lib/nav';
@@ -80,8 +79,17 @@ function initEngine(): void {
 }
 initEngine();
 
-// Speichern in bbzData; ein voller Speicher wird zentral gemeldet (speicher-hinweis.ts).
-app.persist = () => { app.gespeichert = haushaltSchreiben(app.S); return app.gespeichert; };
+// Speichern in bbzData. Das zentrale Banner (lib/speicher-hinweis.ts) gehoert zu theme.css, das diese Seite nicht
+// laedt (siehe 07c-pension.css) — ein voller Speicher wird hier deshalb einmal pro Sitzung als Meldung gezeigt (ADR-14).
+let speicherGewarnt = false;
+app.persist = () => {
+  app.gespeichert = haushaltSchreiben(app.S);
+  if (app.gespeichert === false && !speicherGewarnt) {
+    speicherGewarnt = true;
+    toast('Speicher voll — die Eingaben zur Pensionierung werden nicht gespeichert. Bitte die Session im Beratercockpit exportieren.');
+  }
+  return app.gespeichert;
+};
 app.setLamp = (st) => {
   $('mlamp').dataset.st = st || '';
   $('mlampTxt').textContent = ({ gruen: ': reicht', gelb: ': knapp', rot: ': reicht nicht' } as Record<string, string>)[st || ''] || '';

@@ -1,9 +1,31 @@
 // Rechnen im Web Worker ohne Stau: Höchstens eine Rechnung ist unterwegs. Kommt währenddessen eine neuere Eingabe,
 // wird danach genau einmal mit dem dann aktuellen Stand gerechnet; überholte Läufe entfallen. Dauert eine Rechnung zu
 // lange oder stürzt der Worker ab, wird er neu gestartet. Ohne DOM, damit sich der Ablauf testen lässt.
+import type { AppErgebnis } from './app';
 
 /** So oft wird ein Worker, der nicht startet oder sofort abstürzt, hintereinander ersetzt (dann erst wieder beim nächsten Auftrag). */
 const MAX_NEUSTARTS = 2;
+
+/** Was der Rechner von einem Worker braucht (im Test eine Attrappe). */
+export interface RechnerWorker {
+  postMessage(m: any): void;
+  terminate(): void;
+  onmessage?: ((ev: any) => any) | null;
+  onerror?: ((ev: any) => any) | null;
+}
+/** Auftrag an den Worker: die Grundlagen (params) reisen nur bei Änderung mit. */
+export interface RechnerAuftrag { params: unknown; [k: string]: unknown }
+export interface RechnerOptionen {
+  neuerWorker: () => RechnerWorker;
+  auftrag: () => RechnerAuftrag;
+  onErgebnis: (R: AppErgebnis) => void;
+  onFehler: (art: 'fehler' | 'zeit', detail?: unknown) => void;
+  onBeginn?: () => void;
+  limitMs?: number;
+  setTimer?: (fn: () => void, ms: number) => any;
+  clearTimer?: (t: any) => void;
+}
+export type Rechner = ReturnType<typeof createRechner>;
 
 /**
  * @param {object} o
@@ -14,8 +36,8 @@ const MAX_NEUSTARTS = 2;
  * @param {() => void} [o.onBeginn]  eine Rechnung wurde verlangt (auch wenn sie warten muss)
  * @param {number} [o.limitMs]  Höchstdauer eines Laufs
  */
-export function createRechner({ neuerWorker, auftrag, onErgebnis, onFehler, onBeginn, limitMs = 20000, setTimer = setTimeout, clearTimer = clearTimeout }) {
-  let worker = null, nr = 0, unterwegs = false, wartet = false, wachhund = null, gesendet = null, laeufe = 0, neustarts = 0;
+export function createRechner({ neuerWorker, auftrag, onErgebnis, onFehler, onBeginn, limitMs = 20000, setTimer = setTimeout, clearTimer = clearTimeout }: RechnerOptionen) {
+  let worker: RechnerWorker | null = null, nr = 0, unterwegs = false, wartet = false, wachhund: any = null, gesendet: unknown = null, laeufe = 0, neustarts = 0;
 
   /** Nach einem Lauf: Wartet ein neuerer Stand, wird er gerechnet (true); sonst ist die Reihe leer (false). */
   const weiter = () => {
@@ -30,7 +52,7 @@ export function createRechner({ neuerWorker, auftrag, onErgebnis, onFehler, onBe
     gesendet = null; // ein neuer Worker kennt die Grundlagen noch nicht
     const w = neuerWorker();
     worker = w;
-    w.onmessage = (ev) => {
+    w.onmessage = (ev: any) => {
       if (w !== worker) return; // Nachricht eines Workers, der inzwischen ersetzt wurde
       const { id, R, error } = ev.data || {};
       if (id !== nr || !unterwegs) return; // nicht der laufende Auftrag (auch eine doppelte Antwort)
@@ -39,7 +61,7 @@ export function createRechner({ neuerWorker, auftrag, onErgebnis, onFehler, onBe
       if (error) onFehler('fehler', error);
       else onErgebnis(R);
     };
-    w.onerror = (ev) => {
+    w.onerror = (ev: any) => {
       if (w !== worker) return;
       const lief = unterwegs;
       // Der Worker ist nicht mehr verlässlich: ersetzen. Startet er wiederholt nicht (Skript nicht ladbar), wird nicht
@@ -87,7 +109,7 @@ export function createRechner({ neuerWorker, auftrag, onErgebnis, onFehler, onBe
       // Die Grundlagen (rund 75 KB) reisen nur mit, wenn der Worker sie noch nicht hat
       const a = auftrag();
       const neu = gesendet !== a.params;
-      worker.postMessage({ id, ...a, params: neu ? a.params : null });
+      worker!.postMessage({ id, ...a, params: neu ? a.params : null });
       gesendet = a.params;
     } catch (e) {
       // Der Auftrag liess sich nicht übergeben (z. B. nicht übertragbarer Stand): melden statt hängen bleiben

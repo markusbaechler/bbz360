@@ -5,17 +5,20 @@
 import { ruhigeRegler } from './slider';
 import { chf } from '../lib/pension/format';
 import { stopWerOf } from '../lib/pension/analyse';
+import type { Auswertung, SimPerson } from '../lib/pension/analyse';
+import type { PensState } from '../lib/pension/typen';
+import type { App } from './app';
 
 const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-export const fmtMonat = (A) => `${MONATE[((A % 12) + 12) % 12]} ${Math.floor(A / 12)}`;
-const ST = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' };
-const aTxt = (x) => { const y = Math.floor(x + 1e-6), mo = Math.round((x - y) * 12); return mo ? `${y} Jahren und ${mo} Monat${mo > 1 ? 'en' : ''}` : `${y} Jahren`; };
-const dauer = (m) => { const y = Math.floor(m / 12), r = m % 12; return [y ? `${y} Jahr${y > 1 ? 'e' : ''}` : '', r ? `${r} Monat${r > 1 ? 'e' : ''}` : ''].filter(Boolean).join(' und '); };
-const persons = (s) => s.personen.slice(0, s.haushalt === 'single' ? 1 : 2);
-const pn = (i) => `Person ${i + 1}`;
+export const fmtMonat = (A: number) => `${MONATE[((A % 12) + 12) % 12]} ${Math.floor(A / 12)}`;
+const ST: Record<string, string> = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' };
+const aTxt = (x: number) => { const y = Math.floor(x + 1e-6), mo = Math.round((x - y) * 12); return mo ? `${y} Jahren und ${mo} Monat${mo > 1 ? 'en' : ''}` : `${y} Jahren`; };
+const dauer = (m: number) => { const y = Math.floor(m / 12), r = m % 12; return [y ? `${y} Jahr${y > 1 ? 'e' : ''}` : '', r ? `${r} Monat${r > 1 ? 'e' : ''}` : ''].filter(Boolean).join(' und '); };
+const persons = (s: PensState) => s.personen.slice(0, s.haushalt === 'single' ? 1 : 2);
+const pn = (i: number) => `Person ${i + 1}`;
 
 /** Bereich des Reglers: letzter Arbeitsmonat von «sofort» (laufender Monat) bis «wie geplant». */
-export function stopInfo(app) {
+export function stopInfo(app: App) {
   const s = app.S, e = app.E, wer = stopWerOf(s), ps = persons(s);
   const sel = wer == null ? ps : [ps[wer]];
   const plan = Math.max(...sel.map((p) => e.abAlter(p, p.pensAlter)));
@@ -24,7 +27,7 @@ export function stopInfo(app) {
   return { min, max, cur, plan, wer, cpl: ps.length > 1, kein: max <= min };
 }
 
-export function setStop(app, L) {
+export function setStop(app: App, L: number) {
   const { min, max } = stopInfo(app), v = Math.max(min, Math.min(max, Math.round(L)));
   if (v <= min) { app.S.ui.stopY = null; app.S.ui.stopM = null; }
   else { app.S.ui.stopY = Math.floor(v / 12); app.S.ui.stopM = (v % 12) + 1; }
@@ -32,13 +35,13 @@ export function setStop(app, L) {
   return v;
 }
 
-const label = (app, L) => (L <= app.E.A0 ? `Sofort, Ende ${fmtMonat(L)}` : `Ende ${fmtMonat(L)}`);
-const pct = (L, min, max) => (max > min ? ((L - min) / (max - min)) * 100 : 0);
+const label = (app: App, L: number) => (L <= app.E.A0 ? `Sofort, Ende ${fmtMonat(L)}` : `Ende ${fmtMonat(L)}`);
+const pct = (L: number, min: number, max: number) => (max > min ? ((L - min) / (max - min)) * 100 : 0);
 
 /** Regler mit Wer-Auswahl, Ziel-Markierung (frühester Zeitpunkt mit grüner Ampel) und Schnellwahl. */
 // Der Regler erscheint im Tutor und im Ergebnis: jede Ausgabe erhält eine eigene id
 let ridNr = 0;
-export function ctrlHtml(app) {
+export function ctrlHtml(app: App) {
   const rid = `wiRange${++ridNr}`;
   const { min, max, cur, plan, wer, cpl, kein } = stopInfo(app), R = app.R;
   const werSel = cpl
@@ -69,23 +72,23 @@ export function ctrlHtml(app) {
 }
 
 /** Wer hört wann auf (aus dem gerechneten Szenario). */
-function werText(app) {
-  const R = app.R, so = R.so, e = app.E, ps = so.now.base.ps, L = (R.stopA ?? e.A0 + 1) - 1;
+function werText(app: App) {
+  const R = app.R as Auswertung, so = R.so, e = app.E, ps = so.now.base.ps, L = (R.stopA ?? e.A0 + 1) - 1;
   const wann = L <= e.A0 ? `sofort (Ende ${fmtMonat(L)})` : `Ende ${fmtMonat(L)}`;
   if (ps.length === 1) return `Sie hören ${wann} auf, mit ${aTxt(ps[0].stopAlter)}.`;
-  const rest = (i) => {
+  const rest = (i: number) => {
     const p = ps[i];
     return p.Aret <= e.A0 ? `${pn(i)} ist bereits pensioniert.` : `${pn(i)} arbeitet wie geplant bis Ende ${fmtMonat(p.Aret - 1)}.`;
   };
   if (so.wer != null) return `${pn(so.wer)} hört ${wann} auf, mit ${aTxt(ps[so.wer].stopAlter)}. ${rest(1 - so.wer)}`;
-  const stopA = L + 1, frueher = ps.map((p, i) => [p, i]).filter(([p]) => p.Aret < stopA);
+  const stopA = L + 1, frueher = ps.map((p, i): [SimPerson, number] => [p, i]).filter(([p]) => p.Aret < stopA);
   if (!frueher.length) return `Beide hören ${wann} auf: Person 1 mit ${aTxt(ps[0].stopAlter)}, Person 2 mit ${aTxt(ps[1].stopAlter)}.`;
-  const andere = ps.map((p, i) => [p, i]).filter(([p]) => p.Aret >= stopA);
+  const andere = ps.map((p, i): [SimPerson, number] => [p, i]).filter(([p]) => p.Aret >= stopA);
   return `${andere.map(([p, i]) => `${pn(i)} hört ${wann} auf, mit ${aTxt(p.stopAlter)}.`).join(' ')} ${frueher.map(([p, i]) => (p.Aret <= e.A0 ? `${pn(i)} ist bereits pensioniert.` : `${pn(i)} geht wie geplant schon Ende ${fmtMonat(p.Aret - 1)} in Pension.`)).join(' ')}`.trim();
 }
 
-function satzText(app) {
-  const R = app.R, so = R.so, cpl = app.S.haushalt !== 'single', dep = so.now.base.depleted, st = so.now.st;
+function satzText(app: App) {
+  const R = app.R as Auswertung, so = R.so, cpl = app.S.haushalt !== 'single', dep = so.now.base.depleted, st = so.now.st;
   const alt = cpl ? ' (Alter Person 1)' : '';
   if (dep != null && so.now.lgRot) return `Knapp: Das freie Vermögen ist mit ${dep}${alt} aufgebraucht, die Liegenschaft deckt die Lücke.`;
   if (dep != null) return so.now.base.depletedBeforeRet ? 'Das Geld reicht schon vor dem Ausstieg nicht.' : `Das Geld ist mit ${dep}${alt} aufgebraucht.`;
@@ -93,16 +96,16 @@ function satzText(app) {
   return so.now.stress.depleted != null ? `Knapp: Im Stresstest ist das Geld mit ${so.now.stress.depleted}${alt} aufgebraucht.` : 'Knapp: Am Schluss bleibt weniger als die Reserve.';
 }
 
-function zielText(app, html = true) {
-  const R = app.R, so = R.so, e = app.E, st = so.now.st, L = (R.stopA ?? e.A0 + 1) - 1;
-  const b = (t) => (html ? `<b>${t}</b>` : t);
+function zielText(app: App, html = true) {
+  const R = app.R as Auswertung, so = R.so, e = app.E, st = so.now.st, L = (R.stopA ?? e.A0 + 1) - 1;
+  const b = (t: string) => (html ? `<b>${t}</b>` : t);
   if (so.ab == null) return `${b('Vor dem geplanten Termin wird die Ampel nicht grün.')} Ansatzpunkte: tiefere Ausgaben oder mehr Erspartes.`;
   const abL = so.ab - 1;
   // Spielraum gegenüber dem Plan; bei «Beide» für jede Person einzeln
   let frueh = '';
   const ps = persons(app.S);
   if (so.wer == null && ps.length > 1) {
-    const d = ps.map((p, i) => [i, e.abAlter(p, p.pensAlter) - so.ab]).filter(([, m]) => m > 0);
+    const d = ps.map((p, i): [number, number] => [i, e.abAlter(p, p.pensAlter) - so.ab!]).filter(([, m]) => m > 0);
     if (d.length) frueh = `, für ${d.map(([i, m]) => `${pn(i)} ${dauer(m)}`).join(' und ')} vor dem Plan`;
   } else if (so.plan - so.ab > 0) frueh = `, ${dauer(so.plan - so.ab)} vor dem Plan`;
   if (st === 'gruen') {
@@ -114,17 +117,17 @@ function zielText(app, html = true) {
 }
 
 /** Was fehlt, damit es reicht. full: ausführlich (Resultatansicht). */
-function gapHtml(app, full) {
-  const R = app.R, s = app.S, st = R.so.now.st, L = R.lk, H = R.horizont;
+function gapHtml(app: App, full: boolean) {
+  const R = app.R as Auswertung, s = app.S, st = R.so.now.st, L = R.lk, H = R.horizont;
   if (!L || st === 'gruen') return '';
   if (!full) {
     return `<div class="gap">${L.liq != null && L.liq > 1000 ? `<div><span class="l">Fehlendes Kapital heute</span><span class="v">${chf(L.liq)}</span><span class="s">damit es zu diesem Zeitpunkt reicht</span></div>` : ''}<div><span class="l">Oder Ausgaben pro Monat</span><span class="v">${chf(L.ausg)}</span><span class="s">statt ${chf(s.ausgabenRuhestand)}</span></div></div>`;
   }
-  const lang = L.liq != null ? Math.max(0, L.liq - L.bridge) : null, diff = s.ausgabenRuhestand - L.ausg;
-  const zus = L.total != null ? L.total : L.liq, resOnly = !(L.liq > 1000) && zus > 1000;
+  const lang = L.liq != null ? Math.max(0, L.liq - L.bridge!) : null, diff = s.ausgabenRuhestand - L.ausg;
+  const zus = L.total != null ? L.total : L.liq, resOnly = !(L.liq! > 1000) && zus! > 1000;
   const fixM = R.wohnen.v + R.uebrigeFix, frei = L.ausg - fixM;
   return `<h4 class="gh">Was fehlt, damit es ohne Liegenschaft reicht?</h4><div class="gap">
-    ${L.liq != null && L.liq > 1000 ? `<div><span class="l">Fehlendes Kapital heute</span><span class="v">${chf(L.liq)}</span><span class="s">damit das Geld bis ${H} reicht${L.bridge > 1000 && lang > 1000 ? `; davon ${chf(L.bridge)} Überbrückung bis ${L.bridgeDatum}, ${chf(lang)} danach` : L.bridge > 1000 ? ` (Überbrückung bis ${L.bridgeDatum})` : ''}</span></div>` : ''}
+    ${L.liq != null && L.liq > 1000 ? `<div><span class="l">Fehlendes Kapital heute</span><span class="v">${chf(L.liq)}</span><span class="s">damit das Geld bis ${H} reicht${L.bridge! > 1000 && lang! > 1000 ? `; davon ${chf(L.bridge!)} Überbrückung bis ${L.bridgeDatum}, ${chf(lang!)} danach` : L.bridge! > 1000 ? ` (Überbrückung bis ${L.bridgeDatum})` : ''}</span></div>` : ''}
     ${L.liq == null ? '<div><span class="l">Fehlendes Kapital heute</span><span class="v">über CHF 10 Mio.</span><span class="s">mit Kapital allein nicht lösbar</span></div>' : ''}
     ${zus != null && zus > (L.liq || 0) + 1000 ? `<div><span class="l">${resOnly ? 'Fehlende Reserve' : 'Mit Reserve'}</span><span class="v">${chf(zus)}</span><span class="s">damit am Horizont zusätzlich ${s.reserveJahre} Jahresausgaben übrig bleiben</span></div>` : ''}
     <div><span class="l">Oder Ausgaben senken um</span><span class="v">${chf(Math.max(0, diff))}</span><span class="s">pro Monat, von ${chf(s.ausgabenRuhestand)} auf ${chf(L.ausg)}${s.reserveJahre > 0 ? ', inkl. Reserve' : ''}</span></div>
@@ -133,11 +136,11 @@ function gapHtml(app, full) {
 }
 
 /** Ampel, Aussage, Wer/Wann, Ziel und Lücke. full: ausführliche Lücke für die Resultatansicht. */
-export function summaryHtml(app, full = false) {
+export function summaryHtml(app: App, full = false) {
   const R = app.R;
   if (!R || R.leer) return '<p>Für diese Rechnung fehlen noch die Ausgaben im Ruhestand.</p>';
   const so = R.so, st = so.now.st, dep = so.now.base.depleted, P = app.P;
-  const stoppen = so.now.base.ps.filter((p, i) => so.wer == null || so.wer === i);
+  const stoppen = so.now.base.ps.filter((_p, i) => so.wer == null || so.wer === i);
   const minAlter = Math.min(...stoppen.map((p) => p.minAlter || P.bvg.minAlter));
   const grund = dep != null && stoppen.some((p) => p.stopAlter < (p.minAlter || P.bvg.minAlter))
     ? `<p class="cap">Warum? Wer vor ${minAlter} aufhört, erhält noch keine PK-Rente. Das Guthaben kommt auf ein Freizügigkeitskonto und ist wie die Säule 3a erst ${P.vorsorge.bezugJahreVorRef} Jahre vor dem AHV-Referenzalter verfügbar. Bis dahin zahlt alles das Ersparte.</p>` : '';
@@ -149,39 +152,39 @@ export function summaryHtml(app, full = false) {
 }
 
 /** Klartext für den PDF-Bericht. */
-export function reportText(app) {
+export function reportText(app: App) {
   const R = app.R;
   if (!R || R.leer) return '';
   return `${werText(app)} ${ST[R.so.now.st]}: ${satzText(app)} ${zielText(app, false)}`;
 }
 
 /** Ereignisse für Wer-Auswahl, Regler und Schnellwahl in einem Container. */
-export function bindWhatIf(root, app, onMove) {
+export function bindWhatIf(root: HTMLElement, app: App, onMove?: (v: number) => void) {
   ruhigeRegler(root);
-  const move = (L) => {
+  const move = (L: number) => {
     const v = setStop(app, L), { min, max } = stopInfo(app);
     root.querySelectorAll('[data-wi-val]').forEach((o) => { o.textContent = label(app, v); });
-    const r = root.querySelector('[data-wi-range]');
-    if (r) { r.value = v; r.setAttribute('aria-valuetext', label(app, v)); r.style.setProperty('--p', `${pct(v, min, max).toFixed(2)}%`); }
+    const r = root.querySelector<HTMLInputElement>('[data-wi-range]');
+    if (r) { r.value = String(v); r.setAttribute('aria-valuetext', label(app, v)); r.style.setProperty('--p', `${pct(v, min, max).toFixed(2)}%`); }
     root.querySelectorAll('.wi-body, [data-live="sofort"]').forEach((b) => b.setAttribute('aria-busy', 'true'));
     onMove?.(v);
   };
-  root.addEventListener('input', (ev) => { if (ev.target.matches('[data-wi-range]')) move(+ev.target.value); });
+  root.addEventListener('input', (ev) => { if ((ev.target as HTMLInputElement).matches('[data-wi-range]')) move(+(ev.target as HTMLInputElement).value); });
   root.addEventListener('click', (ev) => {
-    const w = ev.target.closest('[data-wi-wer]');
+    const w = (ev.target as HTMLElement).closest<HTMLElement>('[data-wi-wer]');
     if (w) {
       const k = w.dataset.wiWer;
-      app.S.ui.stopWer = k === 'alle' ? 'alle' : +k;
+      app.S.ui.stopWer = k === 'alle' ? 'alle' : +k! as 0 | 1;
       // Zeitpunkt behalten, aber auf den neuen Bereich begrenzen; Regler neu aufbauen
       move(stopInfo(app).cur);
       const box = w.closest('.wi-ctrlbox');
-      if (box) { box.innerHTML = ctrlHtml(app); box.querySelector(`[data-wi-wer="${k}"]`)?.focus(); }
+      if (box) { box.innerHTML = ctrlHtml(app); box.querySelector<HTMLElement>(`[data-wi-wer="${k}"]`)?.focus(); }
       return;
     }
-    const b = ev.target.closest('[data-wi-set]');
+    const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-wi-set]');
     if (!b) return;
-    const { min, max, cur } = stopInfo(app), R = app.R, k = b.dataset.wiSet;
-    const L = k === 'min' ? min : k === 'max' ? max : k === 'ab' ? (R?.so?.ab ?? max + 1) - 1 : min + +k;
+    const { min, max } = stopInfo(app), R = app.R as Auswertung | null, k = b.dataset.wiSet;
+    const L = k === 'min' ? min : k === 'max' ? max : k === 'ab' ? (R?.so?.ab ?? max + 1) - 1 : min + +k!;
     move(L);
   });
 }

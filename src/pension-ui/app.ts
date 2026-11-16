@@ -45,4 +45,22 @@ export interface App {
   share: () => void | Promise<void>;
   setView: (v: string) => void;
   checkForUpdate: (manual?: boolean) => void | Promise<void>;
+  /** Bühne (buehne.ts hängt sich selbst an): Urteil und Kennzahlen wandern im Tutor-Ergebnis in die Karte des Tutors. */
+  buehne?: { render(): void; renderBody(): void; ordne(): void; springe(id: string): void; kopfHeim(): void; kopfIn(platz: Element | null): void };
+  /** Reichweite für Bericht und Vergleich (results.ts setzt sie aus reach.ts: reachData); null ohne Ergebnis. */
+  reach?: ReturnType<typeof import('./reach').reachData> | null;
+  /** Vermögensbilanz ohne Darstellung, für den Bericht (results.ts). */
+  bilanz?: import('./results').BilanzDaten;
+  /** Hinweise als HTML-Zeilen, für den Bericht (results.ts). */
+  hints?: string[];
+  /** Schrittleiste (schritte.ts hängt sich selbst an): Schritt anspringen bzw. neu aufbauen. */
+  schritt?: { go(id: string): void; render(): void };
+  /** Themenkarten (themenui.ts hängt sich selbst an): Leiste und Editor nachführen, Editor öffnen, Fokus auf eine Karte, Auswahl zeigen. */
+  themen?: { render(): void; oeffne(key: string | null): void; fokusKarte(key: string | null): boolean; auswahl(von?: HTMLElement | null): void };
+  /** So oder so (vergleich.ts hängt sich selbst an): neu aufbauen, Vorschau prüfen, Vergleich zu einer Karte vorbereiten. */
+  vergleich?: { render(): void; pruefen(): void; entwurf(key: string | null): void };
+  /** Linke Spalte ein- oder ausblenden (schritte.ts hängt sich selbst an). */
+  leiste?: (auf?: boolean, fokus?: boolean) => void;
+  /** Rechenvariante der Tragbarkeit übernehmen (results.ts hängt sich selbst an). */
+  varianteUebernehmen?: () => void;
 }
