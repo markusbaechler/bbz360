@@ -15,6 +15,7 @@ async function musterMitZielen(page: import('@playwright/test').Page): Promise<v
       { id: 'z1', katId: 'wohnen', typ: 'ziel', name: 'Ferienwohnung', jahr: 2031, betrag: 600000 },
       { id: 'z2', katId: 'familie', typ: 'ziel', name: 'Weltreise', jahr: 2034, betrag: 60000 },
       { id: 'z3', katId: 'zufluss', typ: 'zufluss', name: 'Erbschaft', jahr: 2040, betrag: 300000 },
+      { id: 'z4', katId: 'familie', typ: 'ziel', name: 'Irgendwann', jahr: null, betrag: 5000 },
     ];
     d.finanzierung_data = { inputs: { price: "600'000", cashEquity: "150'000" } };
     d.anlage_betrag = 60000;
@@ -36,8 +37,9 @@ test('Ziel, Kauf und Anlage erscheinen in derselben Zeitachse und Rechnung', asy
   await expect(zeile('Ferienwohnung')).toContainText('07a Finanzieren');
   await expect(zeile('Ferienwohnung')).toContainText('rechnet mit');
   await expect(zeile('Anlage «Ausgewogen»')).toContainText('rechnet mit');
-  await expect(zeile('Erbschaft')).toContainText('vorgemerkt');
+  await expect(zeile('Erbschaft')).toContainText('rechnet mit');
   await expect(zeile('Pensionierung Person 1')).toContainText('07c Pensionierung');
+  await expect(zeile('Irgendwann')).toContainText('vorgemerkt');
 
   // Rechnung: Urteil mit und ohne Ziele, tragbare Ausgaben
   const kpis = page.locator('#lpKpis .kpi');
@@ -45,13 +47,14 @@ test('Ziel, Kauf und Anlage erscheinen in derselben Zeitachse und Rechnung', asy
   await expect(kpis.nth(0)).toContainText(/Reicht|Knapp|Reicht nicht/);
   await expect(kpis.nth(1)).toContainText(/Reicht|Knapp|Reicht nicht/);
   await expect(kpis.nth(3)).toContainText('CHF 210’000'); // Barmittel 150'000 + Weltreise 60'000
+  await expect(kpis.nth(3)).toContainText('Zuflüsse CHF 300’000');
 
   // Bild: Marken der mitrechnenden Eintraege, Fragezeichen fuer Vorgemerktes
   const bild = page.locator('#lpBild svg');
   await expect(bild).toBeVisible();
   await expect(bild).toContainText('Weltreise');
   await expect(bild).toContainText('Ferienwohnung');
-  await expect(bild).toContainText('Erbschaft ?');
+  await expect(bild).toContainText('Erbschaft');
 
   // gespeichert wird nichts: der Haushalts-Stand traegt die Ziele nicht
   const h = await page.evaluate(() => JSON.parse(localStorage.getItem('bbzData') || '{}').haushalt);

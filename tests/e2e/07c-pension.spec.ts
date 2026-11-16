@@ -52,11 +52,11 @@ test('gemeinsam erfassen: Wechsel in den gefuehrten Modus und zurueck', async ({
   await expect(page.locator('body')).toHaveAttribute('data-mode', 'form');
 });
 
-test('Abschluss (10) zeigt das Urteil der Pensionierung aus dem gemeinsamen Stand', async ({ page }) => {
+test('Abschluss (10) zeigt das Urteil von Lebensplan und Pensionierung aus dem gemeinsamen Stand', async ({ page }) => {
   await page.locator('#btnMuster').click();
   await expect(page.locator('#verdictText')).toContainText(/Reicht|Knapp/);
   await page.goto('modules/10-abschluss.html');
-  const sec = page.locator('.ab-sec', { hasText: '07c · PENSIONIERUNG' });
+  const sec = page.locator('.ab-sec', { hasText: '07 · LEBENSPLAN & PENSIONIERUNG' });
   await expect(sec).toContainText(/Reicht|Knapp|Reicht nicht/);
   await expect(sec).toContainText('58 / 60');
   await expect(page.locator('#printScope option[value="pension"]')).toHaveCount(1);

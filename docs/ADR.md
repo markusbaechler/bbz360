@@ -318,11 +318,55 @@ sollen in einer Zeitachse und einer Rechnung zusammenkommen.
   finalen Strategie (`finance.ts: STRATS`) für alle Wertschriften.
 
 **Bekannte Grenzen (im Modul unter «So ist gerechnet» genannt).**
-- Nach einem Eigenheimkauf sind Liegenschaftswert, Hypothek, Wohnkosten und
-  ein PK-Vorbezug nicht eingerechnet. Der Kern kennt keinen Kauf in der
-  Zukunft; das wäre eine Erweiterung des Rechenkerns.
-- Zuflüsse (Erbschaft) sind vorgemerkt; ihre Berechnung gehört zu Phase 8.
+- Eigenheimkauf und Zuflüsse rechnet seit ADR-19 der erweiterte Kern.
 - 07b und der PensCheck führen eigene Renditeannahmen (z. B. «Ausgewogen»
   2.75% gegenüber Profil «ausgewogen» 3%). Der Lebensplan nimmt die Annahme
   aus 07b, weil sie dem Kunden dort gezeigt wurde.
-- Der Abschluss (10) zeigt weiterhin das Urteil der Pensionierung allein.
+- Der Abschluss (10) zeigt seit ADR-19 das Urteil des Lebensplans und daneben
+  das der Pensionierung allein.
+
+---
+
+## ADR-19 — Additive Erweiterung des Rechenkerns: Zuflüsse und Liegenschaftskauf in der Zukunft
+
+**Kontext.** Der PensCheck-Kern kannte weder einen Zufluss ins Vermögen noch
+einen Kauf in der Zukunft; im Lebensplan waren beide nur vorgemerkt bzw. auf
+den Abfluss der Barmittel verkürzt. Entscheid des Auftraggebers (Review nach
+Phase 5): **Kern additiv erweitern.**
+
+**Entscheid.** Erste fachliche Änderung am Kern gegenüber PensCheck
+(`src/lib/pension/engine.ts`, jede Stelle mit «bbz360 (ADR-19)» markiert):
+- **Zuflüsse** (`PensState.zufluesse`: Name, Betrag, Kalenderjahr): gehen im
+  Januar des Jahres ins freie Vermögen, in heutiger Kaufkraft. Keine
+  Erbschafts- oder Schenkungssteuer.
+- **Kauf in der Zukunft** (optionale Felder an der Liegenschaft):
+  `kaufAlter` (Alter Person 1), `kaufFremd` (PK-Vorbezug), `kaufMieteWeg`.
+  Bis zum Kauf gibt es die Liegenschaft nicht (kein Wert, keine Hypothek,
+  keine Kosten). Beim Kauf fliessen die Eigenmittel (Preis − Hypothek, beide
+  auf den Kaufmonat fortgeschrieben) aus dem freien Vermögen ab; ein
+  PK-Vorbezug fliesst als besteuerter Kapitalbezug zu. Bei einem Eigenheim
+  kommen danach Zins, Unterhalt und Nebenkosten zu den Ausgaben, die
+  bisherige Miete fällt weg.
+- Die Kürzung der Pensionskasse nach einem Vorbezug macht der Lebensplan am
+  Stand (im Verhältnis zum Altersguthaben, sonst über den Umwandlungssatz
+  `annahmen.uws65`), nicht der Kern.
+
+**Gleichheit mit PensCheck.** Die neuen Felder entstehen in `sanitize()` nur,
+wenn sie gesetzt sind. Ohne sie ist die Rechnung unverändert: Die
+Referenztests laufen weiter, und der Vergleich Port ↔ Original (sieben Fälle,
+je mit und ohne früheren Ausstieg) ist nach der Änderung erneut identisch.
+Mit den neuen Feldern rechnet bbz360 mehr als PensCheck.
+
+**Tests.** `tests/unit/kern-erweiterung.test.ts`, `tests/unit/lebensplan.test.ts`.
+
+**Grenzen.**
+- Ohne Jahreszeile («heute») zählt `eigenkapitalReal` eine Liegenschaft mit
+  `kaufAlter` nicht mit.
+- Auswertungen, die Liegenschaften statisch lesen (Fixkosten «Wohnen»,
+  Amortisationsvorschlag), kennen den Kaufzeitpunkt nicht. Sie werden für
+  den Lebensplan-Stand nicht angezeigt; ein künftiger Kauf wird deshalb nur
+  im Lebensplan abgeleitet und nicht im Haushalts-Stand gespeichert.
+- Der PK-Vorbezug wird Person 1 zugerechnet; Verzinsung des vorbezogenen
+  Betrags bis zur Pensionierung ist nicht berücksichtigt.
+- Ein vom Kunden im öffentlichen PensCheck geöffneter Link kennt diese
+  Felder nicht (dort fallen sie weg).

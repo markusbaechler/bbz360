@@ -3,6 +3,7 @@
 import grundlagen from '../../../public/data/params.json';
 import { createEngine, monthOf } from './engine';
 import { analyse } from './analyse';
+import type { AnalyseErgebnis } from './analyse';
 import { resolveParams, nextParams } from './params';
 import { rechenEingaben } from './themen';
 import type { ParamDatei, PensState } from './typen';
@@ -26,14 +27,9 @@ export interface PensionKurz {
 
 const WORT = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' } as const;
 
-/** Kurzfassung für einen Haushalts-Stand; null, solange die Ausgaben im Ruhestand fehlen. */
-export function pensionKurz(S: PensState, A0: number = monthOf()): PensionKurz | null {
-  const jahr = Math.floor(A0 / 12);
-  const daten = grundlagen as unknown as ParamDatei;
-  const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
-  // Wie im Worker: gerechnet wird ohne Bedienzustand (rechenEingaben), die Auswertung liest ihn nicht.
-  const R = analyse(rechenEingaben(S) as unknown as PensState, E, undefined, {});
-  if (R.leer) return null;
+/** Kurzfassung aus einer fertigen Auswertung (z. B. aus dem Worker); null bei leerer Auswertung. */
+export function kurzAus(R: AnalyseErgebnis | null | undefined, S: PensState): PensionKurz | null {
+  if (!R || R.leer) return null;
   const st = R.amp.st as PensionKurz['st'];
   return {
     st,
@@ -45,4 +41,13 @@ export function pensionKurz(S: PensState, A0: number = monthOf()): PensionKurz |
     pensAlter: S.personen.slice(0, S.haushalt === 'single' ? 1 : 2).map((p) => p.pensAlter),
     schritte: R.akt.filter((a) => !S.aktion[a.id]).slice(0, 3).map((a) => ({ id: a.id, titel: a.titel, when: a.when, stelle: a.stelle })),
   };
+}
+
+/** Kurzfassung für einen Haushalts-Stand; null, solange die Ausgaben im Ruhestand fehlen. Rechnet synchron (rund eine Sekunde). */
+export function pensionKurz(S: PensState, A0: number = monthOf()): PensionKurz | null {
+  const jahr = Math.floor(A0 / 12);
+  const daten = grundlagen as unknown as ParamDatei;
+  const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
+  // Wie im Worker: gerechnet wird ohne Bedienzustand (rechenEingaben), die Auswertung liest ihn nicht.
+  return kurzAus(analyse(rechenEingaben(S) as unknown as PensState, E, undefined, {}), S);
 }

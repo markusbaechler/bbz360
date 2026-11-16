@@ -33,7 +33,7 @@ export type AmortEingabe = Amortisation & { alter?: number };
 /** Eingaben der Rechnung: Stand des Haushalts, wahlweise mit dem Horizont aus horizon() (horizont, horizontP). */
 export type EngineInput = Pick<PensState,
   'haushalt' | 'kanton' | 'liquiditaet' | 'wertschriften' | 'kontoZins' | 'zins3aKonto' | 'anlageprofil' | 'renditeOverride' | 'ausgabenRuhestand' | 'ausgabenHeute' | 'reduktion75'
-  | 'liegenschaften' | 'einkommen' | 'wuensche' | 'inflation' | 'ahvAnpassung' | 'steuerEink' | 'steuerVerm' | 'ertragSteuerbar' | 'reserveJahre' | 'tragGrenze'
+  | 'liegenschaften' | 'einkommen' | 'wuensche' | 'zufluesse' | 'inflation' | 'ahvAnpassung' | 'steuerEink' | 'steuerVerm' | 'ertragSteuerbar' | 'reserveJahre' | 'tragGrenze'
 > & { personen: Person[]; amortisationen: AmortEingabe[]; horizont?: number; horizontP?: number[] | null };
 /** Abweichungen vom Plan für einen Rechenlauf (Was-wäre-wenn, Stresstest). */
 export interface SimOptionen {
@@ -56,6 +56,8 @@ export interface SimRow {
   wAus: number; wEin: number; wEinLauf: number; lgNetto: number; amortFrei: number; I: number;
   V: number; hyp: number; lgAusland: number; anyRet: boolean; allRet: boolean; allAhv: boolean;
   lgWerte: number[]; lgHyp: number[]; s3a: number; fz: number;
+  /** bbz360 (ADR-19): Zuflüsse (z. B. Erbschaft) und Liegenschaftskäufe des Jahres; fehlen ohne solche Einträge. */
+  zufluss?: number; lgKauf?: number;
 }
 export interface SimEvent {
   A: number; datum: string; person: number | null; text: string; betrag: number | null | undefined;
@@ -406,7 +408,12 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
     const ausgRuhe = ov.ausgaben != null ? ov.ausgaben : num(inp.ausgabenRuhestand);
     const ausgHeute = (inp.ausgabenHeute as number) > 0 ? +inp.ausgabenHeute : ausgRuhe / 0.9;
     const lgs = getLgs(inp);
-    const lgSt = lgs.map((l) => ({ hyp: num(l.hypothek), hyp0: num(l.hypothek), verkauft: false }));
+    // bbz360 (ADR-19): Eine Liegenschaft mit Kaufalter in der Zukunft gibt es bis zum Kauf nicht. Bis dahin gilt sie
+    // wie «verkauft» (kein Wert, keine Hypothek, keine Kosten); beim Kauf entstehen Wert und Hypothek.
+    const kaufA = (l: (typeof lgs)[number]) => ((l.kaufAlter ?? 0) > 0 ? abAlter(ps0[0], l.kaufAlter!) : -Infinity);
+    const lgSt = lgs.map((l) => { const kommt = kaufA(l) > A0; return { hyp: kommt ? 0 : num(l.hypothek), hyp0: kommt ? 0 : num(l.hypothek), verkauft: kommt, kommt }; });
+    // bbz360 (ADR-19): Zuflüsse im Januar des Jahres (ein laufendes oder vergangenes Jahr: sofort)
+    const zufluesse = (inp.zufluesse || []).filter((z) => z.betrag > 0 && z.jahr > 0).map((z) => ({ ...z, A: Math.max(A0, z.jahr * 12) }));
     const ps = ps0.map((p, idx) => {
       const ref = refAlter(p);
       const Aplan = abAlter(p, p.pensAlter);
@@ -510,6 +517,7 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
       // Betrag wird nach der Rechnung mit der tatsächlich ausbezahlten (allenfalls plafonierten) Rente ersetzt
       ev(Math.max(A0, p.Aahv), i, `AHV-Rente ${p.Aahv < A0 ? 'läuft' : 'beginnt'}${bezTxt}`, ahvMonat(p, PX(p.Aahv).ahv) * p.ahvF * PX(p.Aahv).ahv.monatsrentenProJahr, { proJahr: true, ahv: true });
     });
+    zufluesse.forEach((z) => ev(z.A, null, `Zufluss: ${z.name || 'einmaliger Zufluss'}`, z.betrag));
     if (ps.length) ev(Math.max(...ps.map((p) => p.A75)), null, `Ausgaben sinken um ${Math.round((1 - inp.reduktion75) * 100)}% (jüngere Person 75)`);
 
     for (let Am = A0; Am <= Aend; Am++) {
@@ -655,9 +663,21 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
       const youngestA = Math.max(...ps.map((p) => birthA(p)));
       let ausg = (anyRet ? ausgRuhe : ausgHeute) * I;
       if (anyRet && Am >= youngestA + 75 * 12 + 1) ausg *= inp.reduktion75;
-      let lgKosten = 0, lgMiete = 0, lgVerkauf = 0;
+      let lgKosten = 0, lgMiete = 0, lgVerkauf = 0, lgKauf = 0;
       lgs.forEach((l, k) => {
         const s = lgSt[k];
+        // bbz360 (ADR-19): Kauf. Der Preis steht in heutiger Kaufkraft, die Hypothek im selben Verhältnis dazu. Die
+        // Eigenmittel fliessen aus dem freien Vermögen ab; ein PK-Vorbezug fliesst als besteuerter Kapitalbezug zu.
+        if (s.kommt && Am === kaufA(l)) {
+          s.kommt = false;
+          s.verkauft = false;
+          s.hyp = num(l.hypothek) * I;
+          s.hyp0 = s.hyp;
+          const eigen = Math.max(0, l.verkehrswert * I - s.hyp);
+          lgKauf += eigen;
+          const tx = (l.kaufFremd ?? 0) > 0 ? addKap(0, l.kaufFremd!, `PK-Vorbezug für ${l.name || 'Liegenschaft'}`, true) : 0;
+          ev(Am, null, `Kauf ${l.name || 'Liegenschaft'} (Eigenmittel${(l.kaufFremd ?? 0) > 0 ? `, davon PK-Vorbezug ${Math.round(l.kaufFremd!).toLocaleString('de-CH')}` : ''}; Hypothek ${Math.round(s.hyp).toLocaleString('de-CH')})`, eigen, tx > 0 ? { steuer: tx } : undefined);
+        }
         if (s.verkauft) return;
         if (l.verkaufAlter > 0 && Am === abAlter(ps0[0], l.verkaufAlter)) {
           s.verkauft = true;
@@ -667,8 +687,12 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
           s.hyp = 0;
           return;
         }
-        if (l.typ === 'eigen' || !l.typ) ausg -= (Math.max(0, s.hyp0 - s.hyp) * num(l.zins)) / 100 / 12;
-        else {
+        if (l.typ === 'eigen' || !l.typ) {
+          ausg -= (Math.max(0, s.hyp0 - s.hyp) * num(l.zins)) / 100 / 12;
+          // bbz360 (ADR-19): Bei einem heute bewohnten Eigenheim stecken die Wohnkosten in den erfassten Ausgaben.
+          // Nach einem Kauf in der Zukunft kommen Zins, Unterhalt und Nebenkosten dazu, die bisherige Miete fällt weg.
+          if ((l.kaufAlter ?? 0) > 0 && kaufA(l) > A0) ausg += (s.hyp0 * num(l.zins)) / 100 / 12 + (l.verkehrswert * I * (l.unterhalt ?? 0.5)) / 100 / 12 + num(l.nebenkosten) * I - num(l.kaufMieteWeg) * I;
+        } else {
           const kost = (s.hyp * num(l.zins)) / 100 / 12 + (l.verkehrswert * I * (l.unterhalt ?? 1)) / 100 / 12;
           const miete = (num(l.mietertrag) * I) / 12;
           lgKosten += kost + sE * Math.max(0, miete - kost);
@@ -677,6 +701,8 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
       });
       const hyp = hypSum();
       let wAus = 0, wEin = 0, wEinLauf = 0;
+      // bbz360 (ADR-19): Zuflüsse in heutiger Kaufkraft
+      const zufluss = zufluesse.reduce((x, z) => x + (z.A === Am ? z.betrag * I : 0), 0);
       const a1 = alterBei(p1, Am);
       wuensche.forEach((w, k) => {
         const s = wState[k];
@@ -718,7 +744,9 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
       // Einkommenssteuer auf dem steuerbaren Teil der Erträge (Zinsen, Dividenden; Kursgewinne sind steuerfrei)
       const stErtrag = sE * qE * Math.max(0, ertrag);
       const kapZu = kapIn - kapSt - amort;
-      V = V + ertrag + lohn + uebrig + ahv + pk + kapZu - ausg - steuern - stVerm - stErtrag - ne - einz3a - wAus + wEin - amortFrei - lgKosten + lgMiete + lgVerkauf;
+      V = V + ertrag + lohn + uebrig + ahv + pk + kapZu - ausg - steuern - stVerm - stErtrag - ne - einz3a - wAus + wEin - amortFrei - lgKosten + lgMiete + lgVerkauf + zufluss - lgKauf;
+      if (zufluss) cur.zufluss = (cur.zufluss || 0) + zufluss;
+      if (lgKauf) cur.lgKauf = (cur.lgKauf || 0) + lgKauf;
       kapSteuerTotal += kapSt / I;
       cur.lohn += lohn; lohnP.forEach((l, i) => { cur!.lohnP[i] += l; }); cur.ahv += ahv; cur.pk += pk; cur.kapBrutto += kapIn; cur.kapSt += kapSt; cur.kapZu += kapZu; cur.amort += amort;
       cur.ne += ne; cur.uebrig += uebrig; cur.steuern += steuern; cur.stVerm += stVerm; cur.stErtrag += stErtrag; cur.ausgaben += ausg; cur.ertrag += ertrag; cur.einz3a += einz3a;
@@ -755,7 +783,8 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
     const lgs = getLgs(inp);
     if (!lgs.length) return 0;
     if (row && row.lgWerte) return Math.max(0, row.lgWerte.reduce((x, v, k) => x + v / row.I - row.lgHyp[k] / row.I, 0));
-    return Math.max(0, lgs.reduce((x, l) => x + l.verkehrswert - num(l.hypothek), 0));
+    // bbz360 (ADR-19): Ohne Jahreszeile ist der Stand von heute gemeint; ein Kauf in der Zukunft zählt noch nicht.
+    return Math.max(0, lgs.reduce((x, l) => x + ((l.kaufAlter ?? 0) > 0 ? 0 : l.verkehrswert - num(l.hypothek)), 0));
   }
   /** Ampel: Basisszenario und Stresstest (Rendite -1 Prozentpunkt, Horizont 100). */
   function ampel(inp: EngineInput, ov: SimOptionen = {}) {

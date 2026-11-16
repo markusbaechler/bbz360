@@ -42,6 +42,21 @@ export interface Liegenschaft {
   nebenkosten: number;
   mietertrag: number;
   verkaufAlter: number;
+  // --- bbz360 (ADR-19): Kauf in der Zukunft. Fehlen die Felder, ist die Liegenschaft heute im Besitz. ---
+  /** Alter von Person 1 beim Kauf; vorher gibt es die Liegenschaft in der Rechnung nicht. */
+  kaufAlter?: number;
+  /** Teil der Eigenmittel aus einem PK-Vorbezug (CHF): wird als Kapitalbezug besteuert und fliesst dem Kauf zu. */
+  kaufFremd?: number;
+  /** Miete pro Monat (heutige Kaufkraft), die mit dem Kauf eines Eigenheims wegfällt. */
+  kaufMieteWeg?: number;
+}
+
+/** bbz360 (ADR-19): einmaliger Zufluss ins freie Vermögen (z. B. Erbschaft), in heutiger Kaufkraft. */
+export interface Zufluss {
+  name: string;
+  betrag: number;
+  /** Kalenderjahr des Zuflusses. */
+  jahr: number;
 }
 
 export type AmortQuelle = 'frei' | '3a0' | '3a1' | 'fz0' | 'fz1';
@@ -153,6 +168,8 @@ export interface PensState {
   amortisationen: Amortisation[];
   einkommen: Einkommen[];
   wuensche: Wunsch[];
+  /** bbz360 (ADR-19): nur vorhanden, wenn Zuflüsse erfasst sind. */
+  zufluesse?: Zufluss[];
   themen: Thema[];
   inflation: number;
   ahvAnpassung: number;

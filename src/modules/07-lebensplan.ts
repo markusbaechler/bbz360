@@ -34,7 +34,7 @@ const A0 = monthOf(), jahr = Math.floor(A0 / 12);
 const daten = grundlagen as unknown as ParamDatei;
 const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
 const H = haushaltLesen();
-const plan = lebensplan(BBZ.all(), H, jahr);
+const plan = lebensplan(BBZ.all(), H, jahr, E.P.annahmen.uws65);
 
 const WORT = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' } as const;
 type Ampel = keyof typeof WORT;
@@ -67,13 +67,13 @@ function zeigen(R: Gesamtauswertung): void {
     $('lpUrteilText').innerHTML = 'Für eine Rechnung fehlen die Ausgaben im Ruhestand. Erfassen Sie sie im <a href="05b-budget.html">Budget</a> oder in der <a href="07c-pension.html">Pensionierung</a>.';
   } else {
     const st = R.amp.st as Ampel;
-    const mitrechnend = plan.eintraege.filter((e) => e.rechnet && (e.quelle === '06' || e.quelle === '07a'));
-    const summe = mitrechnend.reduce((x, e) => x + (e.art === 'kauf' ? 0 : e.betrag ?? 0), 0) + plan.S.wuensche.filter((w) => w.name === 'Eigenmittel Eigenheim').reduce((x, w) => x + (w.betrag ?? 0), 0);
+    const wirksam = plan.eintraege.filter((e) => e.rechnet && e.abfluss !== 0);
+    const ab = wirksam.reduce((x, e) => x + Math.max(0, e.abfluss), 0), zu = wirksam.reduce((x, e) => x + Math.max(0, -e.abfluss), 0);
     $('lpKpis').innerHTML = [
       kpi('Mit allen Zielen', pille(st), reichweite(R)),
       kpi('Nur Pensionierung', nur && !nur.leer ? pille(nur.amp.st as Ampel) : '–', nur && !nur.leer ? reichweite(nur) : ''),
       kpi('Tragbare Ausgaben pro Monat', chf(R.maxA), `geplant ${chf(plan.S.ausgabenRuhestand)}${nur && !nur.leer ? ` · ohne Ziele tragbar ${chf(nur.maxA)}` : ''}`),
-      kpi('Ziele in der Rechnung', chf(summe), `${mitrechnend.length} ${mitrechnend.length === 1 ? 'Eintrag' : 'Einträge'} aus Zielen und Eigenheim`),
+      kpi('Ziele in der Rechnung', chf(ab), `Abflüsse aus Zielen und Eigenmitteln${zu > 0 ? ` · Zuflüsse ${chf(zu)}` : ''}`),
     ].join('');
     const vorgemerkt = plan.eintraege.filter((e) => !e.rechnet).length;
     $('lpUrteilText').textContent = (nur && !nur.leer && nur.amp.st !== st

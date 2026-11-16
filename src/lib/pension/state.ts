@@ -45,6 +45,8 @@ export const VAR_FELDER: Record<string, string[]> = {
 export const PERSON_KARTEN = ['aufhoeren', 'teil', 'weiter', 'rentekapital', 'ahv'];
 export const LG_KARTEN = ['verkauf', 'amort'];
 /** Höchstzahl der Zeilen je Liste; eine Quelle für Prüfung (sanitize), Karten und Meldungen. */
+/** bbz360 (ADR-19): Höchstzahl der Zuflüsse. */
+export const MAX_ZUFLUESSE = 20;
 export const MAX_WUENSCHE = 20, MAX_THEMEN = 30, MAX_EINKOMMEN = 20, MAX_AMORT = 30;
 // Merkerkarten rechnen nicht mit und kennen nur den Zustand «vorgemerkt»
 const MERKER_KARTEN = ['erbschaft', 'abklaeren'];
@@ -188,6 +190,10 @@ function cleanLg(l: Roh): Liegenschaft {
     verkehrswert: num(l.verkehrswert, 'verkehrswert', 0), hypothek: num(l.hypothek, 'hypothek', 0), zins: num(l.zins, 'zins', 0),
     unterhalt: num(l.unterhalt, 'unterhalt', typ === 'eigen' ? 0.5 : 1), nebenkosten: num(l.nebenkosten, 'nebenkosten', 400),
     mietertrag: num(l.mietertrag, 'mietertrag', 0), verkaufAlter: num(l.verkaufAlter, 'verkaufAlter', 0),
+    // bbz360 (ADR-19): Kauf in der Zukunft; die Felder gibt es nur, wenn sie gesetzt sind (sonst bleibt der Stand wie im PensCheck)
+    ...(num(l.kaufAlter, 'verkaufAlter', 0) > 0 ? { kaufAlter: num(l.kaufAlter, 'verkaufAlter', 0) } : {}),
+    ...(num(l.kaufFremd, 'betrag', 0) > 0 ? { kaufFremd: num(l.kaufFremd, 'betrag', 0) } : {}),
+    ...(num(l.kaufMieteWeg, 'nebenkosten', 0) > 0 ? { kaufMieteWeg: num(l.kaufMieteWeg, 'nebenkosten', 0) } : {}),
   };
 }
 function cleanWunsch(w: Roh): Wunsch | null {
@@ -301,6 +307,9 @@ export function sanitize(input: unknown): PensState {
     ...(x.art !== 'nebenerwerb' ? {} : x.abPens === true ? { abPens: true } : x.tkey === 'neben' || x.tkey === 'weiter' ? { abPens: x.abPens !== false } : {}),
   }));
   s.wuensche = list(o.wuensche, MAX_WUENSCHE).map(cleanWunsch).filter(Boolean) as Wunsch[];
+  // bbz360 (ADR-19): Zuflüsse; der Schlüssel fehlt, solange keine erfasst sind (Stand bleibt wie im PensCheck)
+  const zf = list(o.zufluesse, MAX_ZUFLUESSE).map((z) => ({ name: text(z.name), betrag: num(z.betrag, 'betrag', 0), jahr: num(z.jahr, 'jahr', 0) })).filter((z) => z.betrag > 0 && z.jahr > 0);
+  if (zf.length) s.zufluesse = zf;
   // Feld- und Merkerkarten gibt es je Ziel nur einmal (die erste bleibt); Wunschkarten dürfen mehrfach vorkommen.
   // Der erste gültige Vergleich bleibt; spätere fallen zurück bzw. weg (cleanThema).
   const gesehen = new Set<string>();

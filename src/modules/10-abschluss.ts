@@ -24,9 +24,17 @@ import { mountNav } from '../lib/nav';
 import { tragbarkeit } from '../lib/finance';
 import { fmt, parseNum, fmtDate } from '../lib/format';
 import { imageUrl, setImageOverride } from '../lib/images';
+import grundlagen from '../../public/data/params.json';
 import { sanitize } from '../lib/pension/state';
-import { pensionKurz } from '../lib/pension/kurz';
+import { kurzAus } from '../lib/pension/kurz';
 import type { PensionKurz } from '../lib/pension/kurz';
+import { monthOf } from '../lib/pension/engine';
+import { rechenEingaben } from '../lib/pension/themen';
+import type { Gesamtauswertung } from '../lib/pension/auswertung';
+import { lebensplan } from '../lib/lebensplan';
+import type { PlanEintrag } from '../lib/lebensplan';
+import { stammdatenNachfuehren } from '../lib/haushalt';
+import type { SessionData } from '../lib/schema';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 const esc = (s: unknown): string => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -74,7 +82,7 @@ function gather(): {
   fin: ReturnType<typeof tragbarkeit> & { price: number } | null;
   konk: Record<string, string> | null; produktwahl: { praeferenz?: string; auswahl?: string } | null;
   vereinb: Array<Record<string, unknown>>; ratings: number[];
-  pens: PensionKurz | null;
+  pens: PlanKurz | null;
 } {
   const traktanden = Array.isArray(D.agenda_traktanden) ? (D.agenda_traktanden as string[]) : [];
   const traktandenErledigt = Array.isArray(D.agenda_erledigt) ? (D.agenda_erledigt as unknown[]) : [];
@@ -118,22 +126,34 @@ function gather(): {
   const produktwahl = (D.anlage_produktwahl as { praeferenz?: string; auswahl?: string }) || null;
   const vereinb = Array.isArray(D.vereinbarungen) ? (D.vereinbarungen as Array<Record<string, unknown>>) : [];
   const ratings = Array.isArray(D.fb_ratings) ? (D.fb_ratings as number[]) : [];
-  return { traktanden, traktandenErledigt, erwartungen, kpis, items, fin, konk, produktwahl, vereinb, ratings, pens: pensKurz() };
+  return { traktanden, traktandenErledigt, erwartungen, kpis, items, fin, konk, produktwahl, vereinb, ratings, pens: pensStand };
 }
 
-// 07c: Kurzfassung der Pensionierung aus dem gemeinsamen Haushalts-Stand (ADR-16).
-// Die Rechnung dauert spuerbar (rund eine Sekunde) — pro Stand nur einmal rechnen.
-let pensCache: { key: string; wert: PensionKurz | null } | null = null;
-function pensKurz(): PensionKurz | null {
-  if (!D.haushalt) return null;
-  const key = JSON.stringify(D.haushalt);
-  if (pensCache?.key === key) return pensCache.wert;
-  let wert: PensionKurz | null = null;
-  try { wert = pensionKurz(sanitize(D.haushalt)); } catch (e) { console.error(e); }
-  pensCache = { key, wert };
-  return wert;
+// 07 / 07c: Urteil des Lebensplans (mit allen Zielen) und der Pensionierung allein, aus dem gemeinsamen
+// Haushalts-Stand (ADR-16, ADR-18). Gerechnet wird im Worker der Pensionierung; bis das Ergebnis da ist,
+// fehlt der Abschnitt, danach wird die Zusammenfassung neu gezeichnet.
+interface PlanKurz { plan: PensionKurz; nur: PensionKurz | null; eintraege: PlanEintrag[] }
+let pensStand: PlanKurz | null = null;
+function rechnePlan(): void {
+  if (!D.haushalt) return;
+  const session = D as unknown as SessionData;
+  const H = stammdatenNachfuehren(sanitize(D.haushalt), session).H;
+  const A0 = monthOf();
+  const plan = lebensplan(session, H, Math.floor(A0 / 12));
+  const worker = new Worker(new URL('../pension-ui/worker.ts', import.meta.url), { type: 'module' });
+  worker.onmessage = (ev: MessageEvent<{ R?: Gesamtauswertung; error?: string }>) => {
+    worker.terminate();
+    if (ev.data.error || !ev.data.R) { console.error(ev.data.error); return; }
+    const k = kurzAus(ev.data.R, plan.S);
+    if (!k) return;
+    pensStand = { plan: k, nur: kurzAus(ev.data.R.varianten[0], H), eintraege: plan.eintraege };
+    renderSummary();
+  };
+  worker.onerror = (e) => console.error(e);
+  worker.postMessage({ id: 1, S: rechenEingaben(plan.S), params: grundlagen, A0, stopA: undefined, varianten: [rechenEingaben(H)] });
 }
 const pensAlterTxt = (p: PensionKurz): string => p.pensAlter.join(' / ');
+const ampelKl = (p: PensionKurz | null): string => (p?.st === 'rot' ? 'crit' : p?.st === 'gelb' ? 'warn' : '');
 
 // ── Bühnen-Zusammenfassung ───────────────────────────────────────────────────
 const TYP_LABEL: Record<string, string> = { ziel: 'Ziel', wunsch: 'Wunsch', zufluss: 'Geldzufluss' };
@@ -163,11 +183,12 @@ function renderSummary(): void {
         <div class="ab-kpi"><span class="ab-kl">Finale Strategie</span><span class="ab-kv">${esc(g.konk.finaleStrategie)}</span></div>
         ${g.produktwahl?.auswahl ? `<div class="ab-kpi"><span class="ab-kl">Produktwahl</span><span class="ab-kv">${esc(produktLabel[g.produktwahl.auswahl] ?? g.produktwahl.auswahl)}</span></div>` : ''}
       </div></div>` : ''}
-    ${g.pens ? `<div class="ab-sec"><div class="ab-sech">07c · PENSIONIERUNG</div>
+    ${g.pens ? `<div class="ab-sec"><div class="ab-sech">07 · LEBENSPLAN &amp; PENSIONIERUNG</div>
       <div class="ab-kpis">
-        <div class="ab-kpi"><span class="ab-kl">Urteil</span><span class="ab-kv">${esc(g.pens.wort)}</span></div>
-        <div class="ab-kpi"><span class="ab-kl">Pensionierung mit</span><span class="ab-kv">${esc(pensAlterTxt(g.pens))}</span></div>
-        <div class="ab-kpi"><span class="ab-kl">Tragbare Ausgaben / Mt.</span><span class="ab-kv">${CHF(g.pens.tragbar)}</span></div>
+        <div class="ab-kpi"><span class="ab-kl">Urteil mit allen Zielen</span><span class="ab-kv">${esc(g.pens.plan.wort)}</span></div>
+        <div class="ab-kpi"><span class="ab-kl">Nur Pensionierung</span><span class="ab-kv">${esc(g.pens.nur?.wort ?? '–')}</span></div>
+        <div class="ab-kpi"><span class="ab-kl">Pensionierung mit</span><span class="ab-kv">${esc(pensAlterTxt(g.pens.plan))}</span></div>
+        <div class="ab-kpi"><span class="ab-kl">Tragbare Ausgaben / Mt.</span><span class="ab-kv">${CHF(g.pens.plan.tragbar)}</span></div>
       </div></div>` : ''}
     <div class="ab-sec"><div class="ab-sech">08 · VEREINBARUNGEN <small>${g.vereinb.length}</small></div>
       ${g.vereinb.length ? g.vereinb.map((v) => `<div class="ab-vrow"><span class="ab-vcheck">✓</span><span>${esc(v.text || v.sparte || '–')}${v.stepWer ? ` <small>· ${esc(v.stepWer)}</small>` : ''}${v.stepWann ? ` <small>· ${esc(v.stepWann)}</small>` : ''}</span></div>`).join('') : '<div class="ab-empty">Keine Vereinbarungen erfasst.</div>'}
@@ -258,16 +279,18 @@ function buildReport(): string {
   }
 
   if (printBranches.includes('07c')) {
-    html += section('7c', 'Pensionierung', 'Standortbestimmung',
-      g.pens
+    const p = g.pens;
+    html += section('07', 'Lebensplan & Pensionierung', 'Standortbestimmung',
+      p
         ? `<div class="rp-kpis rp-kpis4">
-            <div class="rp-kpi"><span>Urteil</span><b class="${g.pens.st === 'rot' ? 'crit' : g.pens.st === 'gelb' ? 'warn' : ''}">${esc(g.pens.wort)}</b></div>
-            <div class="rp-kpi"><span>Pensionierung mit</span><b>${esc(pensAlterTxt(g.pens))}</b></div>
-            <div class="rp-kpi"><span>Ausgaben geplant / Mt.</span><b>${CHF(g.pens.ausgaben)}</b></div>
-            <div class="rp-kpi"><span>Ausgaben tragbar / Mt.</span><b>${CHF(g.pens.tragbar)}</b></div>
+            <div class="rp-kpi"><span>Urteil mit allen Zielen</span><b class="${ampelKl(p.plan)}">${esc(p.plan.wort)}</b></div>
+            <div class="rp-kpi"><span>Nur Pensionierung</span><b class="${ampelKl(p.nur)}">${esc(p.nur?.wort ?? '–')}</b></div>
+            <div class="rp-kpi"><span>Ausgaben geplant / Mt.</span><b>${CHF(p.plan.ausgaben)}</b></div>
+            <div class="rp-kpi"><span>Ausgaben tragbar / Mt.</span><b>${CHF(p.plan.tragbar)}</b></div>
           </div>
-          <p class="rp-reason">${g.pens.aufgebraucht != null ? `Das freie Vermögen ist mit ${g.pens.aufgebraucht} aufgebraucht (Planungshorizont ${g.pens.horizont}).` : `Das freie Vermögen reicht bis zum Planungshorizont ${g.pens.horizont}.`} Erste Einschätzung nach PensCheck; sie ersetzt keine Pensionierungsplanung.</p>
-          ${g.pens.schritte.map((a) => `<div class="rp-vrow"><span class="rp-vcheck">→</span><div><b>${esc(a.titel)}</b><div class="rp-vwho">${esc([a.when, a.stelle].filter(Boolean).join(' · '))}</div></div></div>`).join('')}`
+          <p class="rp-reason">${p.plan.aufgebraucht != null ? `Mit allen Zielen ist das freie Vermögen mit ${p.plan.aufgebraucht} aufgebraucht (Planungshorizont ${p.plan.horizont}).` : `Mit allen Zielen reicht das freie Vermögen bis zum Planungshorizont ${p.plan.horizont}.`} Pensionierung mit ${esc(pensAlterTxt(p.plan))}. Erste Einschätzung nach PensCheck; sie ersetzt keine Finanzplanung.</p>
+          ${p.eintraege.filter((e) => e.quelle !== '07c').map((e) => `<div class="rp-vrow"><span class="rp-vcheck">${e.rechnet ? '✓' : '?'}</span><div><b>${esc(e.name)}${e.jahr ? ` · ${e.jahr}` : ''}${e.betrag ? ` · ${CHF(e.betrag)}` : ''}</b><div class="rp-vwho">${e.rechnet ? 'In der Rechnung' : 'Vorgemerkt, nicht gerechnet'}</div></div></div>`).join('')}
+          ${(p.nur ?? p.plan).schritte.map((a) => `<div class="rp-vrow"><span class="rp-vcheck">→</span><div><b>${esc(a.titel)}</b><div class="rp-vwho">${esc([a.when, a.stelle].filter(Boolean).join(' · '))}</div></div></div>`).join('')}`
         : '<div class="rp-empty">Keine Angaben zur Pensionierung erfasst.</div>');
   }
 
@@ -330,6 +353,7 @@ function init(): void {
   if (!activeBranches.includes('07c')) (scope.querySelector('[value="pension"]') as HTMLOptionElement).disabled = true;
   initUI();
   renderSummary();
+  rechnePlan();
   wireSummaryScroll();
 }
 
