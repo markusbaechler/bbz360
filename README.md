@@ -42,6 +42,11 @@ npm run build        # Produktion nach dist/
 - **Rechenkern** `src/lib/finance.ts`: Tragbarkeit (07a), Simulation und
   Empfehlung (07b) — verbatim aus v1 portiert, Unit-Tests gegen die
   eingefrorenen Referenzwerte in `FIXTURES.md`.
+- **Pensionierungs-Rechenkern** `src/lib/pension/`: TypeScript-Port des
+  PensCheck (monatsgenau: AHV, PK, 3a, Freizügigkeit, Liegenschaften,
+  Steuern), geprüfte Grundlagen in `public/data/params.json`. Gemeinsamer
+  Haushalts-Stand `haushalt` über `src/lib/haushalt.ts` (ADR-16, Zielbild in
+  `docs/ZIELBILD-FUSION.md`). Noch ohne Oberfläche — Modul folgt in Phase 2.
 - **Design**: `src/styles/theme.css` ist Single Source of Truth;
   verbindliche Regeln in `design/DESIGN-SPEC.md` (Bühnen-Grammatik,
   6 Regeln, Inventar-Pflicht §5 inkl. Vereinfachungs-Verbot §5.4).
