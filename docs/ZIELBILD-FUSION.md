@@ -1,6 +1,6 @@
 # Zielbild: Fusion PensCheck → bbz360
 
-Stand: 2026-11-16 · Status: **zur Freigabe** · Grundlage: Interview mit dem Auftraggeber (drei Fragerunden)
+Stand: 2026-11-16 · Status: **Phasen 1–4 umgesetzt**, Review durch den Auftraggeber nach Phase 5 · Grundlage: Interview mit dem Auftraggeber (drei Fragerunden)
 
 ## 1. Ziel
 
@@ -25,6 +25,27 @@ Kundendatenmodell** und zeigen sich in **einem durchgängigen Lebensplan**.
 | E10 | Reihenfolge | Kern → Pensionierung → Rest (siehe Phasenplan) |
 | E11 | Leitplanken | Nur lokal, kein Backend · bestehende v1/v2-Sessions migrieren verlustfrei · offline-fähig als PWA · PensCheck-Stand (Link/Datei) importierbar |
 | E12 | Lieferform | **Phasen mit Review**: je Phase ein prüfbarer Stand auf `claude/loving-albattani-efae2x`; kein Merge auf `main` ohne Freigabe |
+
+### Nachträge aus dem Interview vor Phase 4
+
+| # | Thema | Entscheid |
+|---|---|---|
+| E13 | Datenfluss | **Haushalt führt**: Cockpit 05 liest und schreibt die geteilten Felder direkt im Haushalts-Stand |
+| E14 | Lohn | Cockpit erfasst **Bruttolohn pro Jahr und Geschlecht** je Person; Netto bleibt für den Cashflow |
+| E15 | Budget | **Eigenes Modul 05b** mit dem Budget-Assistenten des PensCheck |
+| E16 | Vorgehen | Weiterbauen bis und mit Phase 5; die Fachmodule Steuern, Absicherung, Nachlass (Phasen 6–8) erst nach Review |
+
+### Stand der Umsetzung
+
+| Phase | Stand |
+|---|---|
+| 1 Datenmodell + Rechenkern | umgesetzt (ADR-16) |
+| 2 Modul 07c Pensionierung | umgesetzt (ADR-16, Nachtrag) |
+| 3 Themenkarten, «So oder so», Import | umgesetzt |
+| 4 Budget 05b, Cockpit auf gemeinsamen Daten | umgesetzt (ADR-17) |
+| 5 Lebensplan | offen |
+| 6–8 Steuern, Absicherung, Nachlass | offen, nach Review |
+| 9 Look, Bericht, PWA | offen (PDF-Bericht der Pensionierung ist mit Phase 2 bereits da) |
 
 ## 3. Nicht-Ziele
 

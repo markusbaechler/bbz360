@@ -25,6 +25,7 @@ const MODULES: Record<'einstieg' | 'kundenbild' | 'abschluss', Mod[]> = {
   ],
   kundenbild: [
     { id: 'm05', num: '05', name: 'Finanzcockpit', desc: 'Vermögen, Einkommen, Verpflichtungen', file: 'modules/05-cockpit.html', toggleable: false },
+    { id: 'm05b', num: '05b', name: 'Budget & Liquidität', desc: 'Ausgaben, Sparquote, Reserve', file: 'modules/05b-budget.html', toggleable: true },
     { id: 'm06', num: '06', name: 'Ziele & Wünsche', desc: 'Zeitachse & Lebensplanung', file: 'modules/06-ziele.html', toggleable: false },
   ],
   abschluss: [

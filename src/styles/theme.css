@@ -77,6 +77,9 @@ a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 /* 12 Tabs seit 07c (ADR-16): Abstaende enger, Beschriftung bleibt. */
 .bbz-nav-tab{color:rgba(255,255,255,.5);font-size:var(--fs-nav);padding:6px 8px;white-space:nowrap;text-decoration:none;border-radius:var(--r-sm)}
 .bbz-nav-tab.active{background:rgba(255,255,255,.16);color:#fff;font-weight:var(--w-bold)}
+/* Unter-Module (05b, 07a–07c …): inaktiv nur die Nummer, sonst laeuft die Topbar ueber (13+ Reiter). */
+.bbz-nav-tab.sub:not(.active) .bbz-nav-lbl{display:none}
+
 .bbz-edit-toggle{color:rgba(255,255,255,.8);font-size:var(--fs-nav);background:none;border:none;cursor:pointer;font-family:var(--font);flex-shrink:0}
 /* Schmale Praesentationsgeraete: 11 Tabs passten bei 1280px nicht, die letzten
    Module waren nur per horizontalem Scrollen erreichbar. Engere Abstaende

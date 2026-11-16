@@ -247,3 +247,47 @@ prüfen, wandern mit dem jeweiligen UI-Teil in späteren Phasen nach.
   `tests/unit/pension/` (happy-dom). Angepasst bzw. weggelassen sind nur
   Prüfungen, die die öffentliche App betreffen (Datenschutztext, Link-Teilen,
   README, Prüf-Workflow); jede Stelle ist mit «bbz360:» kommentiert.
+
+---
+
+## ADR-17 — Haushalt führt: Cockpit 05 und Budget 05b auf dem gemeinsamen Stand
+
+**Kontext.** Nach ADR-16 übernahm die Pensionierung Lohn, Vermögen und Vorsorge
+nur einmalig aus dem Cockpit; danach konnten zwei Stände auseinanderlaufen.
+Entscheid des Auftraggebers (Interview, Phase 4): **Haushalt führt**, das
+Cockpit erfasst **Bruttolohn**, das Budget wird ein **eigenes Modul 05b**.
+
+**Entscheid.**
+- Die geteilten Grössen stehen nur im Haushalts-Stand: Liquidität,
+  Wertschriften, Säule 3a, PK-Guthaben, Bruttolohn und Geschlecht je Person,
+  Ausgaben heute. Das Cockpit liest sie beim Öffnen (`ausHaushalt`) und
+  schreibt sie beim Übernehmen eines Modals (`inHaushalt`,
+  `lib/haushalt.ts: gemeinsamAusHaushalt / gemeinsamInHaushalt`).
+- Details ohne Gegenstück bleiben in `cockpit_data` (Bank, Anzahl Konten,
+  Kanäle, Kommentare, Aufteilung Zahlungsverkehr/Sparen). Ändert die
+  Pensionierung die Liquidität, trägt das Sparen die Differenz; ändert das
+  Cockpit die Summe von 3a oder PK, geht die Differenz an Person 1.
+- **Abweichung vom v1-Feldinventar (ADR-12):** Im Modal «Ausgaben & Einkommen»
+  ersetzt je Person ein Feld Bruttolohn pro Jahr plus Geschlecht den
+  Umschalter netto/brutto. `f-eMann`/`f-eFrau` bleiben als Nettoeinkommen für
+  den Cashflow. Ältere Stände mit Typ «brutto» werden beim Öffnen in die
+  Bruttofelder verschoben. `cockpit_einkommen` (Prefill 07a) ist neu die Summe
+  der Bruttolöhne.
+- **Stammdaten:** Geänderte Namen und Geburtsdaten werden im Haushalts-Stand
+  nachgeführt (`stammdatenNachfuehren`, Merker `haushalt_stamm`); eine
+  Anpassung in der Pensionierung bleibt stehen, solange die Stammdaten
+  unverändert sind.
+- **05b Budget & Liquidität** (`modules/05b-budget.html`, `lib/budget.ts`):
+  Budget im Ruhestand mit den acht Positionen und Musterbudgets des PensCheck,
+  Ausgaben heute, Sparbetrag, Reserve. Im bbz Brand System wie 07c.
+- **Navigation:** 13 Reiter. Unter-Module (05b, 07a–07c) zeigen inaktiv nur
+  ihre Nummer; die Bezeichnung steht im Tooltip und im `aria-label`.
+
+**Annahmen (sichtbar im Modul 05b unter «So ist gerechnet»).**
+- Nettoeinkommen ohne Cockpit-Angabe: Bruttolohn abzüglich Sozialabgaben und
+  pauschaler Einkommenssteuer (wie im Rechenkern).
+- Reserve: Faustregel drei bis sechs Monatsausgaben — Richtwert, keine Quelle.
+
+**Nicht abgeglichen.** Die Finanzierung im Cockpit (Betrag, Kreditform) und die
+Liegenschaften der Pensionierung (Verkehrswert, Hypothek) sind noch getrennt;
+das gehört zum Lebensplan (Phase 5) bzw. zu 07a.

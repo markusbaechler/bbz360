@@ -18,6 +18,7 @@ export default defineConfig({
         '03-berater': 'modules/03-berater.html',
         '04-philosophie': 'modules/04-philosophie.html',
         '05-cockpit': 'modules/05-cockpit.html',
+        '05b-budget': 'modules/05b-budget.html',
         '06-ziele': 'modules/06-ziele.html',
         '07a-finanzieren': 'modules/07a-finanzieren.html',
         '07b-anlegen': 'modules/07b-anlegen.html',

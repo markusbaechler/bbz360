@@ -10,7 +10,7 @@ test('01 Agenda — Smoke', async ({ page }) => {
 
   await page.goto('modules/01-agenda.html');
   await expect(page.locator('.rail-title')).toBeVisible();
-  await expect(page.locator('#bbzNav .bbz-nav-tab')).toHaveCount(12);
+  await expect(page.locator('#bbzNav .bbz-nav-tab')).toHaveCount(13);
   await expect(page.locator('#bbzNav .bbz-nav-tab.active')).toContainText('Agenda');
 
   const rows = page.locator('#trakList .ag-tr');

@@ -19,6 +19,7 @@ export const MODULES: NavModule[] = [
   { id: '03', label: 'Berater:in', file: '03-berater.html' },
   { id: '04', label: 'Philosophie', file: '04-philosophie.html' },
   { id: '05', label: 'Cockpit', file: '05-cockpit.html' },
+  { id: '05b', label: 'Budget', file: '05b-budget.html', sub: true },
   { id: '06', label: 'Ziele', file: '06-ziele.html' },
   { id: '07a', label: 'Finanzieren', file: '07a-finanzieren.html', sub: true },
   { id: '07b', label: 'Anlegen', file: '07b-anlegen.html', sub: true },
@@ -55,7 +56,14 @@ export function buildNav(opts: NavOptions): HTMLElement {
     num.className = 'bbz-nav-num';
     num.textContent = m.id;
     a.appendChild(num);
-    a.appendChild(document.createTextNode(' ' + m.label));  // Abstand Nummer↔Label
+    // Label als eigenes Element: Unter-Module (sub) zeigen es nur, wenn sie aktiv sind (theme.css) —
+    // seit 05b/07c traegt die Topbar 13 Reiter. Die Bezeichnung bleibt als Tooltip und fuer Screenreader.
+    const lbl = document.createElement('span');
+    lbl.className = 'bbz-nav-lbl';
+    lbl.textContent = '\u00a0' + m.label;  // Abstand Nummer↔Label
+    a.appendChild(lbl);
+    a.title = m.label;
+    a.setAttribute('aria-label', `${m.id} ${m.label}`);
     nav.appendChild(a);
   }
   return nav;

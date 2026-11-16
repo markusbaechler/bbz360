@@ -52,7 +52,7 @@ export const INDEX_PARITY = {
   counts: {
     '.ix-bopt': { min: 2 },            // MEHRERE Berater (Picker)
     '#gridEinstieg .ix-mod': { eq: 4 },   // 01–04
-    '#gridKundenbild .ix-mod': { eq: 2 }, // 05–06 (= "Kundenbild"-Abschnitt)
+    '#gridKundenbild .ix-mod': { eq: 3 }, // 05–06 aus v1 + 05b Budget (ADR-17)
     '#gridVertiefung .ix-mod': { eq: 3 }, // 07a/07b aus v1 + 07c Pensionierung (ADR-16)
     '#gridAbschluss .ix-mod': { eq: 3 },  // 08–10
   },

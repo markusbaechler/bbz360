@@ -1,0 +1,30 @@
+/* 05b Budget & Liquiditaet — bbz Brand System (wie 07c; Topbar aus 07c-pension.css). */
+.bu-hero { padding: var(--bbz-space-32) var(--bbz-space-32) var(--bbz-space-24); margin-bottom: var(--bbz-space-24); }
+.bu-hero .bu-kicker { color: var(--on-deep); opacity: .75; margin-bottom: var(--bbz-space-8); }
+.bu-hero .lead { margin-top: var(--bbz-space-8); }
+.bu-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--bbz-space-32); align-items: start; }
+.bu-rechts { display: flex; flex-direction: column; gap: var(--bbz-space-24); }
+.bu-panel { padding: var(--bbz-space-24); display: flex; flex-direction: column; gap: var(--bbz-space-16); }
+.bu-panel h2 { margin: 0; }
+.bu-muster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--bbz-space-8); }
+.bu-muster #buMuster { display: flex; flex-wrap: wrap; gap: var(--bbz-space-8); }
+.bu-pos { display: flex; flex-direction: column; }
+.bu-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: var(--bbz-space-16); align-items: center; padding: var(--bbz-space-8) 0; border-bottom: 1px solid var(--line-soft); }
+.bu-row label { font-weight: var(--bbz-weight-emphasis); color: var(--ink); }
+.bu-row small { display: block; font-weight: 400; color: var(--muted); font-size: var(--bbz-size-small); }
+.bu-row output { text-align: right; font-variant-numeric: tabular-nums; padding-right: 12px; color: var(--ink); }
+.bu-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: var(--bbz-space-8); font-size: var(--bbz-size-lead); }
+.bu-total b { font-size: var(--bbz-size-h4); font-variant-numeric: tabular-nums; color: var(--bbz-text-figure); }
+.bu-aktiv { display: flex; align-items: center; gap: var(--bbz-space-8); font-weight: var(--bbz-weight-emphasis); color: var(--ink); cursor: pointer; }
+.bu-aktiv input { width: 20px; height: 20px; accent-color: var(--accent); }
+.bu-aktiv:has(input:disabled) { color: var(--muted); cursor: default; }
+.bu-feld { display: flex; flex-direction: column; gap: var(--bbz-space-8); }
+.bu-feld label { font-weight: var(--bbz-weight-emphasis); color: var(--ink); }
+.bu-feld input { max-width: 220px; }
+.bu-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bu-kpis .kpi[data-st="gut"] .v { color: var(--good); }
+.bu-kpis .kpi[data-st="knapp"] .v { color: var(--warn); }
+.bu-kpis .kpi[data-st="schlecht"] .v { color: var(--bad); }
+.bu-annahmen ul { margin: 0; padding-left: 1.2em; color: var(--ink-2); font-size: var(--bbz-size-small); display: flex; flex-direction: column; gap: 6px; }
+.bu-weiter { display: flex; justify-content: space-between; gap: var(--bbz-space-16); margin: var(--bbz-space-32) 0 var(--bbz-space-48); }
+@media (max-width: 900px) { .bu-layout { grid-template-columns: minmax(0, 1fr); } }

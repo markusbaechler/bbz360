@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // Ohne ihn kommt man aus einer laufenden Beratung nicht zurück ins
 // Beratercockpit. Fix: bbz-Logo = Home-Link (../index.html) in ALLEN Modulen.
 const MODULES = [
-  '01-agenda', '02-bank', '03-berater', '04-philosophie', '05-cockpit',
+  '01-agenda', '02-bank', '03-berater', '04-philosophie', '05-cockpit', '05b-budget',
   '06-ziele', '07a-finanzieren', '07b-anlegen', '07c-pension', '08-vereinbarungen',
   '09-feedback', '10-abschluss',
 ];
