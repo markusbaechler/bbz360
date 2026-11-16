@@ -22,6 +22,7 @@ export const MODULES: NavModule[] = [
   { id: '06', label: 'Ziele', file: '06-ziele.html' },
   { id: '07a', label: 'Finanzieren', file: '07a-finanzieren.html', sub: true },
   { id: '07b', label: 'Anlegen', file: '07b-anlegen.html', sub: true },
+  { id: '07c', label: 'Pension', file: '07c-pension.html', sub: true },
   { id: '08', label: 'Vereinbarungen', file: '08-vereinbarungen.html' },
   { id: '09', label: 'Feedback', file: '09-feedback.html' },
   { id: '10', label: 'Abschluss', file: '10-abschluss.html' },

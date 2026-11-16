@@ -6,6 +6,7 @@ import { defineConfig } from 'vite';
 // Modul-Entries werden pro portiertem Modul ergaenzt (Brief Schritt 3).
 export default defineConfig({
   base: '/bbz360/',
+  worker: { format: 'es' },
   build: {
     target: 'es2022',
     rollupOptions: {
@@ -20,6 +21,7 @@ export default defineConfig({
         '06-ziele': 'modules/06-ziele.html',
         '07a-finanzieren': 'modules/07a-finanzieren.html',
         '07b-anlegen': 'modules/07b-anlegen.html',
+        '07c-pension': 'modules/07c-pension.html',
         '08-vereinbarungen': 'modules/08-vereinbarungen.html',
         '09-feedback': 'modules/09-feedback.html',
         '10-abschluss': 'modules/10-abschluss.html',

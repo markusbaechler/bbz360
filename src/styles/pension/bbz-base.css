@@ -1,0 +1,429 @@
+/*
+ * bbz Brand System – Basis
+ * Version 0.110.0-rc.2 · Stand 2026-10-17
+ *
+ * GENERIERT aus adapters/_shared/css/ – nicht von Hand editieren.
+ * Enthält den vollständigen :root-Block mit allen Tokens, damit die
+ * Datei allein funktioniert. dist/tokens/tokens.css ist die
+ * Autorenfassung mit var()-Verweisen, diese hier die Auslieferung.
+ */
+
+:root {
+  --bbz-color-blue-50: #F0F5F9;
+  --bbz-color-blue-100: #D9E6F2;
+  --bbz-color-blue-200: #B0CEE8;
+  --bbz-color-blue-300: #64A2D8;
+  --bbz-color-blue-400: #2278C3;  /* Nicht für Fliesstext. 4.6:1 auf Weiss. */
+  --bbz-color-blue-500: #085191;
+  --bbz-color-blue-600: #004078;  /* Markenfarbe. Aus Logo-Master verifiziert. 10.5:1 auf Weiss. */
+  --bbz-color-blue-700: #003666;  /* Hover-Stufe zu blue.600. */
+  --bbz-color-blue-800: #00315C;
+  --bbz-color-blue-900: #00213D;  /* Tiefster Markenblauton. Grossflächige Hero- und Fussbereiche. 16.34:1 auf Weiss. */
+  --bbz-color-red-50: #FBF4F4;
+  --bbz-color-red-100: #F6E4E5;
+  --bbz-color-red-400: #BE373C;
+  --bbz-color-red-500: #932528;
+  --bbz-color-red-600: #7A1C1F;
+  --bbz-color-red-700: #5B1517;
+  --bbz-color-green-100: #DFF0E8;
+  --bbz-color-green-400: #2E9E68;
+  --bbz-color-green-500: #177A4C;
+  --bbz-color-green-600: #115F3B;
+  --bbz-color-green-700: #0C4429;
+  --bbz-color-beige-100: #F4F1EA;
+  --bbz-color-beige-200: #E9E3D7;
+  --bbz-color-beige-300: #D3C6AF;
+  --bbz-color-neutral-0: #FFFFFF;
+  --bbz-color-neutral-50: #F7F8FA;
+  --bbz-color-neutral-100: #EDEFF2;
+  --bbz-color-neutral-200: #D9DCE3;
+  --bbz-color-neutral-300: #BFC4CF;
+  --bbz-color-neutral-400: #959DAC;
+  --bbz-color-neutral-500: #6C7484;  /* 4.7:1 – grenzwertig. Für Text neutral.600 verwenden. */
+  --bbz-color-neutral-600: #535965;  /* Identisch mit dem Grau des Logo-Punkts. Ton 220 Grad. 7.0:1 auf Weiss. */
+  --bbz-color-neutral-700: #3C424E;
+  --bbz-color-neutral-800: #252932;
+  --bbz-color-neutral-900: #15181E;
+  --bbz-color-mono-1: #1F1F1F;  /* Graustufen-Ersatz. Abstand zu mono.2: 3.23:1. */
+  --bbz-color-mono-2: #6E6E6E;  /* Abstand zu mono.3: 3.08:1. */
+  --bbz-color-mono-3: #C9C9C9;  /* Letzte Stufe ohne Zusatzcodierung. */
+  --bbz-color-mono-4: #FFFFFF;  /* Nur 1.66:1 zu mono.3. Ausschliesslich mit 1px Kontur in mono.1 zulässig. */
+  --bbz-space-4: 4px;
+  --bbz-space-8: 8px;
+  --bbz-space-12: 12px;
+  --bbz-space-16: 16px;
+  --bbz-space-24: 24px;
+  --bbz-space-32: 32px;
+  --bbz-space-48: 48px;
+  --bbz-space-64: 64px;
+  --bbz-space-96: 96px;
+  --bbz-space-128: 128px;
+  --bbz-radius-0: 0px;
+  --bbz-radius-2: 2px;
+  --bbz-radius-4: 4px;
+  --bbz-radius-8: 8px;
+  --bbz-radius-24: 24px;  /* Grosse Flächen: Titelfolie, Panel über einem Bild. */
+  --bbz-radius-default: 8px;  /* Boxen: Karte, Hinweisblock, Fläche. */
+  --bbz-radius-control: 4px;  /* Bedienelemente: Schaltfläche, Eingabefeld, Etikett. */
+  --bbz-radius-panel: 24px;  /* Grosse Flächen: Titelfolie, Panel über einem Bild. 8px wirken dort zu knapp. */
+  --bbz-radius-none: 0px;  /* Ausdrücklich kantig, etwa bei randlosen Flächen. */
+  --bbz-opacity-70: 0.7;
+  --bbz-opacity-85: 0.85;
+  --bbz-opacity-100: 1;
+  --bbz-measure-33: 33rem;  /* Rund 74 Zeichen je Zeile. */
+  --bbz-measure-max: 33rem;  /* Obergrenze für zusammenhängenden Text: rund 74 Zeichen je Zeile, gemessen an der mittleren Zeichenbreite der eigenen Prosa. Gilt nicht für Boxen, Tabellenzellen und Beschriftungen. */
+  --bbz-breakpoint-480: 480px;
+  --bbz-breakpoint-768: 768px;
+  --bbz-breakpoint-1024: 1024px;
+  --bbz-breakpoint-1280: 1280px;
+  --bbz-breakpoint-1536: 1536px;
+  --bbz-logo-ratio-total-height: 5.237;
+  --bbz-logo-ratio-wordmark-width: 8;
+  --bbz-logo-ratio-rule-width: 0.084;
+  --bbz-logo-ratio-rule-gap: 1.16;
+  --bbz-logo-ratio-dot-diameter: 0.356;
+  --bbz-logo-clearspace: 1;  /* Schutzraum allseitig in x-Höhen. Formel: Logohöhe / 5.24. */
+  --bbz-logo-min-height-screen: 60px;
+  --bbz-logo-min-height-print: 15mm;
+  --bbz-logo-dot: #535965;  /* Punkt auf hellem Grund. Identisch mit dem Grau des Logo-Masters. */
+  --bbz-logo-dot-on-dark: #B0CEE8;  /* Punkt auf dunklem Grund – Negativvariante, Icon, Avatar. Weiss wäre hier nicht falsch, aber der Punkt verschwände in der Wortmarke; blue.200 hält ihn ablesbar, ohne ihn zu betonen. */
+  --bbz-font-family-heading: Space Grotesk;  /* Auszeichnungsschrift. Nur ab 20pt / 1.5rem. */
+  --bbz-font-family-substitute: Selawik;  /* Ersatz für Segoe UI überall dort, wo Segoe UI nicht verwendet werden darf: Web, Print, jede Weitergabe nach aussen. Metrisch kompatibel. */
+  --bbz-font-family-body: Segoe UI;  /* Grundschrift für Fliesstext, Tabellen und alle Zahlen. */
+  --bbz-font-size-100: 0.75rem;
+  --bbz-font-size-200: 0.875rem;
+  --bbz-font-size-300: 1rem;  /* Fliesstext. */
+  --bbz-font-size-400: 1.125rem;
+  --bbz-font-size-500: 1.25rem;  /* Grösste Stufe, die noch der Grundschrift gehört. */
+  --bbz-font-size-600: 1.5rem;  /* Schwelle. Ab hier ist die Auszeichnungsschrift zulässig. */
+  --bbz-font-size-700: 2rem;
+  --bbz-font-size-800: 2.5rem;
+  --bbz-font-size-900: 3.5rem;
+  --bbz-font-line-height-tight: 1.15;  /* Titel und mehrzeilige Auszeichnung. */
+  --bbz-font-line-height-default: 1.55;  /* Fliesstext. */
+  --bbz-font-line-height-loose: 1.7;
+  --bbz-font-weight-light: 300;
+  --bbz-font-weight-regular: 400;
+  --bbz-font-weight-bold: 700;  /* Höchstes verfügbares Gewicht. Kein Semibold – Selawik hat nur drei Schnitte. */
+  --bbz-text-default: #3C424E;  /* Fliesstext auf heller Fläche. */
+  --bbz-text-strong: #15181E;  /* Titel und Hervorhebungen auf heller Fläche. */
+  --bbz-text-muted: #535965;  /* Sekundärtext, Legenden, Bildunterschriften. */
+  --bbz-text-on-brand: #FFFFFF;  /* Text auf allen dunklen Flächen: surface.brand, surface.brand-deep, surface.accent-red. */
+  --bbz-text-on-accent-warm: #004078;  /* Text auf surface.accent-warm. */
+  --bbz-text-link: #085191;  /* Verweise im Fliesstext. Immer zusätzlich unterstrichen. */
+  --bbz-text-figure: #15181E;  /* Zahlen in Tabellen und Kennzahlen. Immer Body-Font, in einer Zahlenkolonne rechtsbündig. */
+  --bbz-surface-default: #FFFFFF;  /* Grundfläche. */
+  --bbz-surface-subtle: #F7F8FA;  /* Leicht abgesetzte Fläche, Tabellenzeilen. */
+  --bbz-surface-brand-subtle: #D9E6F2;  /* Hellblaue Fläche für Kästen und Tabellenköpfe in Word. Gemessen am «bbz Arbeitsblatt hoch» (DBE5F1) und auf die hellste Blaustufe der Skala gezogen. Helle Fläche — text.on-brand ist darauf unlesbar. */
+  --bbz-surface-brand: #004078;  /* Markenfläche. Text darauf ausschliesslich text.on-brand. */
+  --bbz-surface-brand-deep: #00213D;  /* Tiefe Markenfläche für Hero und Fussbereich. Text darauf ausschliesslich text.on-brand. */
+  --bbz-surface-accent-red: #7A1C1F;  /* Rote Markenfläche für prominente Titel: Titelfolien, Kapitelauftakte, Veranstaltungsköpfe. Dunkler Ton – Text darauf ausschliesslich text.on-brand. Nie als Statusfläche: dafür gibt es signal.negative. */
+  --bbz-surface-accent-warm: #E9E3D7;  /* Warme Ruhefläche. Helle Fläche – text.on-brand ist darauf unlesbar. */
+  --bbz-action-primary: #004078;  /* Ausschliesslich klickbare Primäraktionen. Nie dekorativ. */
+  --bbz-action-primary-hover: #003666;  /* Hover- und Aktivzustand zu action.primary. */
+  --bbz-border-default: #BFC4CF;  /* Trennlinien ohne Bedeutungsträger. Nicht als alleinige Statuskodierung. */
+  --bbz-border-accent: #004078;  /* Betonungslinie, Ersatz für Kursive. */
+  --bbz-focus-ring: #085191;  /* Fokusindikator. Mindestens 2px, nie entfernen. */
+  --bbz-accent-1: #004078;
+  --bbz-accent-2: #7A1C1F;
+  --bbz-accent-3: #115F3B;
+  --bbz-accent-4: #D3C6AF;
+  --bbz-chart-1: #00213D;
+  --bbz-chart-2: #BE373C;
+  --bbz-chart-3: #D3C6AF;
+  --bbz-chart-4: #64A2D8;
+  --bbz-chart-5: #2E9E68;
+  --bbz-chart-6: #535965;
+  --bbz-signal-positive: #115F3B;
+  --bbz-signal-warning: #8E5E0C;  /* Eigener Ton. 5.6:1 auf Weiss. Keine Entsprechung in den Primitivrampen. */
+  --bbz-signal-negative: #932528;
+  --bbz-signal-info: #085191;
+  --bbz-gap-tight: 8px;
+  --bbz-gap-default: 16px;
+  --bbz-gap-loose: 24px;
+  --bbz-block-default: 32px;
+  --bbz-section-default: 48px;
+  --bbz-section-loose: 96px;
+  --bbz-overlay-panel: 0.85;  /* Titelfläche über einem Foto. 85% Deckkraft, in PowerPoint also 15% Transparenz. */
+  --bbz-overlay-panel-min: 0.7;  /* Untergrenze. Darunter erreicht weisser Text über einem hellen Bildbereich keine 4.5:1 mehr. Der rechnerische Grenzwert liegt bei 67.6% Deckkraft; 70% ist der gerundete Wert mit Reserve. */
+  --bbz-typeface-heading: Space Grotesk;  /* Auszeichnung. Erst ab 20pt / 1.5rem einsetzen, darunter typeface.body. */
+  --bbz-typeface-body: Segoe UI;  /* Fliesstext, Listen, Tabellen, Bedienelemente. Auch alle Überschriften unter 20pt / 1.5rem. */
+  --bbz-typeface-figure: Segoe UI;  /* Zahlen, Beträge, Datumsangaben. Immer Body-Font, in einer Zahlenkolonne rechtsbündig. */
+  --bbz-size-caption: 0.75rem;
+  --bbz-size-small: 0.875rem;
+  --bbz-size-body: 1rem;
+  --bbz-size-lead: 1.125rem;
+  --bbz-size-h6: 1rem;  /* Grundschrift. Unterscheidet sich vom Fliesstext nur über das Gewicht. */
+  --bbz-size-h5: 1.125rem;  /* Grundschrift. */
+  --bbz-size-h4: 1.25rem;  /* Grundschrift – liegt unter der Schwelle von 1.5rem. */
+  --bbz-size-h3: 1.5rem;  /* Erste Stufe mit Auszeichnungsschrift. */
+  --bbz-size-h2: 2rem;
+  --bbz-size-h1: 2.5rem;
+  --bbz-size-display: 3.5rem;  /* Nur im Hero. */
+  --bbz-leading-tight: 1.15;
+  --bbz-leading-default: 1.55;
+  --bbz-leading-loose: 1.7;
+  --bbz-weight-light: 300;  /* Nur für sehr grosse Auszeichnungsgrade. */
+  --bbz-weight-default: 400;  /* Fliesstext. */
+  --bbz-weight-emphasis: 700;  /* Einziges Hervorhebungsmittel im Text. Kein Semibold, keine Kursive. */
+  --bbz-channel-office-font-primary: Segoe UI;  /* Segoe UI ist auf Windows-Office systemseitig vorhanden und wird nicht eingebettet. */
+  --bbz-channel-office-font-fallback: Selawik;  /* Pflicht, sobald die Datei das Haus verlässt oder auf macOS geöffnet wird. Metrisch kompatibel zu Segoe UI. */
+  --bbz-channel-office-logo-min-height: 60px;  /* Bildschirmwert gilt auch für PowerPoint und Word, solange nicht gedruckt wird. */
+  --bbz-channel-office-embed-fonts: false;  /* Segoe UI darf nicht eingebettet werden (license.redistribute = false). */
+  --bbz-channel-print-font-primary: Selawik;  /* Segoe UI darf nicht an Druckereien weitergegeben werden. Im Print gilt ausnahmslos Selawik. */
+  --bbz-channel-print-logo-min-height: 15mm;
+  --bbz-channel-print-colorspace: CMYK;  /* Ausgabefarbraum. Der Master der Marke bleibt sRGB; CMYK entsteht daraus durch eine einmalige, farbverwaltete Konvertierung. */
+  --bbz-channel-print-profile: PSO Coated v3 (FOGRA51);  /* Standardprofil für gestrichenes Papier im europäischen Offsetdruck. Ohne benanntes Profil ist eine CMYK-Angabe bedeutungslos: Dieselben vier Zahlen ergeben auf anderem Papier eine andere Farbe. */
+  --bbz-channel-print-profile-uncoated: PSO Uncoated v3 (FOGRA52);  /* Für ungestrichenes Papier. Die Farben fallen dort sichtbar stumpfer aus; das ist eine Eigenschaft des Papiers und kein Fehler, der sich durch höhere Werte beheben liesse. */
+  --bbz-channel-print-rendering-intent: relativ farbmetrisch mit Tiefenkompensierung;  /* Für Markenfarben und Flächen. Sie hält Farben im Gamut unverändert, statt das ganze Bild zu verschieben. Bilder werden perzeptiv gewandelt – ein Foto darf sich verschieben, eine Markenfläche nicht. */
+  --bbz-channel-print-ink-limit: 300;  /* Maximaler Gesamtfarbauftrag in Prozent, Summe aus C, M, Y und K. Grenze beider genannter Profile. Darüber trocknet die Farbe nicht durch und setzt auf dem nächsten Bogen ab. */
+  --bbz-channel-print-black-text: K100;  /* Fliesstext, Zahlen und feine Linien stehen ausschliesslich im Schwarzkanal. Vier Platten müssten dafür exakt übereinanderliegen; jede Abweichung erzeugt farbige Ränder an den Buchstaben. */
+  --bbz-channel-print-rich-black: C60 M40 Y40 K100;  /* Tiefschwarz für grosse Flächen ab etwa A5. Gesamtauftrag 240% und damit unter der Grenze; die drei Buntfarben geben Dichte, ohne den Ton zu kippen. Für Text nie verwenden, siehe black-text. */
+
+  /* Schriftstacks aus ch.bbz.stack. Es wird nichts nachgeladen:
+     constraints/no_external_runtime verbietet externe Font-Requests. */
+  --bbz-font-heading: "Space Grotesk", Selawik, "Segoe UI", system-ui, sans-serif;
+  --bbz-font-body: "Segoe UI", Selawik, system-ui, sans-serif;
+}
+
+/* ── adapters/_shared/css/base/a11y.css ── */
+/* Barrierefreiheit.
+ *
+ * Regel focus-visible-always: der Fokusindikator ist immer sichtbar.
+ * "outline: none" ohne gleichwertigen Ersatz ist ein Fehler, kein Stilentscheid.
+ */
+
+:focus-visible {
+  outline: 2px solid var(--bbz-focus-ring);
+  outline-offset: 2px;
+}
+
+.bbz-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bbz-skip-link {
+  position: absolute;
+  left: var(--bbz-space-8);
+  top: calc(var(--bbz-space-8) * -10);
+  z-index: 100;
+  padding: var(--bbz-space-8) var(--bbz-space-16);
+  background-color: var(--bbz-surface-brand);
+  color: var(--bbz-text-on-brand);
+  text-decoration: underline;
+}
+
+.bbz-skip-link:focus { top: var(--bbz-space-8); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── adapters/_shared/css/base/elements.css ── */
+/* Grundelemente. */
+
+/* Regeln color-never-alone und link-and-worktitle-distinct.
+ *
+ * Verweise sind immer unterstrichen. Damit sie sich von Werktiteln
+ * unterscheiden, die ebenfalls unterstrichen sind (sie ersetzen die Kursive,
+ * die Selawik nicht hat), tragen sie eine DURCHGEZOGENE Linie und die
+ * Verweisfarbe. Werktitel bekommen eine gepunktete Linie in der laufenden
+ * Textfarbe. Zwei Signale, nicht nur zwei Farben. */
+a {
+  color: var(--bbz-text-link);
+  text-decoration: underline solid;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.15em;
+}
+
+a:hover { text-decoration-thickness: 0.14em; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--bbz-border-default);
+  margin: var(--bbz-section-default) 0;
+}
+
+ul, ol {
+  margin: 0 0 var(--bbz-block-default);
+  padding-left: var(--bbz-gap-loose);
+}
+
+li { margin-bottom: var(--bbz-space-4); }
+
+blockquote { margin: 0; }
+
+code, kbd, samp, pre {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.9375em;
+}
+
+code {
+  background-color: var(--bbz-surface-subtle);
+  color: var(--bbz-text-strong);
+  padding: 0 var(--bbz-space-4);
+  border-radius: var(--bbz-radius-control);
+}
+
+pre {
+  background-color: var(--bbz-surface-subtle);
+  color: var(--bbz-text-strong);
+  padding: var(--bbz-gap-default);
+  overflow-x: auto;
+}
+
+::selection {
+  background-color: var(--bbz-surface-accent-warm);
+  color: var(--bbz-text-on-accent-warm);
+}
+
+/* ── adapters/_shared/css/base/reset.css ── */
+/* Reset. Keine Farben, nur Struktur. */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body { margin: 0; }
+
+img,
+svg,
+video,
+canvas { max-width: 100%; height: auto; }
+
+button,
+input,
+select,
+textarea { font: inherit; color: inherit; }
+
+button { background: none; border: 0; }
+
+table { border-collapse: collapse; border-spacing: 0; }
+
+figure { margin: 0; }
+
+/* ── adapters/_shared/css/base/typography.css ── */
+/* Typografie.
+ *
+ * --bbz-font-heading und --bbz-font-body werden vom Build aus
+ * ch.bbz.stack erzeugt und stehen im :root-Block von bbz-base.css.
+ * Es wird keine Schrift geladen: constraints/no_external_runtime verbietet
+ * externe Font-Requests. Wer Schriften einbetten will, lädt zusätzlich
+ * bbz-fonts-embedded.css.
+ */
+
+body {
+  font-family: var(--bbz-font-body);
+  font-size: var(--bbz-size-body);
+  line-height: var(--bbz-leading-default);
+  font-weight: var(--bbz-weight-default);
+  color: var(--bbz-text-default);
+  background-color: var(--bbz-surface-default);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 var(--bbz-gap-default);
+  color: var(--bbz-text-strong);
+  line-height: var(--bbz-leading-tight);
+  font-weight: var(--bbz-weight-emphasis);
+}
+
+/* Regel heading-font-large-only: Auszeichnungsschrift erst ab 1.5rem.
+ * h1 bis h3 liegen darüber, h4 bis h6 darunter und bleiben in der
+ * Grundschrift. Das ist der Grund für die getrennten Regeln. */
+h1 { font-family: var(--bbz-font-heading); font-size: var(--bbz-size-h1); }
+h2 { font-family: var(--bbz-font-heading); font-size: var(--bbz-size-h2); }
+h3 { font-family: var(--bbz-font-heading); font-size: var(--bbz-size-h3); }
+h4 { font-family: var(--bbz-font-body); font-size: var(--bbz-size-h4); }
+h5 { font-family: var(--bbz-font-body); font-size: var(--bbz-size-h5); }
+h6 { font-family: var(--bbz-font-body); font-size: var(--bbz-size-h6); }
+
+p { margin: 0 0 var(--bbz-block-default); }
+
+.bbz-lead { font-size: var(--bbz-size-lead); }
+.bbz-small,
+small { font-size: var(--bbz-size-small); }
+.bbz-caption { font-size: var(--bbz-size-caption); color: var(--bbz-text-muted); }
+
+/* Kleines Label über einem Titel oder vor einer Angabe: versal, gesperrt, in
+ * der laufenden Textfarbe. Trägt in Titelflächen die Zeile über dem Titel
+ * ("HERZLICH WILLKOMMEN") und die Feldbezeichnungen darunter. */
+.bbz-label {
+  display: block;
+  font-family: var(--bbz-font-body);
+  font-size: var(--bbz-size-caption);
+  font-weight: var(--bbz-weight-default);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bbz-display {
+  font-family: var(--bbz-font-heading);
+  font-size: var(--bbz-size-display);
+  line-height: var(--bbz-leading-tight);
+}
+
+/* Regel no-italic-in-body: Selawik hat keinen echten Kursivschnitt. Ohne diese
+ * Regel synthetisiert der Browser eine schräge Variante. Betonung läuft
+ * über das Gewicht. */
+em,
+i { font-style: normal; font-weight: var(--bbz-weight-emphasis); }
+
+strong,
+b { font-weight: var(--bbz-weight-emphasis); }
+
+/* Ausnahme laut Regel: Werktitel und fremdsprachige Fachbegriffe.
+ * Ausgezeichnet wird unterstrichen, nicht kursiv – aber GEPUNKTET und in der
+ * laufenden Textfarbe, damit ein Werktitel nicht wie ein Verweis aussieht.
+ * Regel link-and-worktitle-distinct. */
+cite,
+.bbz-worktitle {
+  font-style: normal;
+  color: inherit;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.2em;
+}
+
+/* Regeln figures-body-font, figures-never-light, figures-never-heading-font.
+ *
+ * font-family wird explizit gesetzt, nicht geerbt: innerhalb einer Überschrift
+ * käme sonst die Auszeichnungsschrift zum Zug, und die hat in allen Schnitten
+ * proportionale Ziffern (404 bis 648 Einheiten).
+ *
+ * font-weight wird auf 400 genagelt. Selawik Light ist der einzige Schnitt mit
+ * proportionalen Ziffern (730 bis 1087 statt einheitlich 1104) – in einer
+ * Zahlenkolonne franst er sichtbar aus. Wer Zahlen hervorheben will, nimmt
+ * bbz-figure--emphasis mit 700.
+ *
+ * font-variant-numeric wirkt hier tatsächlich: Space Grotesk hat ein
+ * tnum-Feature (Ziffern werden auf einheitlich 620 Einheiten gerückt), die
+ * übrigen Schriften im Stack ebenfalls. Selawik hat keines, braucht aber auch
+ * keines – seine Ziffern sind in Regular und Bold bereits gleich breit. */
+.bbz-figure {
+  font-family: var(--bbz-font-body);
+  font-weight: var(--bbz-weight-default);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  text-align: right;
+  color: var(--bbz-text-figure);
+}
+
+.bbz-figure--emphasis { font-weight: var(--bbz-weight-emphasis); }

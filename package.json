@@ -15,6 +15,7 @@
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.1",
+    "happy-dom": "^21.0.4",
     "typescript": "~5.6.3",
     "unpdf": "^2.2.1",
     "vite": "^5.4.10",
@@ -22,6 +23,8 @@
   },
   "dependencies": {
     "@types/sortablejs": "^1.15.9",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "sortablejs": "^1.15.7"
   }
 }

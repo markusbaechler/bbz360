@@ -49,13 +49,19 @@ export function haushaltAusSession(d: SessionData): PensState {
     ...(i === 0 && pk ? { pkGuthabenHeute: pk } : {}),
   }));
 
+  const liquiditaet = zahl(obj(cd.zahlen).saldo) + zahl(obj(cd.sparen).saldo);
+  const wertschriften = zahl(obj(cd.anlegen).volumen);
+  const kunde = [d.p1name, d.p2name].filter((n) => typeof n === 'string' && n.trim()).join(' & ');
+  // «Eigene Angaben» (Rueckfrage vor dem Ersetzen) nur, wenn aus der Session etwas uebernommen wurde
+  const edited = !!kunde || liquiditaet > 0 || wertschriften > 0 || personen.some((p) => Object.keys(p).length > 0);
+
   return sanitize({
     haushalt: paar ? 'verheiratet' : 'single',
     personen,
-    liquiditaet: zahl(obj(cd.zahlen).saldo) + zahl(obj(cd.sparen).saldo),
-    wertschriften: zahl(obj(cd.anlegen).volumen),
-    bericht: { kunde: [d.p1name, d.p2name].filter((n) => typeof n === 'string' && n.trim()).join(' & ') },
-    ui: { edited: true, mode: 'form' },
+    liquiditaet,
+    wertschriften,
+    bericht: { kunde },
+    ui: { edited, mode: 'form' },
   });
 }
 
