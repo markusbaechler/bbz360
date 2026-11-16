@@ -1,6 +1,6 @@
 # Zielbild: Fusion PensCheck → bbz360
 
-Stand: 2026-11-16 · Status: **alle Phasen 1–9 umgesetzt**; fachliche Abnahme der Module 07d–07f durch die Bank steht aus · Grundlage: Interview mit dem Auftraggeber (drei Fragerunden)
+Stand: 2026-11-16 · Status: **alle Phasen 1–9 gebaut, aber nicht einsatzbereit** — das Assessment (`docs/assessment-2026-11-fusion.md`) nennt 15 Fehler der Klasse A; fachliche Abnahme der Module 07d–07f durch die Bank steht aus · Grundlage: Interview mit dem Auftraggeber (drei Fragerunden)
 
 ## 1. Ziel
 
