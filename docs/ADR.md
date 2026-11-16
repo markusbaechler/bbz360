@@ -186,3 +186,39 @@ als vorher. Regel 1 bleibt im Übrigen unangetastet: die Seite scrollt nicht.
   Das ist der Grund, warum die Obergrenze gemessen und nicht geschätzt wird.
 - Wer die Grenze verschieben will, misst neu: `typografie.spec.ts` nagelt
   Lesegrösse und Navigations-Überlauf fest.
+
+---
+
+## ADR-16 — Gemeinsamer Haushalts-Stand und Pensionierungs-Rechenkern (Fusion PensCheck)
+
+**Kontext.** bbz360 soll zur Gesamtberatungs-App werden (`docs/ZIELBILD-FUSION.md`).
+Der PensCheck (`bbzsg/PensCheck`, Stand `4830eff`) rechnet monatsgenau mit AHV,
+Pensionskasse, Säule 3a, Freizügigkeit, Liegenschaften, Steuern und Wünschen und
+bringt geprüfte Grundlagen mit Quellen mit. bbz360 hält dieselben Kundenangaben
+bisher verteilt (`cockpit_*`, `finanzierung_data`, Stammdaten).
+
+**Entscheid.**
+- Der Rechenkern des PensCheck liegt als TypeScript-Port unter `src/lib/pension/`
+  (`engine`, `analyse`, `aktion`, `params`, `state`, `themen`, `budget`,
+  `auswertung`, `format`, `config`). Die Portierung ändert **keine** Rechenlogik:
+  nur Typen kamen dazu. `finance.ts` (07a/07b) bleibt daneben unverändert.
+- Die Grundlagen liegen unter `public/data/params.json` und `verification.json`,
+  die Prüf- und Nachführskripte unter `scripts/`.
+- `SessionData` erhält den Schlüssel `haushalt` (Typ `PensState`);
+  `SCHEMA_VERSION` steigt auf 3. `migrate()` lässt Sessions ohne `haushalt`
+  unverändert und schickt einen vorhandenen Stand durch `sanitize()`.
+- `src/lib/haushalt.ts` ist der einzige Zugang: `haushaltLesen()` liefert den
+  gespeicherten Stand oder leitet einen ersten Stand aus Stammdaten und Cockpit
+  ab; `haushaltImport()` liest einen PensCheck-Link, -Code oder JSON-Stand.
+
+**Abnahme.** Die PensCheck-Tests zum Rechenkern laufen unverändert als
+Referenz unter `tests/unit/pension/` (Kopfzeile `@ts-nocheck`, da wörtlich
+übernommen). Tests, die die PensCheck-Oberfläche oder dessen Datenschutztext
+prüfen, wandern mit dem jeweiligen UI-Teil in späteren Phasen nach.
+
+**Konsequenzen.**
+- Der öffentliche PensCheck bleibt unabhängig; Grundlagen werden künftig in
+  beiden Repos nachgeführt (bewusst in Kauf genommen, siehe Zielbild §7).
+- `haushalt` ist Session-Scope und fällt bei `clearSession` weg.
+- Die bisherigen `cockpit_*`-Schlüssel bleiben vorerst Quelle für 05/07a/07b;
+  ihre Ablösung durch `haushalt` ist Phase 4.

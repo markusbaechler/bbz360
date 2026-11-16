@@ -24,7 +24,11 @@
 //      cockpit_* werden von v1 per _coerce bereits zu number gezwungen.
 // ============================================================================
 
-export const SCHEMA_VERSION = 2;
+import { sanitize } from './pension/state';
+import type { PensState } from './pension/typen';
+
+// v3: gemeinsamer Haushalts-Stand `haushalt` (docs/ZIELBILD-FUSION.md, ADR-16).
+export const SCHEMA_VERSION = 3;
 
 export interface FinanzierungInputs {
   income: number;
@@ -83,6 +87,9 @@ export interface SessionData {
   anlage_konklusion?: AnlageKonklusion | null;
   // Finanzieren (07a)
   finanzierung_data?: FinanzierungData | null;
+  // Gemeinsamer Haushalts-Stand (Pensionierung, Budget, Lebensplan) — ADR-16.
+  // Fehlt er, leitet lib/haushalt.ts einen ersten Stand aus Stammdaten + Cockpit ab.
+  haushalt?: PensState;
   // Feedback (09) — Phasenstand 1|2 (Session-Scope, faellt bei clearSession weg)
   fb_phase?: number;
   // Passthrough: alle weiteren v1-Keys bleiben erhalten (kein Feldverlust).
@@ -127,6 +134,13 @@ export function migrate(raw: unknown): SessionData {
       f.inputs = norm;
     }
     src['finanzierung_data'] = f;
+  }
+
+  // Haushalts-Stand: fremde/aeltere Staende laufen durch die Pruefung des
+  // Rechenkerns (unbekannte Felder fallen weg, Zahlen werden begrenzt).
+  if (src['haushalt'] != null) {
+    if (typeof src['haushalt'] === 'object' && !Array.isArray(src['haushalt'])) src['haushalt'] = sanitize(src['haushalt']);
+    else delete src['haushalt'];
   }
 
   src['__schemaVersion'] = SCHEMA_VERSION;

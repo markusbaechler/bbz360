@@ -1,0 +1,3428 @@
+{
+  "schema": 1,
+  "version": "2026-11-14T18:30Z",
+  "sources": {
+    "bag-praemien-2026": {
+      "title": "BAG: Medienmitteilung zu den Krankenkassenprämien 2026",
+      "publisher": "BAG",
+      "official": true,
+      "url": "https://www.bag.admin.ch/de/newnsb/d2okh_kUK_OFhmMDfpyiy"
+    },
+    "admin-praemien-2026": {
+      "title": "Bundesrat: Medienmitteilung zu den Krankenkassenprämien 2026 (News-Portal des Bundes)",
+      "publisher": "Bundesrat",
+      "official": true,
+      "url": "https://www.admin.ch/de/newnsb/d2okh_kUK_OFhmMDfpyiy"
+    },
+    "bag-praemien-2027": {
+      "title": "BAG: Medienmitteilung zu den Krankenkassenprämien 2027",
+      "publisher": "BAG",
+      "official": true,
+      "url": "https://www.bag.admin.ch/de/newnsb/BfuGvedj0OOX"
+    },
+    "admin-praemien-2027": {
+      "title": "Bundesrat: Medienmitteilung zu den Krankenkassenprämien 2027 (News-Portal des Bundes)",
+      "publisher": "Bundesrat",
+      "official": true,
+      "url": "https://www.admin.ch/de/newnsb/BfuGvedj0OOX"
+    },
+    "srf-praemien-2026": {
+      "title": "SRF News: So stark steigen die Krankenkassenprämien 2026 in Ihrem Kanton",
+      "publisher": "SRF",
+      "official": false,
+      "url": "https://www.srf.ch/news/schweiz/erneuter-anstieg-so-stark-steigen-die-krankenkassenpraemien-2026-in-ihrem-kanton"
+    },
+    "srf-praemien-2027": {
+      "title": "SRF News: Krankenkassenprämien steigen 2027 um 5 Prozent",
+      "publisher": "SRF",
+      "official": false,
+      "url": "https://www.srf.ch/news/schweiz/erneuter-anstieg-krankenkassenpraemien-steigen-2027-um-5-prozent"
+    },
+    "bag-praemien-faq": {
+      "title": "BAG: Prämien und Kosten, Antworten auf häufige Fragen",
+      "publisher": "BAG",
+      "official": true,
+      "url": "https://www.bag.admin.ch/de/praemien-und-kosten-antworten-auf-haeufige-fragen"
+    },
+    "br-mm-2027": {
+      "title": "Medienmitteilung des Bundesrates vom 2.10.2026: Renten und Grenzbeträge 2027",
+      "publisher": "Bundesrat",
+      "official": true,
+      "url": "https://www.bsv.admin.ch/de/newnsb/BqB41FVYi5FB"
+    },
+    "bsv-betraege-2026": {
+      "title": "BSV: Beträge gültig ab 1.1.2026",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://www.bsv.admin.ch/dam/de/sd-web/sAgdISSXenMT/d_Betr%C3%A4ge%202026.pdf"
+    },
+    "bsv-betraege-2027": {
+      "title": "BSV: Neue Beträge ab 1.1.2027",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://www.bsv.admin.ch/dam/de/sd-web/7b0mzel2zpRw/d_neue-Betraege-2027_bf.pdf"
+    },
+    "bsv-skala44-2027": {
+      "title": "BSV: Rententabelle Skala 44, gültig ab 1.1.2027",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://sozialversicherungen.admin.ch/de/d/6462/download"
+    },
+    "bsv-ne-2027": {
+      "title": "BSV: Beitragstabellen Selbständigerwerbende und Nichterwerbstätige, gültig ab 1.1.2027",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://sozialversicherungen.admin.ch/de/d/6139/download"
+    },
+    "bsv-vorbezug-2027": {
+      "title": "BSV: Berechnungsvorschriften Rentenvorbezug, gültig ab 1.1.2027",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://sozialversicherungen.admin.ch/de/d/18438/download"
+    },
+    "br-verordnungen-2027": {
+      "title": "Verordnungsänderungen 2027, provisorische Fassung (Anhang zur Medienmitteilung vom 2.10.2026)",
+      "publisher": "Bundesrat",
+      "official": true,
+      "url": "https://cms.news.admin.ch/fileservice/sdweb-docs-prod-nsbcch-files/files/2026/10/01/7c36e40d-4e66-4431-887b-d18ffc5009f3.pdf"
+    },
+    "bsv-13": {
+      "title": "BSV: Umsetzung der 13. AHV-Rente",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://www.bsv.admin.ch/de/umsetzung-13-ahv-rente"
+    },
+    "bsv-beitraege": {
+      "title": "BSV: Beiträge im Überblick",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://www.bsv.admin.ch/de/beitraege-im-ueberblick"
+    },
+    "bsv-3a": {
+      "title": "BSV: Ihr Beitrag an die 3. Säule",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://www.bsv.admin.ch/de/beitrag-3-sauele"
+    },
+    "bsv-bvg": {
+      "title": "BSV: Berufliche Vorsorge",
+      "publisher": "BSV",
+      "official": true,
+      "url": "https://www.bsv.admin.ch/de/altersvorsorge-beruflichen-vorsorge"
+    },
+    "ahv-mb-301": {
+      "title": "Merkblatt 3.01 Altersrenten und Hilflosenentschädigungen der AHV",
+      "publisher": "Informationsstelle AHV/IV",
+      "official": true,
+      "url": "https://www.ahv-iv.ch/p/3.01.d"
+    },
+    "ahv-mb-304": {
+      "title": "Merkblatt 3.04 Flexibler Rentenbezug",
+      "publisher": "Informationsstelle AHV/IV",
+      "official": true,
+      "url": "https://www.ahv-iv.ch/p/3.04.d"
+    },
+    "ahv-mb-203": {
+      "title": "Merkblatt 2.03 Beiträge der Nichterwerbstätigen an die AHV, die IV und die EO",
+      "publisher": "Informationsstelle AHV/IV",
+      "official": true,
+      "url": "https://www.ahv-iv.ch/p/2.03.d"
+    },
+    "ahv-mb-201": {
+      "title": "Merkblatt 2.01 Lohnbeiträge an die AHV, die IV und die EO",
+      "publisher": "Informationsstelle AHV/IV",
+      "official": true,
+      "url": "https://www.ahv-iv.ch/p/2.01.d"
+    },
+    "ahv-13": {
+      "title": "13. AHV-Rente",
+      "publisher": "Informationsstelle AHV/IV",
+      "official": true,
+      "url": "https://www.ahv-iv.ch/de/Sozialversicherungen/Alters-und-Hinterlassenenversicherung-AHV/13-AHV-Rente"
+    },
+    "sva-zh": {
+      "title": "SVA Zürich: Höhe der Altersrente",
+      "publisher": "SVA Zürich (kantonale Ausgleichskasse)",
+      "official": true,
+      "url": "https://svazurich.ch/unsere-produkte/ahv/leistungen/altersrente/hoehe-der-altersrente.html"
+    },
+    "chch": {
+      "title": "ch.ch: Rente berechnen",
+      "publisher": "ch.ch (Bund und Kantone)",
+      "official": true,
+      "url": "https://www.ch.ch/de/pensionierung/rente-berechnen/"
+    },
+    "fedlex-ahvg": {
+      "title": "Bundesgesetz über die AHV (AHVG, SR 831.10), Fassung 1.1.2026",
+      "publisher": "Fedlex (Bundeskanzlei)",
+      "official": true,
+      "url": "https://www.fedlex.admin.ch/filestore/fedlex.data.admin.ch/eli/cc/63/837_843_843/20260101/de/html/fedlex-data-admin-ch-eli-cc-63-837_843_843-20260101-de-html-1.html",
+      "fassung": "2026-01-01"
+    },
+    "fedlex-ahvv": {
+      "title": "Verordnung über die AHV (AHVV, SR 831.101), Fassung 1.1.2026",
+      "publisher": "Fedlex (Bundeskanzlei)",
+      "official": true,
+      "url": "https://www.fedlex.admin.ch/filestore/fedlex.data.admin.ch/eli/cc/63/1185_1183_1185/20260101/de/html/fedlex-data-admin-ch-eli-cc-63-1185_1183_1185-20260101-de-html.html",
+      "fassung": "2026-01-01"
+    },
+    "fedlex-bvv2": {
+      "title": "Verordnung über die berufliche Vorsorge (BVV 2, SR 831.441.1)",
+      "publisher": "Fedlex (Bundeskanzlei)",
+      "official": true,
+      "url": "https://www.fedlex.admin.ch/filestore/fedlex.data.admin.ch/eli/cc/1984/543_543_543/20260801/de/html/fedlex-data-admin-ch-eli-cc-1984-543_543_543-20260801-de-html.html",
+      "fassung": "2026-08-01"
+    },
+    "fedlex-bvv3": {
+      "title": "Verordnung über die gebundene Selbstvorsorge (BVV 3, SR 831.461.3)",
+      "publisher": "Fedlex (Bundeskanzlei)",
+      "official": true,
+      "url": "https://www.fedlex.admin.ch/filestore/fedlex.data.admin.ch/eli/cc/1985/1778_1778_1778/20250101/de/html/fedlex-data-admin-ch-eli-cc-1985-1778_1778_1778-20250101-de-html-5.html",
+      "fassung": "2025-01-01"
+    },
+    "fedlex-fzv": {
+      "title": "Freizügigkeitsverordnung (FZV, SR 831.425)",
+      "publisher": "Fedlex (Bundeskanzlei)",
+      "official": true,
+      "url": "https://www.fedlex.admin.ch/filestore/fedlex.data.admin.ch/eli/cc/1994/2399_2399_2399/20260801/de/html/fedlex-data-admin-ch-eli-cc-1994-2399_2399_2399-20260801-de-html.html",
+      "fassung": "2026-08-01"
+    },
+    "fedlex-dbg": {
+      "title": "Bundesgesetz über die direkte Bundessteuer (DBG, SR 642.11), Art. 38",
+      "publisher": "Fedlex (Bundeskanzlei)",
+      "official": true,
+      "url": "https://www.fedlex.admin.ch/filestore/fedlex.data.admin.ch/eli/cc/1991/1184_1184_1184/20260902/de/html/fedlex-data-admin-ch-eli-cc-1991-1184_1184_1184-20260902-de-html-1.html",
+      "fassung": "2026-09-02"
+    },
+    "estv-3a": {
+      "title": "ESTV: Höchstabzüge Säule 3a",
+      "publisher": "ESTV",
+      "official": true,
+      "url": "https://www.estv.admin.ch/de/zinssaetze-hoechstabzuege-saeule-3a-direkte-bundessteuer"
+    },
+    "estv-3a-2027": {
+      "title": "ESTV: Höchstabzüge Säule 3a ab 2027 (Mitteilung vom 5.10.2026)",
+      "publisher": "ESTV",
+      "official": true,
+      "url": "https://www.estv.admin.ch/de/newnsb/6ck3kzVxBNQ4"
+    },
+    "estv-58c-2026": {
+      "title": "ESTV: Tarife direkte Bundessteuer 2026 (Formular 58c)",
+      "publisher": "ESTV",
+      "official": true,
+      "url": "https://www.estv.admin.ch/dam/de/sd-web/gnde9CmEsalK/dbst-tairfe-58c-2026-dfi.pdf"
+    },
+    "estv-kapital": {
+      "title": "ESTV: Steuerbelastungsstatistik «Kapitalleistung aus beruflicher Vorsorge»",
+      "publisher": "ESTV",
+      "official": true,
+      "url": "https://swisstaxcalculator.estv.admin.ch/#/taxburden/capital-payment",
+      "api": "estv-kapital"
+    },
+    "bfs-2025-def": {
+      "title": "BFS: Natürliche Bevölkerungsbewegung 2025, definitive Ergebnisse",
+      "publisher": "BFS",
+      "official": true,
+      "url": "https://dam-api.bfs.admin.ch/hub/api/dam/assets/36649215/master"
+    },
+    "bfs-2025-prov": {
+      "title": "BFS: Medienmitteilung vom 2.4.2026 (provisorische Ergebnisse 2025), abgelegt im Newsportal des Bundes (bag.admin.ch)",
+      "publisher": "BFS",
+      "official": true,
+      "url": "https://www.bag.admin.ch/de/newnsb/acGCTisDEW60tUk1jSz4Z"
+    },
+    "vz-ahv": {
+      "title": "VZ VermögensZentrum: Die 10 wichtigsten Fragen zur AHV-Rente",
+      "publisher": "VZ VermögensZentrum",
+      "official": false,
+      "url": "https://www.vermoegenszentrum.ch/wissen/die-10-wichtigsten-fragen-zur-ahv-rente"
+    },
+    "vz-3a": {
+      "title": "VZ VermögensZentrum: Säule 3a – Maximalbetrag",
+      "publisher": "VZ VermögensZentrum",
+      "official": false,
+      "url": "https://www.vermoegenszentrum.ch/wissen/saeule-3a-maximalbetrag"
+    },
+    "raiffeisen-kennzahlen": {
+      "title": "Raiffeisenbank Regio Altnau: Sozialversicherungskennzahlen",
+      "publisher": "Raiffeisenbank Regio Altnau",
+      "official": false,
+      "url": "https://www.raiffeisen.ch/regio-altnau/de/ueber-uns/news/rb/sozialversicherungskennzahlen.html"
+    },
+    "raiffeisen-flex": {
+      "title": "Raiffeisen: Flexibles Rentenalter",
+      "publisher": "Raiffeisen",
+      "official": false,
+      "url": "https://www.raiffeisen.ch/rch/de/wissen/vorsorgen/pensionierung/flexibles-rentenalter.html"
+    },
+    "estv-vermoegen": {
+      "title": "ESTV: Steuerbelastungsstatistik «Einkommens- und Vermögenssteuer», Steuerart Vermögen",
+      "publisher": "ESTV",
+      "official": true,
+      "url": "https://swisstaxcalculator.estv.admin.ch/#/taxburden/income-wealth-tax",
+      "api": "estv-vermoegen"
+    }
+  },
+  "params": {
+    "ahv.minRente": {
+      "label": "AHV-Minimalrente (volle Einzelrente)",
+      "unit": "CHF/Monat",
+      "kind": "gesetz",
+      "values": {
+        "2025": 1260,
+        "2026": 1260,
+        "2027": 1280
+      },
+      "sources": [
+        {
+          "id": "sva-zh",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:mindestens 1260 Franken"
+          ]
+        },
+        {
+          "id": "chch",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:monatlich 1260 Franken"
+          ]
+        },
+        {
+          "id": "ahv-mb-301",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Altersrente 1 ?260\\.– 2 ?520\\.–"
+          ]
+        },
+        {
+          "id": "bsv-betraege-2026",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Minimale Altersrente 1260 Fr"
+          ]
+        },
+        {
+          "id": "br-mm-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:Minimalrente der AHV/IV von 1260 auf 1280 Franken"
+          ]
+        },
+        {
+          "id": "bsv-betraege-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:Minimale Altersrente 1280 Fr"
+          ]
+        },
+        {
+          "id": "sva-zh",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:von 1260 auf 1280"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:ab 2027: 1280 Franken"
+          ]
+        }
+      ]
+    },
+    "ahv.maxRente": {
+      "label": "AHV-Maximalrente (volle Einzelrente)",
+      "unit": "CHF/Monat",
+      "kind": "gesetz",
+      "values": {
+        "2025": 2520,
+        "2026": 2520,
+        "2027": 2560
+      },
+      "sources": [
+        {
+          "id": "sva-zh",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:höchstens 2520 Franken"
+          ]
+        },
+        {
+          "id": "chch",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:beläuft sich auf 2520 Franken"
+          ]
+        },
+        {
+          "id": "ahv-mb-301",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Altersrente 1 ?260\\.– 2 ?520\\.–"
+          ]
+        },
+        {
+          "id": "bsv-betraege-2026",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Maximale Altersrente 2520 Fr"
+          ]
+        },
+        {
+          "id": "br-mm-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:Maximalrente von 2520 auf 2560 Franken"
+          ]
+        },
+        {
+          "id": "bsv-betraege-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:Maximale Altersrente 2560 Fr"
+          ]
+        },
+        {
+          "id": "sva-zh",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:von 2520 auf 2560"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:ab 2027 sind es 2560 Franken"
+          ]
+        }
+      ]
+    },
+    "ahv.plafondEhepaar": {
+      "label": "Plafond Ehepaarrenten (150% der Maximalrente)",
+      "unit": "CHF/Monat",
+      "kind": "gesetz",
+      "values": {
+        "2025": 3780,
+        "2026": 3780,
+        "2027": 3840
+      },
+      "sources": [
+        {
+          "id": "sva-zh",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:150 Prozent der Maximal\\s*rente: aktuell 3780"
+          ]
+        },
+        {
+          "id": "chch",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:gegenwärtig 3780 Franken"
+          ]
+        },
+        {
+          "id": "ahv-mb-301",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Ehepaare 3 ?780\\.–"
+          ]
+        },
+        {
+          "id": "bsv-betraege-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:plafonierten Renten eines Ehepaars \\(zwei\\s+Renten\\)\\s+3840 Fr"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:ab 2027: 3840 Franken"
+          ]
+        }
+      ]
+    },
+    "ahv.einkMin": {
+      "label": "Massgebendes Jahreseinkommen für die Minimalrente (bis)",
+      "unit": "CHF/Jahr",
+      "kind": "gesetz",
+      "note": "Art. 34 Abs. 4 AHVG: zwölffacher Mindestbetrag der Altersrente. Die Fedlex-Fassung belegt die Regel (Vielfaches der Minimalrente), nicht den Frankenbetrag; für das Folgejahr nennt damit nur eine Quelle die Zahl.",
+      "values": {
+        "2025": 15120,
+        "2026": 15120,
+        "2027": 15360
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-301",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:bis 15 ?120 1 ?260\\b"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:15120 Franken oder weniger"
+          ]
+        },
+        {
+          "id": "fedlex-ahvg",
+          "years": [
+            2026,
+            2027
+          ],
+          "match": [
+            "re:höchstens zwölfmal grösser"
+          ]
+        },
+        {
+          "id": "bsv-skala44-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:bis jusqu.à\\s+15 ?360 1 ?280\\b"
+          ]
+        }
+      ]
+    },
+    "ahv.einkMax": {
+      "label": "Massgebendes Jahreseinkommen für die Maximalrente (ab)",
+      "unit": "CHF/Jahr",
+      "kind": "gesetz",
+      "note": "Art. 34 Abs. 4 AHVG: zweiundsiebzigfacher Mindestbetrag der Altersrente. Die Fedlex-Fassung belegt die Regel (Vielfaches der Minimalrente), nicht den Frankenbetrag; für das Folgejahr nennt damit nur eine Quelle die Zahl.",
+      "values": {
+        "2025": 90720,
+        "2026": 90720,
+        "2027": 92160
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-301",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:90 ?720 und mehr 2 ?520\\b"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:mindestens 90720 Franken"
+          ]
+        },
+        {
+          "id": "fedlex-ahvg",
+          "years": [
+            2026,
+            2027
+          ],
+          "match": [
+            "re:wenigstens zweiundsiebzigmal grösser"
+          ]
+        },
+        {
+          "id": "bsv-skala44-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:92 ?160 2 ?560 2 ?560 [\\d ]+\\s+und mehr"
+          ]
+        }
+      ]
+    },
+    "ahv.monatsrentenProJahr": {
+      "label": "AHV-Altersrenten pro Jahr (inkl. 13. Altersrente)",
+      "unit": "Renten",
+      "kind": "gesetz",
+      "note": "Seit 2026 wird im Dezember eine 13. Altersrente von einem Zwölftel der im Kalenderjahr bezogenen Altersrenten ausbezahlt (Art. 34ter AHVG); erstmals im Dezember 2026.",
+      "values": {
+        "2025": 12,
+        "2026": 13
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvg",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:einem Zwölftel der im betreffenden Kalenderjahr bezogenen Altersrente"
+          ]
+        },
+        {
+          "id": "bsv-13",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:erstmals im Dezember 2026"
+          ]
+        },
+        {
+          "id": "ahv-13",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Die erste Auszahlung erfolgt im Dezember 2026"
+          ]
+        }
+      ]
+    },
+    "ahv.beitragsjahre": {
+      "label": "Volle Beitragsdauer (Rentenskala 44)",
+      "unit": "Jahre",
+      "kind": "gesetz",
+      "values": {
+        "2025": 44
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-301",
+          "match": [
+            "re:Skala 44"
+          ]
+        },
+        {
+          "id": "bsv-skala44-2027",
+          "match": [
+            "re:Skala 44"
+          ]
+        }
+      ]
+    },
+    "ahv.lohnbeitrag": {
+      "label": "AHV/IV/EO-Beitrag auf dem Lohn (Arbeitnehmer und Arbeitgeber zusammen)",
+      "unit": "Anteil",
+      "kind": "gesetz",
+      "note": "AHV 8,7%, IV 1,4%, EO 0,5%, je zur Hälfte von Arbeitnehmer und Arbeitgeber (je 5,3%). Verwendet für die Befreiung von den Beiträgen als Nichterwerbstätige (Art. 28bis AHVV) und für den Lohn, mit dem der erwerbstätige Ehegatte den doppelten Mindestbeitrag erreicht.",
+      "values": {
+        "2025": 0.106,
+        "2026": 0.106
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-203",
+          "match": [
+            "re:12 ?000 Franken × 10,6 % = 1 ?272 Franken"
+          ]
+        },
+        {
+          "id": "bsv-beitraege",
+          "match": [
+            "re:Total AHV/IV/EO\\\\u003C/strong>\".{0,200}?strong>5,3%\\\\u003C/strong>"
+          ]
+        }
+      ]
+    },
+    "ahv.freibetragRentner": {
+      "label": "Freibetrag für Erwerbstätige im Rentenalter (pro Jahr und Arbeitgeber)",
+      "unit": "CHF/Jahr",
+      "kind": "gesetz",
+      "note": "Art. 6quater AHVV: Ab dem Monat nach dem Referenzalter werden nur auf dem Teil des Lohns Beiträge erhoben, der den Freibetrag übersteigt (auf Wunsch Verzicht auf den Freibetrag). Verwendet für die Frage, ob ein erwerbstätiger Ehegatte im Rentenalter den doppelten Mindestbeitrag bezahlt. PensCheck zieht den Freibetrag einmal ab; bei mehreren Arbeitgebern gilt er je Arbeitgeber.",
+      "values": {
+        "2025": 16800,
+        "2026": 16800
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-201",
+          "match": [
+            "re:müssen auf dem Freibetrag von 16 ?800 Franken jährlich keine\\s+Beiträge entrichten"
+          ]
+        },
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:nur für den Teil Beiträge erhoben, der je Arbeitgeber den Freibetrag von 16 ?800 Franken im Jahr übersteigt"
+          ]
+        }
+      ]
+    },
+    "ahv.formel.grenze": {
+      "label": "Rentenformel: Knick beim 36-fachen Mindestbetrag",
+      "unit": "×",
+      "kind": "gesetz",
+      "values": {
+        "2025": 36
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvg",
+          "match": [
+            "re:sechsunddreissigfache|36-fache|36fache"
+          ]
+        },
+        {
+          "id": "ahv-mb-301",
+          "match": [
+            "re:\\b45 ?360 1 ?915 2 ?298\\b"
+          ]
+        }
+      ]
+    },
+    "ahv.formel.festTief": {
+      "label": "Rentenformel: fester Rententeil bis zum Knick",
+      "unit": "× Minimalrente",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.74
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvg",
+          "match": [
+            "re:74/100 des Mindestbetrages"
+          ]
+        },
+        {
+          "id": "ahv-mb-301",
+          "match": [
+            "re:30 ?240\\D{0,40}1 ?588"
+          ]
+        }
+      ]
+    },
+    "ahv.formel.varTief": {
+      "label": "Rentenformel: variabler Rententeil bis zum Knick",
+      "unit": "× Einkommen",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.021666666666666667
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvg",
+          "match": [
+            "re:der variable Rententeil 13/600 des massgebenden durchschnittlichen Jahreseinkommens"
+          ]
+        },
+        {
+          "id": "ahv-mb-301",
+          "match": [
+            "re:30 ?240\\D{0,40}1 ?588"
+          ]
+        }
+      ]
+    },
+    "ahv.formel.festHoch": {
+      "label": "Rentenformel: fester Rententeil über dem Knick",
+      "unit": "× Minimalrente",
+      "kind": "gesetz",
+      "values": {
+        "2025": 1.04
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvg",
+          "match": [
+            "re:der feste Rententeil 104/100 des Mindestbetrages der Altersrente"
+          ]
+        },
+        {
+          "id": "ahv-mb-301",
+          "match": [
+            "re:60 ?480\\D{0,40}2 ?117"
+          ]
+        }
+      ]
+    },
+    "ahv.formel.varHoch": {
+      "label": "Rentenformel: variabler Rententeil über dem Knick",
+      "unit": "× Einkommen",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.013333333333333334
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvg",
+          "match": [
+            "re:der variable Rententeil 8/600 des massgebenden durchschnittlichen Jahreseinkommens"
+          ]
+        },
+        {
+          "id": "ahv-mb-301",
+          "match": [
+            "re:60 ?480\\D{0,40}2 ?117"
+          ]
+        }
+      ]
+    },
+    "ahv.vorbezug.1": {
+      "label": "AHV-Vorbezug um 1 Jahr: Kürzung",
+      "unit": "Anteil",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.068
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:5,7\\s+6,2\\s+1\\s+6,8\\s+7,4\\s+7,9"
+          ]
+        },
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:5,7\\s+6,2\\s+1\\s+6,8\\s+7,4\\s+7,9"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "match": [
+            "re:Rentenkürzung um 6,8 Prozent"
+          ]
+        }
+      ]
+    },
+    "ahv.vorbezug.2": {
+      "label": "AHV-Vorbezug um 2 Jahre: Kürzung",
+      "unit": "Anteil",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.136
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:12,5\\s+13,0\\s+2\\s+13,6(?![\\d,])"
+          ]
+        },
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:12,5\\s+13,0\\s+2\\s+13,6(?![\\d,])"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "match": [
+            "re:um 13,6 Prozent gekürzt"
+          ]
+        }
+      ]
+    },
+    "ahv.aufschub.1": {
+      "label": "AHV-Aufschub um 1 Jahr: Zuschlag",
+      "unit": "Anteil",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.052
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:5,2\\s+6,6\\s+8,0\\s+9,4"
+          ]
+        },
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:5,2\\s+6,6\\s+8,0\\s+9,4"
+          ]
+        },
+        {
+          "id": "raiffeisen-flex",
+          "match": [
+            "re:einjährigen Aufschub 5,2 Prozent"
+          ]
+        }
+      ]
+    },
+    "ahv.aufschub.2": {
+      "label": "AHV-Aufschub um 2 Jahre: Zuschlag",
+      "unit": "Anteil",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.108
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:9,4\\s+2\\s+10,8\\s+12,3\\s+13,9\\s+15,5"
+          ]
+        },
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:9,4\\s+2\\s+10,8\\s+12,3\\s+13,9\\s+15,5"
+          ]
+        }
+      ]
+    },
+    "ahv.aufschub.3": {
+      "label": "AHV-Aufschub um 3 Jahre: Zuschlag",
+      "unit": "Anteil",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.171
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:15,5\\s+3\\s+17,1\\s+18,8\\s+20,5\\s+22,2"
+          ]
+        },
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:15,5\\s+3\\s+17,1\\s+18,8\\s+20,5\\s+22,2"
+          ]
+        }
+      ]
+    },
+    "ahv.aufschub.4": {
+      "label": "AHV-Aufschub um 4 Jahre: Zuschlag",
+      "unit": "Anteil",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.24
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:22,2\\s+4\\s+24,0\\s+25,8\\s+27,7\\s+29,6"
+          ]
+        },
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:22,2\\s+4\\s+24,0\\s+25,8\\s+27,7\\s+29,6"
+          ]
+        }
+      ]
+    },
+    "ahv.aufschub.5": {
+      "label": "AHV-Aufschub um 5 Jahre: Zuschlag",
+      "unit": "Anteil",
+      "kind": "gesetz",
+      "values": {
+        "2025": 0.315
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:27,7\\s+29,6\\s+5\\s+31,5(?![\\d,])"
+          ]
+        },
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:27,7\\s+29,6\\s+5\\s+31,5(?![\\d,])"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "match": [
+            "re:31,5 Prozent höher"
+          ]
+        },
+        {
+          "id": "raiffeisen-flex",
+          "match": [
+            "re:fünfjährigen Aufschub sogar 31,5 Prozent"
+          ]
+        }
+      ]
+    },
+    "ne.min": {
+      "label": "Mindestbeitrag Nichterwerbstätige (AHV/IV/EO)",
+      "unit": "CHF/Jahr",
+      "kind": "gesetz",
+      "values": {
+        "2025": 530,
+        "2026": 530,
+        "2027": 541
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-203",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:unter CHF 350 ?000\\.00\\s*530\\.00"
+          ]
+        },
+        {
+          "id": "bsv-beitraege",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:AHV-/IV-/EO-Mindestbeitrag von 530 Franken pro Jahr"
+          ]
+        },
+        {
+          "id": "raiffeisen-kennzahlen",
+          "years": [
+            2026,
+            2027
+          ],
+          "match": [
+            "re:Nichterwerbstätigenbeiträge Minimum\\s+541\\s+530\\s+530\\b"
+          ]
+        },
+        {
+          "id": "br-mm-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:von 530 auf 541 Franken"
+          ]
+        },
+        {
+          "id": "bsv-ne-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:Ab dem 1\\. Januar 2027 beträgt der AHV/IV/EO-Mindestbeitrag 541 Franken pro Jahr"
+          ]
+        },
+        {
+          "id": "bsv-betraege-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:AHV 444 Fr\\., IV 71 Fr\\., EO 26 Fr\\.\\) AHV/IV/EO: 541 Fr\\."
+          ]
+        }
+      ]
+    },
+    "ne.max": {
+      "label": "Höchstbeitrag Nichterwerbstätige (AHV/IV/EO)",
+      "unit": "CHF/Jahr",
+      "kind": "gesetz",
+      "values": {
+        "2025": 26500,
+        "2026": 26500,
+        "2027": 27050
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-203",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:maximale Jahresbeitrag von 26 ?500 Franken"
+          ]
+        },
+        {
+          "id": "bsv-beitraege",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:strong>530\\\\u003C/strong>\".{0,200}?strong>26 ?500\\\\u003C/strong>"
+          ]
+        },
+        {
+          "id": "raiffeisen-kennzahlen",
+          "years": [
+            2026,
+            2027
+          ],
+          "match": [
+            "re:Nichterwerbstätigenbeiträge Maximum\\s+27050\\s+26500\\s+26500\\b"
+          ]
+        },
+        {
+          "id": "bsv-ne-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:50-fachen Mindestbeitrag entspricht, beträgt 27 ?050 Franken pro Jahr"
+          ]
+        }
+      ]
+    },
+    "ne.vermoegenMin": {
+      "label": "Nichterwerbstätige: Mindestbeitrag bei Vermögen unter",
+      "unit": "CHF",
+      "kind": "gesetz",
+      "values": {
+        "2025": 350000,
+        "2026": 350000,
+        "2027": 360000
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-203",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:unter CHF 350 ?000"
+          ]
+        },
+        {
+          "id": "fedlex-ahvv",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:bis\\s+350 ?000\\s+435\\s+–\\s+ab\\s+350 ?000\\s+522"
+          ]
+        },
+        {
+          "id": "bsv-ne-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:gemeinsam unter 360 ?000 Franken liegen"
+          ]
+        },
+        {
+          "id": "br-verordnungen-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:bis 360 ?000\\s*444 –\\s+ab 360 ?000\\s*539\\.40"
+          ]
+        }
+      ]
+    },
+    "ne.vermoegenMax": {
+      "label": "Nichterwerbstätige: Höchstbeitrag ab Vermögen",
+      "unit": "CHF",
+      "kind": "gesetz",
+      "values": {
+        "2025": 8950000,
+        "2026": 8950000,
+        "2027": 9160000
+      },
+      "sources": [
+        {
+          "id": "ahv-mb-203",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:8 ?950 ?000\\.00 26 ?500\\.00"
+          ]
+        },
+        {
+          "id": "fedlex-ahvv",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:ab\\s+8 ?950 ?000\\s+21 ?750\\b"
+          ]
+        },
+        {
+          "id": "bsv-ne-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:gemeinsam\\s+9 ?160 ?000 Franken oder mehr betragen"
+          ]
+        },
+        {
+          "id": "br-verordnungen-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:ab 9 ?160 ?000 22 ?200\\b"
+          ]
+        }
+      ]
+    },
+    "ne.rentenFaktor": {
+      "label": "Nichterwerbstätige: jährliches Renteneinkommen zählt mit dem Faktor",
+      "unit": "×",
+      "kind": "gesetz",
+      "values": {
+        "2025": 20
+      },
+      "sources": [
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:mit 20 multiplizierte jährliche Rentenbetrag"
+          ]
+        },
+        {
+          "id": "ahv-mb-203",
+          "match": [
+            "re:20-fachen|mit 20 multiplizierte"
+          ]
+        }
+      ]
+    },
+    "s3a.maxMitPK": {
+      "label": "Säule 3a: Höchstbetrag mit Pensionskasse",
+      "unit": "CHF/Jahr",
+      "kind": "gesetz",
+      "values": {
+        "2025": 7258,
+        "2026": 7258,
+        "2027": 7373
+      },
+      "sources": [
+        {
+          "id": "estv-3a",
+          "years": [
+            2026,
+            2027
+          ],
+          "match": [
+            "re:mit\\\\u003C/strong> 2\\. Säule.{0,200}?\"7373\",.{0,150}?\"7258\""
+          ]
+        },
+        {
+          "id": "bsv-3a",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:höchstens aber 7258 Franken"
+          ]
+        },
+        {
+          "id": "vz-3a",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:2026 beträgt der Maximalbetrag für Erwerbstätige 7258 Franken"
+          ]
+        },
+        {
+          "id": "bsv-betraege-2026",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:bei Zugehörigkeit zu einer Vorsorgeeinrichtung 7258 Fr"
+          ]
+        },
+        {
+          "id": "estv-3a-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:beträgt neu 7373 Franken"
+          ]
+        },
+        {
+          "id": "bsv-betraege-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:bei Zugehörigkeit zu einer\\s+Vorsorgeeinrichtung 7373 Fr"
+          ]
+        }
+      ]
+    },
+    "bvg.minAlter": {
+      "label": "Frühestes Alter für die PK-Altersleistung (Reglement)",
+      "unit": "Jahre",
+      "kind": "gesetz",
+      "values": {
+        "2025": 58
+      },
+      "sources": [
+        {
+          "id": "fedlex-bvv2",
+          "match": [
+            "re:frühestens ab dem vollendeten 58\\. Altersjahr"
+          ]
+        },
+        {
+          "id": "bsv-bvg",
+          "match": [
+            "re:frühestens ab dem 58\\. Altersjahr"
+          ]
+        }
+      ]
+    },
+    "vorsorge.bezugJahreVorRef": {
+      "label": "Säule 3a und Freizügigkeit: Bezug frühestens … Jahre vor dem Referenzalter",
+      "unit": "Jahre",
+      "kind": "gesetz",
+      "values": {
+        "2025": 5
+      },
+      "sources": [
+        {
+          "id": "fedlex-bvv3",
+          "match": [
+            "re:frühestens fünf Jahre vor Erreichen des Referenzalters"
+          ]
+        },
+        {
+          "id": "fedlex-fzv",
+          "match": [
+            "re:frühestens fünf Jahre vor Erreichen des Referenzalters"
+          ]
+        },
+        {
+          "id": "bsv-3a",
+          "match": [
+            "re:frühestens mit 60"
+          ]
+        }
+      ]
+    },
+    "le65.m": {
+      "label": "Lebenserwartung mit 65, Männer (BFS, 2025)",
+      "unit": "Jahre",
+      "kind": "statistik",
+      "values": {
+        "2026": 20.7
+      },
+      "sources": [
+        {
+          "id": "bfs-2025-def",
+          "match": [
+            "re:\\b2025 [^\\n]{0,90} 20\\.7 23\\.2\\b"
+          ]
+        },
+        {
+          "id": "bfs-2025-prov",
+          "match": [
+            "re:Lebenserwartung im Alter von 65 Jahren[^\\n]{0,120}lag bei 23,2 bzw\\. 20,7 Jahren"
+          ]
+        }
+      ]
+    },
+    "le65.w": {
+      "label": "Lebenserwartung mit 65, Frauen (BFS, 2025)",
+      "unit": "Jahre",
+      "kind": "statistik",
+      "values": {
+        "2026": 23.2
+      },
+      "sources": [
+        {
+          "id": "bfs-2025-def",
+          "match": [
+            "re:\\b2025 [^\\n]{0,90} 20\\.7 23\\.2\\b"
+          ]
+        },
+        {
+          "id": "bfs-2025-prov",
+          "match": [
+            "re:Lebenserwartung im Alter von 65 Jahren[^\\n]{0,120}lag bei 23,2 bzw\\. 20,7 Jahren"
+          ]
+        }
+      ]
+    },
+    "kk.praemieErw": {
+      "label": "Krankenkasse: mittlere Monatsprämie für Erwachsene (BAG)",
+      "unit": "CHF/Monat",
+      "kind": "statistik",
+      "note": "Grundversicherung, Mittel über alle Kantone, Versicherer und Modelle. Daraus leitet sich der Richtwert «Krankenkasse» der Fixkosten ab (pro erwachsene Person, gerundet).",
+      "values": {
+        "2026": 465.3,
+        "2027": 487.6
+      },
+      "sources": [
+        {
+          "id": "bag-praemien-2026",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Erwachsene steigt die mittlere Monatsprämie für die Krankenkasse.{0,80}auf 465[.,]30 Franken"
+          ]
+        },
+        {
+          "id": "admin-praemien-2026",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Erwachsene steigt die mittlere Monatsprämie für die Krankenkasse.{0,80}auf 465[.,]30 Franken"
+          ]
+        },
+        {
+          "id": "bag-praemien-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:Erwachsene steigt die mittlere Monatsprämie für die Krankenkasse.{0,80}auf 487[.,]60 Franken"
+          ]
+        },
+        {
+          "id": "admin-praemien-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:Erwachsene steigt die mittlere Monatsprämie für die Krankenkasse.{0,80}auf 487[.,]60 Franken"
+          ]
+        },
+        {
+          "id": "srf-praemien-2026",
+          "years": [
+            2026
+          ],
+          "match": [
+            "re:Für Erwachsene steigt sie nächstes Jahr.{0,60}auf Fr\\. 465\\.30"
+          ]
+        },
+        {
+          "id": "srf-praemien-2027",
+          "years": [
+            2027
+          ],
+          "match": [
+            "re:Für Erwachsene steigt sie nächstes Jahr.{0,60}auf Fr\\. 487\\.60"
+          ]
+        }
+      ]
+    }
+  },
+  "tables": {
+    "referenzalter": {
+      "label": "AHV-Referenzalter (AHV 21, Übergangsjahrgänge Frauen)",
+      "kind": "gesetz",
+      "sources": [
+        {
+          "id": "fedlex-ahvg",
+          "match": [
+            "re:64 Jahren und drei Monaten für Frauen mit Jahrgang 1961",
+            "re:65 Jahren für Frauen ab Jahrgang 1964"
+          ]
+        },
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:64 Jahre \\+ 6 Monate 1962"
+          ]
+        }
+      ],
+      "data": {
+        "m": 65,
+        "w": [
+          [
+            1900,
+            64
+          ],
+          [
+            1961,
+            64.25
+          ],
+          [
+            1962,
+            64.5
+          ],
+          [
+            1963,
+            64.75
+          ],
+          [
+            1964,
+            65
+          ]
+        ]
+      }
+    },
+    "ahv.uebergang": {
+      "label": "Frauen der Übergangsgeneration (Jahrgänge 1961–1969): reduzierte Kürzungssätze beim Vorbezug, Rentenzuschlag ohne Vorbezug",
+      "kind": "gesetz",
+      "note": "Art. 40c AHVG (Vorbezug ab dem vollendeten 62. Altersjahr, Kürzungssätze für ganze Jahre) und Art. 56quater AHVV (Kürzungssätze nach Monaten). Bänder nach massgebendem durchschnittlichem Jahreseinkommen: bis zur vierfachen bzw. fünffachen minimalen jährlichen Altersrente (48 bzw. 60 Monatsrenten), darüber; Sätze in Prozent für 1, 2 und 3 Jahre Vorbezug. Im Tool wird der heutige Bruttolohn als massgebendes Einkommen verwendet; gerechnet wird in ganzen Jahren. Rentenzuschlag (Art. 34bis AHVG): Grundzuschlag 160, 100 oder 50 Franken pro Monat nach denselben Einkommensbändern, abgestuft nach Jahrgang, gekürzt mit der Rentenskala und auf den Franken aufgerundet; er wird nicht plafoniert, nicht an die Teuerung angepasst und zählt nicht für die 13. Altersrente.",
+      "sources": [
+        {
+          "id": "fedlex-ahvg",
+          "match": [
+            "re:Art\\. 40 ?c Kürzungssätze für Frauen der Übergangsgeneration",
+            "re:ab dem vollendeten 62\\. Altersjahr vorbeziehen",
+            "re:fünffachen minimalen jährlichen Altersrente nach Art\\. 34\\s+1\\s+0\\s+2,5\\s+3,5\\s+2\\s+2\\s+4,5\\s+6,5\\s+3\\s+3\\s+6,5\\s+10,5(?![\\d,])",
+            "re:tiefer als oder gleich hoch wie der Betrag der vierfachen minimalen jährlichen Altersrente nach Artikel 34, so beträgt der Grundzuschlag 160 Franken pro Monat",
+            "re:aber tiefer als oder gleich hoch wie der Betrag der fünffachen minimalen jährlichen Altersrente nach Artikel 34, so beträgt der Grundzuschlag 100 Franken pro Monat",
+            "re:höher als der Betrag der fünffachen minimalen jährlichen Altersrente nach Artikel 34, so beträgt der Grundzuschlag 50 Franken pro Monat",
+            "re:Frauen mit Jahrgang 1961\\s+25\\s+Frauen mit Jahrgang 1962\\s+50\\s+Frauen mit Jahrgang 1963\\s+75\\s+Frauen mit Jahrgang 1964\\s+100\\s+Frauen mit Jahrgang 1965\\s+100\\s+Frauen mit Jahrgang 1966\\s+81\\s+Frauen mit Jahrgang 1967\\s+63\\s+Frauen mit Jahrgang 1968\\s+44\\s+Frauen mit Jahrgang 1969\\s+25\\b"
+          ]
+        },
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:56\\s*quater.{0,80}Kürzung beim Rentenvorbezug durch Frauen der Übergangsgeneration",
+            "re:1,7\\s+1,8\\s+2\\s+2,0\\s+2,1.{0,80}?2,8\\s+2,9\\s+3\\s+3,0\\s+b\\.",
+            "re:2,1\\s+2,3\\s+1\\s+2,5\\s+2,7.{0,120}?4,2\\s+4,3\\s+2\\s+4,5\\s+4,7.{0,120}?6,2\\s+6,3\\s+3\\s+6,5\\s+c\\.",
+            "re:2,9\\s+3,2\\s+1\\s+3,5\\s+3,8.{0,120}?6,0\\s+6,3\\s+2\\s+6,5\\s+6,8.{0,120}?9,8\\s+10,2\\s+3\\s+10,5(?![\\d,])"
+          ]
+        },
+        {
+          "id": "ahv-mb-304",
+          "match": [
+            "re:Frauen der Übergangsgeneration \\(Jahrgang 1961 - 1969\\)"
+          ]
+        },
+        {
+          "id": "bsv-vorbezug-2027",
+          "match": [
+            "re:6\\.3\\.2 Ausgleichsmassnahmen: reduzierte Kürzungssätze für Frauen der Übergangsgeneration\\s+\\(Jahrgänge 1961.1969\\) bei Rentenvorbezug\\s+Einkommen bis \\(48 \\* R0\\)\\s+Monate Anzahl Vorbezugsjahre\\s+0 1 2 3\\s+0 0,0 0,0 2,0 3,0\\s",
+            "re:Einkommen zwischen \\(48 \\* R0 \\+ 1\\) und \\(60 \\* R0\\)\\s+Monate Anzahl Vorbezugsjahre\\s+0 1 2 3\\s+0 0,0 2,5 4,5 6,5\\s",
+            "re:Einkommen über \\(60 \\* R0\\)\\s+Monate Anzahl Vorbezugsjahre\\s+0 1 2 3\\s+0 0,0 3,5 6,5 10,5\\s",
+            "re:zugehöriger Faktor \\(c\\)\\s+1961 0\\.25\\s+1962 0\\.50\\s+1963 0\\.75\\s+1964 1\\s+1965 1\\s+1966 0\\.81\\s+1967 0\\.63\\s+1968 0\\.44\\s+1969 0\\.25\\b",
+            "re:Rentenzuschlag unterliegt nicht der Plafonierung von verheirateten Personen"
+          ]
+        },
+        {
+          "id": "vz-ahv",
+          "match": [
+            "re:zwischen 1961 und 1969 geborene Frau.{0,120}gar nicht, nur um 2,5 Prozent oder nur um 3,5 Prozent"
+          ]
+        }
+      ],
+      "data": {
+        "jahrgaenge": [
+          1961,
+          1969
+        ],
+        "maxJahre": 3,
+        "baender": [
+          48,
+          60
+        ],
+        "saetze": [
+          [
+            0,
+            2,
+            3
+          ],
+          [
+            2.5,
+            4.5,
+            6.5
+          ],
+          [
+            3.5,
+            6.5,
+            10.5
+          ]
+        ],
+        "zuschlag": {
+          "betraege": [
+            160,
+            100,
+            50
+          ],
+          "faktor": {
+            "1961": 0.25,
+            "1962": 0.5,
+            "1963": 0.75,
+            "1964": 1,
+            "1965": 1,
+            "1966": 0.81,
+            "1967": 0.63,
+            "1968": 0.44,
+            "1969": 0.25
+          }
+        }
+      }
+    },
+    "neTabelle": {
+      "label": "Beitragstabelle Nichterwerbstätige (Art. 28 AHVV): Stufen à CHF 50'000",
+      "kind": "gesetz",
+      "byYear": true,
+      "note": "Ab der Mindestgrenze steigt der Beitrag pro CHF 50'000 Vermögen (inkl. 20-faches Renteneinkommen) zuerst um «schritt1», ab «grenze2» um «schritt2», höchstens bis zum Höchstbeitrag.",
+      "sources": [
+        {
+          "id": "ahv-mb-203",
+          "match": [
+            "re:ab CHF 350 ?000\\.00\\s*636\\.00",
+            "re:1 ?750 ?000\\.00 3 ?604\\.00",
+            "re:erhöht sich der Beitrag um 159 Franken pro Jahr"
+          ]
+        },
+        {
+          "id": "bsv-ne-2027",
+          "match": [
+            "re:360 ?000\\s*657\\.20\\s*106\\.00",
+            "re:1 ?760 ?000 3 ?625\\.20\\s*159\\.00"
+          ]
+        },
+        {
+          "id": "fedlex-ahvv",
+          "match": [
+            "re:ab\\s+1 ?750 ?000\\s+2 ?958\\s+130\\.50"
+          ]
+        }
+      ],
+      "data": {
+        "2025": {
+          "start": 636,
+          "schritt1": 106,
+          "grenze2": 1750000,
+          "schritt2": 159
+        },
+        "2027": {
+          "start": 657.2,
+          "schritt1": 106,
+          "grenze2": 1760000,
+          "schritt2": 159
+        }
+      }
+    },
+    "kapSteuer": {
+      "label": "Steuer auf Kapitalbezügen aus Vorsorge, Kantonshauptorte, inkl. Bund, ohne Kirchensteuer",
+      "kind": "amtlich",
+      "note": "Amtliche Steuerbelastungsstatistik der ESTV (lediger bzw. verheirateter Mann, Auszahlung mit 65, ohne Konfession), wird täglich automatisch abgeglichen. Der tägliche Abgleich vergleicht die Tabelle mit derselben ESTV-Schnittstelle, aus der sie stammt: Er erkennt Änderungen bei der ESTV, ist aber keine unabhängige zweite Quelle. Neue Werte werden nur nach einer Plausibilitätsprüfung und über einen Pull Request übernommen. Zwischen den Stützstellen linear interpoliert, darüber linear fortgeschrieben. Bundessteuer = ein Fünftel des ordentlichen Tarifs (Art. 38 DBG).",
+      "sources": [
+        {
+          "id": "estv-kapital",
+          "match": [
+            "api"
+          ]
+        },
+        {
+          "id": "fedlex-dbg",
+          "match": [
+            "re:zu einem Fünftel der Tarife nach Artikel 36"
+          ]
+        },
+        {
+          "id": "estv-58c-2026",
+          "match": [
+            "re:Kapitalleistungen aus Vorsorge"
+          ]
+        }
+      ],
+      "data": {
+        "steuerjahr": 2026,
+        "stuetzstellen": [
+          20000,
+          50000,
+          100000,
+          150000,
+          200000,
+          300000,
+          500000,
+          750000,
+          1000000
+        ],
+        "kantone": {
+          "AG": {
+            "ort": "Aarau",
+            "ledig": [
+              405,
+              1504,
+              4679,
+              8512,
+              12734,
+              21642,
+              39899,
+              62916,
+              85233
+            ],
+            "verheiratet": [
+              398,
+              1036,
+              3209,
+              6530,
+              10660,
+              19169,
+              36749,
+              59053,
+              81795
+            ]
+          },
+          "AI": {
+            "ort": "Appenzell",
+            "ledig": [
+              224,
+              1190,
+              3311,
+              5880,
+              8661,
+              14341,
+              25701,
+              39901,
+              53400
+            ],
+            "verheiratet": [
+              152,
+              725,
+              2583,
+              4920,
+              7924,
+              13906,
+              25376,
+              39476,
+              53400
+            ]
+          },
+          "AR": {
+            "ort": "Herisau",
+            "ledig": [
+              1487,
+              3780,
+              7937,
+              12515,
+              17381,
+              27421,
+              49543,
+              80809,
+              111374
+            ],
+            "verheiratet": [
+              1110,
+              2817,
+              5913,
+              9408,
+              13476,
+              21626,
+              39458,
+              64458,
+              89282
+            ]
+          },
+          "BE": {
+            "ort": "Bern",
+            "ledig": [
+              594,
+              1749,
+              4628,
+              8078,
+              12069,
+              20889,
+              41259,
+              68809,
+              96154
+            ],
+            "verheiratet": [
+              587,
+              1509,
+              3801,
+              6995,
+              10884,
+              19207,
+              37660,
+              63747,
+              90903
+            ]
+          },
+          "BL": {
+            "ort": "Liestal",
+            "ledig": [
+              667,
+              1730,
+              3837,
+              6365,
+              9181,
+              15121,
+              33601,
+              64951,
+              95600
+            ],
+            "verheiratet": [
+              660,
+              1691,
+              3663,
+              6032,
+              8976,
+              14876,
+              33276,
+              64526,
+              95600
+            ]
+          },
+          "BS": {
+            "ort": "Basel",
+            "ledig": [
+              607,
+              1830,
+              5287,
+              10165,
+              15331,
+              25971,
+              47251,
+              73851,
+              99750
+            ],
+            "verheiratet": [
+              600,
+              1791,
+              5113,
+              9832,
+              15126,
+              25726,
+              46926,
+              73426,
+              99750
+            ]
+          },
+          "FR": {
+            "ort": "Fribourg",
+            "ledig": [
+              367,
+              980,
+              3237,
+              6815,
+              11581,
+              23221,
+              46501,
+              75601,
+              104000
+            ],
+            "verheiratet": [
+              0,
+              761,
+              2703,
+              5942,
+              10656,
+              22076,
+              45276,
+              74276,
+              103100
+            ]
+          },
+          "GE": {
+            "ort": "Genève",
+            "ledig": [
+              41,
+              1263,
+              4125,
+              7570,
+              11447,
+              19687,
+              37051,
+              59304,
+              81069
+            ],
+            "verheiratet": [
+              0,
+              382,
+              2728,
+              5775,
+              9553,
+              17288,
+              33478,
+              54493,
+              76101
+            ]
+          },
+          "GL": {
+            "ort": "Glarus",
+            "ledig": [
+              989,
+              2534,
+              5445,
+              8777,
+              12397,
+              19945,
+              35041,
+              53911,
+              72080
+            ],
+            "verheiratet": [
+              982,
+              2495,
+              5271,
+              8444,
+              12192,
+              19700,
+              34716,
+              53486,
+              72080
+            ]
+          },
+          "GR": {
+            "ort": "Chur",
+            "ledig": [
+              547,
+              1430,
+              3237,
+              5465,
+              7981,
+              13321,
+              28501,
+              44101,
+              59000
+            ],
+            "verheiratet": [
+              540,
+              1391,
+              3063,
+              5132,
+              7776,
+              13076,
+              23676,
+              43676,
+              59000
+            ]
+          },
+          "JU": {
+            "ort": "Delémont",
+            "ledig": [
+              1052,
+              2693,
+              6174,
+              10835,
+              16038,
+              26753,
+              48183,
+              74971,
+              101057
+            ],
+            "verheiratet": [
+              855,
+              2179,
+              5050,
+              8729,
+              13110,
+              21885,
+              39435,
+              61373,
+              83134
+            ]
+          },
+          "LU": {
+            "ort": "Luzern",
+            "ledig": [
+              297,
+              1066,
+              3553,
+              6461,
+              9657,
+              16357,
+              29757,
+              46507,
+              62556
+            ],
+            "verheiratet": [
+              290,
+              1027,
+              3379,
+              6128,
+              9452,
+              16112,
+              29432,
+              46082,
+              62556
+            ]
+          },
+          "NE": {
+            "ort": "Neuchâtel",
+            "ledig": [
+              952,
+              2443,
+              5676,
+              10110,
+              15009,
+              24040,
+              42276,
+              65249,
+              87519
+            ],
+            "verheiratet": [
+              945,
+              2404,
+              5088,
+              8170,
+              12783,
+              22541,
+              41509,
+              63978,
+              86625
+            ]
+          },
+          "NW": {
+            "ort": "Stans",
+            "ledig": [
+              503,
+              1321,
+              3572,
+              6416,
+              9396,
+              15447,
+              27546,
+              42671,
+              57095
+            ],
+            "verheiratet": [
+              496,
+              1282,
+              2843,
+              5351,
+              8568,
+              15147,
+              27217,
+              42242,
+              57091
+            ]
+          },
+          "OW": {
+            "ort": "Sarnen",
+            "ledig": [
+              1031,
+              2640,
+              5656,
+              9094,
+              12819,
+              20579,
+              36097,
+              55495,
+              74192
+            ],
+            "verheiratet": [
+              1024,
+              2601,
+              5482,
+              8761,
+              12614,
+              20334,
+              35772,
+              55070,
+              74192
+            ]
+          },
+          "SG": {
+            "ort": "St. Gallen",
+            "ledig": [
+              1076,
+              2753,
+              5883,
+              9434,
+              13273,
+              21259,
+              37231,
+              57196,
+              76460
+            ],
+            "verheiratet": [
+              972,
+              2471,
+              5223,
+              8372,
+              12096,
+              19556,
+              34476,
+              53126,
+              71600
+            ]
+          },
+          "SH": {
+            "ort": "Schaffhausen",
+            "ledig": [
+              184,
+              957,
+              3079,
+              5735,
+              8809,
+              14665,
+              26242,
+              40712,
+              54482
+            ],
+            "verheiratet": [
+              63,
+              602,
+              2173,
+              4513,
+              7556,
+              13755,
+              25917,
+              40287,
+              54482
+            ]
+          },
+          "SO": {
+            "ort": "Solothurn",
+            "ledig": [
+              201,
+              1750,
+              5026,
+              9004,
+              13275,
+              22125,
+              38851,
+              59626,
+              79700
+            ],
+            "verheiratet": [
+              0,
+              867,
+              3805,
+              7344,
+              11515,
+              20325,
+              37945,
+              59202,
+              79701
+            ]
+          },
+          "SZ": {
+            "ort": "Schwyz",
+            "ledig": [
+              150,
+              525,
+              1926,
+              4443,
+              7925,
+              16550,
+              31876,
+              49164,
+              65750
+            ],
+            "verheiratet": [
+              143,
+              398,
+              1280,
+              2805,
+              5294,
+              11355,
+              27175,
+              48739,
+              65750
+            ]
+          },
+          "TG": {
+            "ort": "Frauenfeld",
+            "ledig": [
+              1212,
+              3092,
+              6561,
+              10451,
+              14629,
+              23293,
+              40621,
+              62281,
+              83240
+            ],
+            "verheiratet": [
+              1004,
+              2551,
+              5383,
+              8612,
+              12416,
+              20036,
+              35276,
+              54326,
+              73200
+            ]
+          },
+          "TI": {
+            "ort": "Bellinzona",
+            "ledig": [
+              779,
+              2010,
+              4397,
+              7205,
+              10301,
+              16801,
+              35342,
+              60526,
+              80900
+            ],
+            "verheiratet": [
+              772,
+              1971,
+              4223,
+              6872,
+              10096,
+              16556,
+              29476,
+              45626,
+              77019
+            ]
+          },
+          "UR": {
+            "ort": "Altdorf",
+            "ledig": [
+              737,
+              1904,
+              4185,
+              6887,
+              9877,
+              16165,
+              28741,
+              44461,
+              59480
+            ],
+            "verheiratet": [
+              730,
+              1865,
+              4011,
+              6554,
+              9672,
+              15920,
+              28416,
+              44036,
+              59480
+            ]
+          },
+          "VD": {
+            "ort": "Lausanne",
+            "ledig": [
+              449,
+              1671,
+              4589,
+              8402,
+              12710,
+              22190,
+              41947,
+              66643,
+              90638
+            ],
+            "verheiratet": [
+              312,
+              1327,
+              3644,
+              6760,
+              10803,
+              19391,
+              37881,
+              62419,
+              86840
+            ]
+          },
+          "VS": {
+            "ort": "Sion",
+            "ledig": [
+              847,
+              2180,
+              4737,
+              7715,
+              10991,
+              20145,
+              43921,
+              77101,
+              103000
+            ],
+            "verheiratet": [
+              823,
+              2099,
+              4479,
+              7256,
+              10618,
+              19602,
+              42927,
+              75476,
+              101400
+            ]
+          },
+          "ZG": {
+            "ort": "Zug",
+            "ledig": [
+              267,
+              860,
+              2734,
+              5445,
+              8171,
+              14653,
+              28253,
+              45253,
+              61552
+            ],
+            "verheiratet": [
+              260,
+              691,
+              1921,
+              3836,
+              6771,
+              13861,
+              27381,
+              44281,
+              61005
+            ]
+          },
+          "ZH": {
+            "ort": "Zürich",
+            "ledig": [
+              863,
+              2220,
+              4817,
+              7835,
+              11141,
+              18061,
+              35068,
+              69702,
+              109542
+            ],
+            "verheiratet": [
+              856,
+              2181,
+              4643,
+              7502,
+              10936,
+              17816,
+              31576,
+              48776,
+              80652
+            ]
+          }
+        },
+        "abgerufen": "2026-11-13"
+      }
+    },
+    "vermSteuer": {
+      "label": "Vermögenssteuer, Kantonshauptorte, Kanton und Gemeinde, ohne Kirchensteuer",
+      "kind": "amtlich",
+      "note": "Amtliche Steuerbelastungsstatistik der ESTV («Rentner/in, ledig» bzw. «Verheiratet, eine Rente», ohne Konfession): Kantons- und Gemeindesteuer auf dem Reinvermögen, ohne Personalsteuer; der Bund erhebt keine Vermögenssteuer. Wird täglich automatisch abgeglichen. Der Abgleich vergleicht die Tabelle mit derselben ESTV-Schnittstelle, aus der sie stammt: Er erkennt Änderungen bei der ESTV, ist aber keine unabhängige zweite Quelle. Neue Werte werden nur nach einer Plausibilitätsprüfung und über einen Pull Request übernommen. Zwischen den Stützstellen linear interpoliert, darüber linear fortgeschrieben. Gilt für den Kantonshauptort; andere Gemeinden haben andere Steuerfüsse. Im Formular lässt sich stattdessen ein eigener Satz in Promille erfassen.",
+      "sources": [
+        {
+          "id": "estv-vermoegen",
+          "match": [
+            "api"
+          ]
+        }
+      ],
+      "data": {
+        "steuerjahr": 2026,
+        "stuetzstellen": [
+          25000,
+          50000,
+          75000,
+          100000,
+          150000,
+          200000,
+          250000,
+          300000,
+          400000,
+          500000,
+          750000,
+          1000000,
+          5000000,
+          10000000
+        ],
+        "kantone": {
+          "AG": {
+            "ort": "Aarau",
+            "ledig": [
+              0,
+              0,
+              0,
+              0,
+              27,
+              97,
+              175,
+              274,
+              496,
+              754,
+              1527,
+              2323,
+              15059,
+              30979
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              56,
+              215,
+              424,
+              1113,
+              1909,
+              14645,
+              30565
+            ]
+          },
+          "AI": {
+            "ort": "Appenzell",
+            "ledig": [
+              0,
+              0,
+              57,
+              114,
+              228,
+              342,
+              456,
+              570,
+              798,
+              1026,
+              1596,
+              2166,
+              11286,
+              22686
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              114,
+              228,
+              342,
+              456,
+              684,
+              912,
+              1482,
+              2052,
+              11172,
+              22572
+            ]
+          },
+          "AR": {
+            "ort": "Herisau",
+            "ledig": [
+              0,
+              0,
+              0,
+              92,
+              278,
+              462,
+              648,
+              832,
+              1231,
+              1637,
+              2655,
+              3673,
+              19953,
+              40303
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              186,
+              370,
+              556,
+              926,
+              1332,
+              2350,
+              3368,
+              19648,
+              39998
+            ]
+          },
+          "BE": {
+            "ort": "Bern",
+            "ledig": [
+              0,
+              0,
+              0,
+              147,
+              305,
+              463,
+              636,
+              817,
+              1178,
+              1596,
+              2724,
+              4027,
+              27630,
+              56437
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              248,
+              405,
+              571,
+              751,
+              1113,
+              1515,
+              2644,
+              3929,
+              27521,
+              56335
+            ]
+          },
+          "BL": {
+            "ort": "Liestal",
+            "ledig": [
+              0,
+              0,
+              0,
+              18,
+              109,
+              200,
+              320,
+              559,
+              1038,
+              1556,
+              2917,
+              4278,
+              26058,
+              53283
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              36,
+              127,
+              218,
+              607,
+              1086,
+              2427,
+              3788,
+              25568,
+              52793
+            ]
+          },
+          "BS": {
+            "ort": "Basel",
+            "ledig": [
+              0,
+              0,
+              0,
+              28,
+              84,
+              282,
+              394,
+              760,
+              1210,
+              2262,
+              3888,
+              5758,
+              37358,
+              76858
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              56,
+              112,
+              338,
+              844,
+              1182,
+              3100,
+              4726,
+              35836,
+              75336
+            ]
+          },
+          "FR": {
+            "ort": "Fribourg",
+            "ledig": [
+              0,
+              0,
+              18,
+              54,
+              225,
+              452,
+              693,
+              918,
+              1368,
+              1926,
+              3357,
+              4932,
+              26100,
+              52200
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              74,
+              322,
+              580,
+              895,
+              1368,
+              1926,
+              3357,
+              4932,
+              26100,
+              52200
+            ]
+          },
+          "GE": {
+            "ort": "Genève",
+            "ledig": [
+              0,
+              0,
+              0,
+              35,
+              179,
+              324,
+              508,
+              699,
+              1142,
+              1638,
+              3019,
+              4546,
+              37360,
+              80246
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              69,
+              214,
+              364,
+              744,
+              1199,
+              2524,
+              3999,
+              36606,
+              79493
+            ]
+          },
+          "GL": {
+            "ort": "Glarus",
+            "ledig": [
+              0,
+              0,
+              0,
+              81,
+              265,
+              450,
+              633,
+              818,
+              1186,
+              1554,
+              2474,
+              3394,
+              18118,
+              36523
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              166,
+              350,
+              534,
+              902,
+              1270,
+              2191,
+              3110,
+              17834,
+              36239
+            ]
+          },
+          "GR": {
+            "ort": "Chur",
+            "ledig": [
+              0,
+              0,
+              10,
+              51,
+              133,
+              237,
+              365,
+              501,
+              800,
+              1133,
+              2084,
+              2849,
+              15089,
+              30389
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              20,
+              100,
+              194,
+              315,
+              589,
+              904,
+              1819,
+              2637,
+              14877,
+              30177
+            ]
+          },
+          "JU": {
+            "ort": "Delémont",
+            "ledig": [
+              0,
+              0,
+              0,
+              168,
+              298,
+              476,
+              655,
+              832,
+              1188,
+              1566,
+              2694,
+              3914,
+              26375,
+              54875
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              221,
+              377,
+              555,
+              733,
+              1089,
+              1445,
+              2568,
+              3768,
+              26215,
+              54715
+            ]
+          },
+          "LU": {
+            "ort": "Luzern",
+            "ledig": [
+              0,
+              0,
+              26,
+              80,
+              190,
+              298,
+              406,
+              516,
+              732,
+              950,
+              1494,
+              2038,
+              10738,
+              21612
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              54,
+              164,
+              272,
+              380,
+              598,
+              816,
+              1360,
+              1904,
+              10604,
+              21478
+            ]
+          },
+          "NE": {
+            "ort": "Neuchâtel",
+            "ledig": [
+              0,
+              0,
+              142,
+              284,
+              567,
+              851,
+              1229,
+              1607,
+              2457,
+              3402,
+              5103,
+              6804,
+              34020,
+              68040
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              22,
+              305,
+              589,
+              872,
+              1156,
+              1752,
+              2508,
+              4544,
+              6804,
+              34020,
+              68040
+            ]
+          },
+          "NW": {
+            "ort": "Stans",
+            "ledig": [
+              0,
+              19,
+              50,
+              80,
+              143,
+              205,
+              266,
+              329,
+              452,
+              576,
+              887,
+              1197,
+              6157,
+              12356
+            ],
+            "verheiratet": [
+              0,
+              0,
+              6,
+              38,
+              99,
+              161,
+              223,
+              285,
+              409,
+              534,
+              844,
+              1153,
+              6113,
+              12313
+            ]
+          },
+          "OW": {
+            "ort": "Sarnen",
+            "ledig": [
+              0,
+              35,
+              72,
+              107,
+              178,
+              249,
+              320,
+              391,
+              534,
+              676,
+              1031,
+              1387,
+              7075,
+              14185
+            ],
+            "verheiratet": [
+              0,
+              0,
+              35,
+              72,
+              142,
+              214,
+              284,
+              356,
+              498,
+              640,
+              995,
+              1351,
+              7039,
+              14149
+            ]
+          },
+          "SG": {
+            "ort": "St. Gallen",
+            "ledig": [
+              0,
+              0,
+              0,
+              104,
+              310,
+              516,
+              723,
+              930,
+              1342,
+              1756,
+              2789,
+              3821,
+              20345,
+              41000
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              206,
+              414,
+              620,
+              1033,
+              1446,
+              2479,
+              3511,
+              20035,
+              40690
+            ]
+          },
+          "SH": {
+            "ort": "Schaffhausen",
+            "ledig": [
+              0,
+              0,
+              36,
+              71,
+              143,
+              215,
+              286,
+              358,
+              500,
+              803,
+              1558,
+              2647,
+              18103,
+              36388
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              71,
+              143,
+              215,
+              286,
+              429,
+              652,
+              1408,
+              2413,
+              17919,
+              36204
+            ]
+          },
+          "SO": {
+            "ort": "Solothurn",
+            "ledig": [
+              0,
+              0,
+              25,
+              65,
+              168,
+              297,
+              411,
+              519,
+              735,
+              951,
+              1491,
+              2031,
+              13872,
+              27912
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              81,
+              189,
+              324,
+              432,
+              648,
+              864,
+              1404,
+              1944,
+              13759,
+              27799
+            ]
+          },
+          "SZ": {
+            "ort": "Schwyz",
+            "ledig": [
+              0,
+              0,
+              0,
+              0,
+              43,
+              129,
+              214,
+              300,
+              471,
+              642,
+              1069,
+              1497,
+              8337,
+              16887
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              86,
+              257,
+              428,
+              855,
+              1283,
+              8123,
+              16673
+            ]
+          },
+          "TG": {
+            "ort": "Frauenfeld",
+            "ledig": [
+              0,
+              0,
+              0,
+              0,
+              138,
+              276,
+              414,
+              552,
+              829,
+              1105,
+              1794,
+              2485,
+              13529,
+              27334
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              138,
+              276,
+              552,
+              829,
+              1518,
+              2209,
+              13253,
+              27058
+            ]
+          },
+          "TI": {
+            "ort": "Bellinzona",
+            "ledig": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              386,
+              579,
+              791,
+              1274,
+              1756,
+              3011,
+              4458,
+              24125,
+              48250
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              540,
+              984,
+              1467,
+              2673,
+              4111,
+              23836,
+              47961
+            ]
+          },
+          "UR": {
+            "ort": "Altdorf",
+            "ledig": [
+              0,
+              0,
+              0,
+              0,
+              85,
+              181,
+              277,
+              373,
+              565,
+              757,
+              1237,
+              1717,
+              9397,
+              18997
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              73,
+              169,
+              361,
+              553,
+              1033,
+              1513,
+              9193,
+              18793
+            ]
+          },
+          "VD": {
+            "ort": "Lausanne",
+            "ledig": [
+              0,
+              0,
+              110,
+              175,
+              372,
+              609,
+              892,
+              1174,
+              1815,
+              2552,
+              4412,
+              6391,
+              38053,
+              77632
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              372,
+              609,
+              892,
+              1174,
+              1815,
+              2552,
+              4412,
+              6391,
+              38053,
+              77632
+            ]
+          },
+          "VS": {
+            "ort": "Sion",
+            "ledig": [
+              0,
+              11,
+              82,
+              197,
+              419,
+              619,
+              861,
+              1071,
+              1566,
+              2102,
+              3524,
+              5014,
+              31217,
+              62717
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              21,
+              214,
+              439,
+              638,
+              882,
+              1367,
+              1894,
+              3215,
+              4778,
+              30933,
+              62433
+            ]
+          },
+          "ZG": {
+            "ort": "Zug",
+            "ledig": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              25,
+              53,
+              108,
+              187,
+              484,
+              917,
+              9757,
+              20807
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              50,
+              238,
+              560,
+              9307,
+              20357
+            ]
+          },
+          "ZH": {
+            "ort": "Zürich",
+            "ledig": [
+              0,
+              0,
+              0,
+              20,
+              74,
+              128,
+              181,
+              234,
+              425,
+              639,
+              1199,
+              2002,
+              23387,
+              55487
+            ],
+            "verheiratet": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              42,
+              95,
+              149,
+              256,
+              466,
+              1002,
+              1745,
+              22873,
+              54973
+            ]
+          }
+        },
+        "abgerufen": "2026-11-14"
+      }
+    },
+    "annahmen": {
+      "label": "Planungsannahmen (keine gesetzlichen Werte)",
+      "kind": "annahme",
+      "note": "Renditen, Sozialabgaben, Umwandlungssatz-Schätzung, Tragbarkeitsrechnung der Banken, Steuerwert der Liegenschaften als Anteil des Verkehrswerts (für die pauschale Vermögenssteuer), Richtwerte für Ausgaben und Fixkosten sowie Musterbudgets. Im Formular anpassbar. Die Musterbudgets sind Beispiele zur Orientierung, keine Statistik, und enthalten keine Steuern. Der Richtwert «Krankenkasse» der Fixkosten steht nicht hier: Er folgt der mittleren Prämie für Erwachsene des BAG (siehe Krankenkasse). In den Musterbudgets kommen Franchise, Selbstbehalt und Zusatzversicherung dazu.",
+      "sources": [],
+      "data": {
+        "sozialabgaben": 0.13,
+        "steuerwertLg": 0.7,
+        "kontoZins": 0.005,
+        "pkWachstum": 0.04,
+        "uws65": 5.4,
+        "uwsProJahr": 0.2,
+        "profile": {
+          "konto": 0.005,
+          "vorsichtig": 0.015,
+          "ausgewogen": 0.03,
+          "dynamisch": 0.04
+        },
+        "tragbarkeit": {
+          "zins": 0.05,
+          "unterhalt": 0.01,
+          "verzehr": 0.05
+        },
+        "erfahrung": {
+          "single": {
+            "bescheiden": 3500,
+            "mittel": 5000,
+            "gehoben": 7500
+          },
+          "paar": {
+            "bescheiden": 5000,
+            "mittel": 7500,
+            "gehoben": 11000
+          }
+        },
+        "musterbudget": {
+          "single": {
+            "bescheiden": {
+              "wohnen": 1250,
+              "kk": 550,
+              "haushalt": 600,
+              "mob": 200,
+              "vers": 250,
+              "freizeit": 300,
+              "pers": 200,
+              "rueck": 150
+            },
+            "mittel": {
+              "wohnen": 1650,
+              "kk": 600,
+              "haushalt": 800,
+              "mob": 400,
+              "vers": 300,
+              "freizeit": 650,
+              "pers": 350,
+              "rueck": 250
+            },
+            "gehoben": {
+              "wohnen": 2300,
+              "kk": 700,
+              "haushalt": 1050,
+              "mob": 600,
+              "vers": 400,
+              "freizeit": 1350,
+              "pers": 600,
+              "rueck": 500
+            }
+          },
+          "paar": {
+            "bescheiden": {
+              "wohnen": 1500,
+              "kk": 1050,
+              "haushalt": 950,
+              "mob": 300,
+              "vers": 350,
+              "freizeit": 450,
+              "pers": 250,
+              "rueck": 150
+            },
+            "mittel": {
+              "wohnen": 2100,
+              "kk": 1150,
+              "haushalt": 1250,
+              "mob": 600,
+              "vers": 450,
+              "freizeit": 1050,
+              "pers": 500,
+              "rueck": 400
+            },
+            "gehoben": {
+              "wohnen": 2900,
+              "kk": 1350,
+              "haushalt": 1600,
+              "mob": 900,
+              "vers": 600,
+              "freizeit": 2100,
+              "pers": 850,
+              "rueck": 700
+            }
+          }
+        },
+        "fixkosten": {
+          "paar": {
+            "miete": 1374,
+            "vers": 155,
+            "komm": 163,
+            "geb": 50,
+            "mob": 350,
+            "ges": 150,
+            "sonst": 0
+          },
+          "single": {
+            "miete": 1100,
+            "vers": 100,
+            "komm": 120,
+            "geb": 50,
+            "mob": 250,
+            "ges": 80,
+            "sonst": 0
+          }
+        }
+      }
+    }
+  },
+  "watch": [
+    {
+      "id": "neue-praemien-bag",
+      "source": "bag-praemien-faq",
+      "pattern": "re:Die mittlere Prämie wird {NEXT}",
+      "message": "Das BAG publiziert die Krankenkassenprämien {NEXT}: mittlere Prämie für Erwachsene in params.json erfassen (kk.praemieErw)."
+    },
+    {
+      "id": "neue-jahreswerte-bsv",
+      "source": "bsv-beitraege",
+      "pattern": "re:ab 1\\.\\s?1\\.\\s?{NEXT}|ab 1\\. Januar {NEXT}",
+      "message": "Das BSV publiziert Beiträge ab {NEXT}: neue Jahreswerte in params.json erfassen."
+    },
+    {
+      "id": "neue-jahreswerte-vz",
+      "source": "vz-ahv",
+      "pattern": "re:\\bab {NEXT}\\b",
+      "message": "Neue AHV-Werte für {NEXT} sind publiziert (VZ): offizielle Werte prüfen und in params.json erfassen."
+    },
+    {
+      "id": "neue-jahreswerte-sva",
+      "source": "sva-zh",
+      "pattern": "re:ab (dem )?1\\. Januar {NEXT}|\\bab {NEXT}\\b",
+      "message": "Die SVA Zürich nennt Renten ab {NEXT}: neue Jahreswerte in params.json erfassen."
+    }
+  ]
+}
