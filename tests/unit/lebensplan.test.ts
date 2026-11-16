@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import params from '../../public/data/params.json';
-import { kaufZiel, lebensplan, planBisJahr } from '../../src/lib/lebensplan';
+import { kaufErfasst, kaufZiel, lebensplan, planBisJahr } from '../../src/lib/lebensplan';
 import { migrate } from '../../src/lib/schema';
 import { analyse } from '../../src/lib/pension/analyse';
 import { createEngine } from '../../src/lib/pension/engine';
@@ -288,5 +288,45 @@ describe('Zweiter Prüflauf: Lebensplan', () => {
     const { S, eintraege } = lebensplan(d, H, 2026);
     expect(S.liegenschaften[1].kaufFremd).toBeUndefined();
     expect(eintraege.find((e) => e.art === 'kauf')!.hinweis).toMatch(/kein Pensionskassenguthaben erfasst/);
+  });
+});
+
+describe('Dritter Prüflauf: Lebensplan', () => {
+  it('ein in 07a nur vorbelegter Kaufpreis ist kein Kauf: Das Ziel bleibt eine Ausgabe (vorher fiel es aus der Rechnung)', () => {
+    const ziele = [{ id: 'r', katId: 'wohnen', typ: 'ziel', insp: 'Renovation / Umbau', name: 'Umbau', jahr: 2030, betrag: 80000 }];
+    const besuch = session({ ziele, finanzierung_data: { inputs: { price: "80'000" }, vorbelegt: ['price'], zielId: 'r' } });
+    expect(kaufErfasst(besuch)).toBe(false);
+    const a = lebensplan(besuch, H0(), 2026);
+    expect(a.eintraege.filter((e) => e.art === 'kauf')).toHaveLength(0);
+    expect(a.eintraege).toContainEqual(expect.objectContaining({ quelle: '06', name: 'Umbau', rechnet: true, abfluss: 80000 }));
+    // mit Eigenmitteln oder einem selbst erfassten Preis ist es ein Kauf
+    expect(kaufErfasst(session({ ziele, finanzierung_data: { inputs: { price: "80'000", cashEquity: 20000 }, vorbelegt: ['price'] } }))).toBe(true);
+    expect(kaufErfasst(session({ ziele, finanzierung_data: { inputs: { price: "80'000" }, vorbelegt: [] } }))).toBe(true);
+    expect(kaufErfasst(session({ ziele, finanzierung_data: { inputs: { price: "80'000" } } }))).toBe(true); // älterer Stand ohne Merker
+  });
+  it('Anlage ohne Liquidität ist vorgemerkt und ändert auch die Rendite nicht (vorher: Rendite umgestellt)', () => {
+    const H = H0({ liquiditaet: 0 });
+    const { S, eintraege } = lebensplan(session({ anlage_betrag: 100000, anlage_konklusion: { finaleStrategie: 'Einkommen' } }), H, 2026);
+    expect(eintraege.find((e) => e.art === 'anlage')!.rechnet).toBe(false);
+    expect(S.renditeOverride).toBe(H.renditeOverride);
+    expect(S.wertschriften).toBe(H.wertschriften);
+  });
+  it('PK-Vorbezug: Die Kürzung rechnet die Teuerung in Monaten ab heute, wie der Kern auszahlt', () => {
+    const d = session({ ziele: [{ id: 'h', katId: 'wohnen', typ: 'ziel', name: 'Haus', jahr: 2027, betrag: 900000 }], finanzierung_data: { inputs: { price: 900000, cashEquity: 100000, pensionWithdraw: 100000 } } });
+    const H = H0({ inflation: 2.5 });
+    const { S } = lebensplan(d, H, 2026, { A0 });
+    const fremd = S.liegenschaften[1].kaufFremd!;
+    // was der Kern im Kaufmonat aus der Pensionskasse auszahlt
+    const r = rechne(S);
+    const zeile = r.base.rows.find((x) => x.year === 2027)!;
+    const monate = 2027 * 12 - A0; // November 2026 → Januar 2027: 2 Monate
+    const erwartet = fremd * Math.pow(1.025, monate / 12);
+    expect(H.personen[0].pkGuthabenPlan as number - (S.personen[0].pkGuthabenPlan as number)).toBeCloseTo(erwartet, 4);
+    expect(erwartet).toBeLessThan(fremd * 1.025); // nicht ein ganzes Jahr
+    expect(zeile).toBeTruthy();
+  });
+  it('Zufluss aus 06 im laufenden Jahr: «sofort», wie gerechnet', () => {
+    const { eintraege } = lebensplan(session({ ziele: [{ id: 'z', katId: 'zufluss', typ: 'zufluss', name: 'Bonus', jahr: 2026, betrag: 10000 }] }), H0(), 2026);
+    expect(eintraege[0].hinweis).toMatch(/Vermögen sofort/);
   });
 });

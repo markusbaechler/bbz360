@@ -36,7 +36,7 @@ import type { PkLeistungen } from '../lib/absicherung';
 import { NACHLASS_THEMEN, STEUER_THEMEN, vorgemerkt } from '../lib/fach-themen';
 import { rechenEingaben } from '../lib/pension/themen';
 import type { Gesamtauswertung } from '../lib/pension/auswertung';
-import { lebensplan, planBisJahr } from '../lib/lebensplan';
+import { kaufErfasst, lebensplan, planBisJahr } from '../lib/lebensplan';
 import type { PlanEintrag } from '../lib/lebensplan';
 import { gemeinsamAusHaushalt, haushaltLesen, vorbelegung } from '../lib/haushalt';
 import type { SessionData } from '../lib/schema';
@@ -102,7 +102,7 @@ function gather(): {
   const anlage = gH ? gH.wertschriften : cd.anlegen?.volumen ?? 0;
   const kpis = [
     { label: 'Bruttoeinkommen p.a.', val: CHF(vorbelegung().einkommen), sub: 'annualisiert' },
-    { label: 'Verpflichtungen p.a.', val: CHF(D.cockpit_verpflichtungen), sub: 'laufend' },
+    { label: 'Verpflichtungen p.a.', val: CHF(vorbelegung().verpflichtungen), sub: 'laufend' },
     { label: 'Liquide Mittel', val: liq > 0 ? CHF(liq) : '–', sub: 'Zahlungs- & Sparkonten' },
     { label: '3. Säule (Säule 3a)', val: s3 > 0 ? CHF(s3) : '–', sub: 'Vorsorge' },
     { label: '2. Säule (PK)', val: CHF(pkSaldo), sub: 'Pensionskasse' },
@@ -118,11 +118,14 @@ function gather(): {
 
   // 07a aus finanzierung_data neu rechnen (Rechenkern)
   let fin: (ReturnType<typeof tragbarkeit> & { price: number }) | null = null;
-  const fd = D.finanzierung_data as { inputs?: Record<string, unknown> } | null;
+  const fd = D.finanzierung_data as { inputs?: Record<string, unknown>; vorbelegt?: unknown } | null;
   if (fd?.inputs) {
-    const n = (k: string): number => parseNum(fd.inputs![k] as string | number | null);
+    // Felder, die in 07a nur vorbelegt und nie geändert wurden, gelten mit dem aktuellen Stand (wie beim nächsten Besuch von 07a)
+    const nurVb = Array.isArray(fd.vorbelegt) ? (fd.vorbelegt as unknown[]) : [];
+    const vb = vorbelegung();
+    const n = (k: string): number => (k === 'income' && nurVb.includes(k) ? vb.einkommen : k === 'obligations' && nurVb.includes(k) ? vb.verpflichtungen : parseNum(fd.inputs![k] as string | number | null));
     const price = n('price');
-    if (price > 0) {
+    if (price > 0 && kaufErfasst(D as unknown as SessionData)) {
       fin = {
         ...tragbarkeit({
           income: n('income'), obligations: n('obligations'), price, cashEquity: n('cashEquity'),
@@ -157,7 +160,7 @@ function rechnePlan(): void {
   const A0 = monthOf(), jahr = Math.floor(A0 / 12), daten = grundlagen as unknown as ParamDatei;
   const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
   const hz = horizon(H, E);
-  const plan = lebensplan(session, H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: planBisJahr(H, hz) });
+  const plan = lebensplan(session, H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: planBisJahr(H, hz), A0 });
   planStatus = 'laeuft';
   planFertig = new Promise<void>((fertig) => {
     const worker = new Worker(new URL('../pension-ui/worker.ts', import.meta.url), { type: 'module' });

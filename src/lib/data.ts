@@ -231,3 +231,18 @@ export const BBZ = {
     }
   },
 };
+
+// Ein Modul liest den Stand beim Laden und schreibt ihn bei der nächsten Eingabe zurück. Zeigt der Browser eine
+// Seite aus seinem Zwischenspeicher wieder an («Zurück»), oder hat ein anderer Tab inzwischen gespeichert, wäre
+// dieser Stand veraltet und die nächste Eingabe würde fremde Änderungen überschreiben (ADR-22). Die Seite wird
+// darum neu geladen: sofort nach «Zurück», bei einem anderen Tab, sobald dieser hier wieder sichtbar wird.
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  let veraltet = false;
+  window.addEventListener('pageshow', (e) => { if ((e as PageTransitionEvent).persisted) window.location.reload(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key !== null && e.key !== STORAGE_KEY) return;
+    if (document.visibilityState === 'visible') return; // der sichtbare Tab ist der, in dem gearbeitet wird
+    veraltet = true;
+  });
+  document.addEventListener('visibilitychange', () => { if (veraltet && document.visibilityState === 'visible') window.location.reload(); });
+}

@@ -50,12 +50,13 @@ function preload(): void {
   const d = BBZ.all();
   const setIfEmpty = (id: string, val: number | null | undefined): void => {
     const e = $i(id);
-    if (e && val && !pN(e.value)) e.value = fmt(val);
+    // Vorbelegt, bis jemand das Feld ändert: Solche Werte werden bei jedem Besuch neu aus dem Stand geholt (ADR-22)
+    if (e && val && !pN(e.value)) { e.value = fmt(val); e.dataset.vorbelegt = '1'; }
   };
   // Aus dem aktuellen Stand gerechnet, nicht aus dem gespeicherten Schlüssel (ADR-22)
   const vb = vorbelegung();
   if (vb.einkommen) setIfEmpty('income', vb.einkommen);
-  if (d.cockpit_verpflichtungen) setIfEmpty('obligations', d.cockpit_verpflichtungen);
+  if (vb.verpflichtungen) setIfEmpty('obligations', vb.verpflichtungen);
   if (vb.pkSaldo > 0) {
     const e = $('pk-info-label');
     e.textContent = 'Vorhandenes PK-Guthaben (Cockpit): CHF ' + fmt(Math.round(vb.pkSaldo));
@@ -68,7 +69,7 @@ function preload(): void {
   if (wohnZiel && Number(wohnZiel.betrag) > 0) setIfEmpty('price', Number(wohnZiel.betrag));
   if (typeof d.p1geb === 'string' && d.p1geb) {
     const alter = calcAge(d.p1geb);
-    if (alter && !pN($i('age').value)) $i('age').value = String(alter);
+    if (alter && !pN($i('age').value)) { $i('age').value = String(alter); $i('age').dataset.vorbelegt = '1'; }
   }
 }
 
@@ -99,16 +100,21 @@ function persist(): void {
     inputs,
     variants: S.variants.map((v) => ({ id: v.id, tranches: v.tranches.map((t) => ({ p: t.p, a: t.a })) })),
     rates: { ...S.rates },
+    // Felder, die nur vorbelegt und nie geändert wurden: Sie gelten nicht als erfasst
+    vorbelegt: INPUT_IDS.filter((id) => $i(id).dataset.vorbelegt === '1'),
     // ADR-22: Ziel aus 06, zu dem der Kauf gehört ('-' = ausdrücklich keines)
     zielId: (document.getElementById('zielWahl') as HTMLSelectElement).value,
   });
 }
 function hydrate(): void {
-  const d = BBZ.get('finanzierung_data') as { inputs?: Record<string, unknown>; variants?: Array<{ tranches: Tranche[] }>; rates?: Record<string, number> } | null;
+  const d = BBZ.get('finanzierung_data') as { inputs?: Record<string, unknown>; vorbelegt?: unknown; variants?: Array<{ tranches: Tranche[] }>; rates?: Record<string, number> } | null;
   if (!d || typeof d !== 'object') return;
+  const nurVorbelegt = Array.isArray(d.vorbelegt) ? (d.vorbelegt as unknown[]).map(String) : [];
   if (d.inputs) Object.entries(d.inputs).forEach(([id, val]) => {
     const e = document.getElementById(id) as HTMLInputElement | null;
     if (!e || val === '' || val == null) return;
+    if (nurVorbelegt.includes(id)) return; // nie geändert: Es gilt die frische Vorbelegung aus preload()
+    delete e.dataset.vorbelegt;
     // migrate() normalisiert Beträge zu number (ADR-4) → Betragsfelder formatieren
     e.value = e.classList.contains('ni') && typeof val === 'number' ? fmt(val) : String(val);
   });
@@ -456,6 +462,8 @@ function init(): void {
     const on = document.body.classList.toggle('edit-mode');
     $('editToggle').setAttribute('aria-pressed', String(on));
   });
+  // Eine Eingabe macht aus der Vorbelegung einen erfassten Wert
+  document.addEventListener('input', (e) => { const t = e.target as HTMLElement; if (t && INPUT_IDS.includes(t.id)) delete t.dataset.vorbelegt; }, true);
   preload();
   hydrate(); // persistierte Werte überschreiben Prefills (v1-Reihenfolge)
   renderVariants();

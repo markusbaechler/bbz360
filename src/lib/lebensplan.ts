@@ -72,6 +72,8 @@ export interface PlanOptionen {
   uws65?: number;
   /** Letztes Kalenderjahr der Rechnung (Planungshorizont); spätere Einträge rechnen nicht mit. */
   bisJahr?: number;
+  /** Laufender Monat als Monatsindex (Jahr × 12 + Monat − 1), wie im Rechenkern; ohne Angabe Januar von `heute`. */
+  A0?: number;
 }
 
 const zahl = (v: unknown): number => {
@@ -95,6 +97,16 @@ export function kaufZiel(d: SessionData): Record<string, unknown> | null {
   const id = text(obj(d.finanzierung_data).zielId);
   if (id === '-') return null; // ausdrücklich keinem Ziel zugeordnet
   return (id ? ziele.find((z) => z.id === id) : null) ?? ziele.find((z) => z.katId === 'wohnen' && zahl(z.betrag) > 0) ?? null;
+}
+
+/**
+ * Ist in 07a ein Kauf erfasst? Ein Kaufpreis, der nur aus dem Ziel vorbelegt und nie geändert wurde, zählt erst,
+ * wenn auch Eigenmittel erfasst sind: Der blosse Besuch von 07a macht aus einem Ziel keinen Kauf.
+ */
+export function kaufErfasst(d: SessionData): boolean {
+  const fd = obj(d.finanzierung_data), fin = obj(fd.inputs);
+  const nurVorbelegt = Array.isArray(fd.vorbelegt) && (fd.vorbelegt as unknown[]).includes('price');
+  return zahl(fin.price) > 0 && (!nurVorbelegt || zahl(fin.cashEquity) + zahl(fin.pensionWithdraw) > 0);
 }
 
 /**
@@ -132,7 +144,7 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
   const fd = obj(d.finanzierung_data), fin = obj(fd.inputs);
   const preis = zahl(fin.price), bar = zahl(fin.cashEquity), vorbezug = zahl(fin.pensionWithdraw), miete = zahl(fin.currentRent);
   const zins = zahl(obj(fd.rates)['10J']) || ZINS_10J;
-  const kauf = preis > 0;
+  const kauf = kaufErfasst(d);
   const wohnZiel = kauf ? kaufZiel(d) : null;
   if (kauf) {
     // Eigenmittel zählen höchstens bis zum Kaufpreis (wie im Rechenkern)
@@ -153,7 +165,8 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
       const vorPension = jahr! < jg + p.pensAlter;
       // Der Rechenkern zahlt den Vorbezug in heutiger Kaufkraft aus (× Teuerung bis zum Kauf); um denselben,
       // teuerungsbereinigten Betrag sinkt das Guthaben.
-      const teuerung = Math.pow(1 + (+S.inflation || 0) / 100, Math.max(0, jahr! - heute));
+      // … gerechnet in Monaten ab heute bis zum Januar des Kaufjahrs, wie der Kern
+      const teuerung = Math.pow(1 + (+S.inflation || 0) / 100, Math.max(0, jahr! * 12 - (opt.A0 ?? heute * 12)) / 12);
       const fremd = vorPension && G > 0 ? Math.min(vorbezug, eigen, G / teuerung) : 0;
       if (fremd > 0) {
         const f = Math.max(0, 1 - (fremd * teuerung) / G);
@@ -199,7 +212,7 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
         zufluesse.push({ name: name.slice(0, 60), betrag, jahr: jahr! });
         rechnet = true;
         abfluss = -betrag;
-        hinweis = `Einmaliger Zufluss ins freie Vermögen im Januar ${jahr}, in heutiger Kaufkraft; ohne Erbschafts- oder Schenkungssteuer.${eintritt}`;
+        hinweis = `Einmaliger Zufluss ins freie Vermögen ${jahr === heute ? 'sofort' : `im Januar ${jahr}`}, in heutiger Kaufkraft; ohne Erbschafts- oder Schenkungssteuer.${eintritt}`;
       }
     } else if (S.wuensche.length + neu.length >= MAX_WUENSCHE) hinweis = 'Vorgemerkt: Höchstzahl der Ausgaben im Rechenkern erreicht.';
     else {
@@ -231,7 +244,9 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
     S.wertschriften += um;
     const strat = STRATS.find((s) => s.name === strategie);
     let rendite = '';
-    if (strat && S.renditeOverride === '') { S.renditeOverride = strat.yield; rendite = ` Erwartete Rendite ${strat.yield}% (Annahme aus 07b) für alle Wertschriften.`; }
+    // Die Rendite der Strategie gilt nur, wenn die Anlage auch rechnet
+    if (um <= 0) rendite = '';
+    else if (strat && S.renditeOverride === '') { S.renditeOverride = strat.yield; rendite = ` Erwartete Rendite ${strat.yield}% (Annahme aus 07b) für alle Wertschriften.`; }
     else if (S.renditeOverride !== '') rendite = ` Es gilt die in der Pensionierung erfasste Rendite von ${S.renditeOverride}%.`;
     eintraege.push({
       quelle: '07b', art: 'anlage', name: `Anlage «${strategie}»`, jahr: heute, alter: alterIn(heute), betrag: anlage, rechnet: um > 0, abfluss: 0,

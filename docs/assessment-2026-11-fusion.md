@@ -1,6 +1,6 @@
 # Assessment der Fusion PensCheck → bbz360
 
-Stand: 2026-11-16 · Geprüfter Commit: `446225f` (Branch `claude/loving-albattani-efae2x`) · Status: **Befunde des ersten und zweiten Prüflaufs behoben (siehe am Ende); dritter Prüflauf siehe dort**
+Stand: 2026-11-16 · Geprüfter Commit: `446225f` (Branch `claude/loving-albattani-efae2x`) · Status: **Befunde aller drei Prüfläufe behoben (siehe am Ende)**
 
 ## Urteil
 
@@ -347,3 +347,34 @@ keine HTML-Injektion; Portvergleich: 23 von 32 Dateien identisch, die übrigen 9
 | Kontrast | blasse Schrift auf den bestehenden Seiten, fehlendes Label | axe auf 19 Seiten: 0 Verstösse |
 
 Regeln dazu: ADR-22, Nachtrag (Punkte 12–23) und die ergänzten Grenzen.
+
+
+---
+
+## Dritter Prüflauf (2026-11-16, Commit `604ca88`)
+
+Zwei unabhängige Prüfer (Datenfluss; Rechnung und Fachlogik), mit Blick darauf, ob die Korrekturen des zweiten Laufs
+selbst Fehler eingeführt haben.
+
+**Hält:** Kern bit-gleich zum PensCheck (1302 Läufe); Jahresbilanz geht auf, auch in 250 zufälligen Lebensplänen;
+die Liste des Lebensplans stimmt mit den Ereignissen des Kerns überein; Horizont; 400 Zufallsfälle Absicherung und
+Budget ohne NaN; Erbrecht; 07 gegen 10; Eingabefelder 07d–07f. **Kein Befund der Klasse A in der Rechnung.**
+
+**Gefunden: 11 Befunde**, alle behoben, je mit Test:
+
+| Bereich | Befund | Test |
+|---|---|---|
+| Datenfluss | «Zurück» im Browser zeigt ein Modul mit altem Stand; die nächste Eingabe überschreibt fremde Änderungen | Skript mit eingeschaltetem Zwischenspeicher (ausserhalb der Suite: Playwright schaltet ihn sonst ab) |
+| Datenfluss | 07a fror Vorbelegungen beim ersten Besuch ein; Abschluss rechnete mit alten Werten | `pruef2.spec.ts` |
+| Datenfluss | Cockpit: nach «Einzelperson → Paar» kürzte das nächste Speichern 3a/PK von Person 1 (Folge der Korrektur aus Lauf 2) | `pruef2.spec.ts` |
+| Datenfluss | Import liess die Verpflichtungen des alten Falls stehen | `pruef2.spec.ts` |
+| Lebensplan | blosser Besuch von 07a machte aus einem Wohnen-Ziel einen Kauf | `lebensplan.test.ts`, `pruef2.spec.ts` |
+| Lebensplan | Anlage ohne Liquidität: vorgemerkt, Rendite trotzdem umgestellt | `lebensplan.test.ts` |
+| Absicherung | Partner über dem Referenzalter, der noch arbeitet: Lohn fehlte | `fachmodule.test.ts` |
+| Lebensplan | Vorbezug: Teuerung in ganzen Jahren statt Monaten | `lebensplan.test.ts` |
+| Texte | Zufluss im laufenden Jahr «im Januar»; «Ihre Renten» | `lebensplan.test.ts`, `fachmodule.test.ts` |
+| Kern | Zufluss nach dem Horizont als Ereignis im Ablauf | `kern-erweiterung.test.ts` |
+| Cockpit | Tippen in ein gefülltes Betragsfeld hängte an, statt zu ersetzen (beim Testen bemerkt) | `pruef2.spec.ts` |
+
+**Verlauf:** Assessment 15 Fehler der Klasse A und rund 25 weitere; zweiter Lauf 21 Randfälle; dritter Lauf 11, davon
+keiner in der Rechnung selbst. Regeln: ADR-22, Nachtrag Punkte 24–30.

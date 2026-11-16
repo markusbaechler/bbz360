@@ -195,3 +195,16 @@ describe('Zweiter Prüflauf: ungültige Jahre werden verworfen, nicht auf 1990 g
     expect('kaufJahr' in s.liegenschaften[0]).toBe(false);
   });
 });
+
+describe('Dritter Prüflauf: Zufluss nach dem Horizont', () => {
+  it('ist kein Ereignis im Ablauf (vorher: Ereignis mit Betrag, obwohl nicht gerechnet)', async () => {
+    const { sanitize, EXAMPLE, clone } = await import('../../src/lib/pension/state');
+    const { analyse } = await import('../../src/lib/pension/analyse');
+    const S = sanitize({ ...clone(EXAMPLE), zufluesse: [{ name: 'spät', betrag: 50000, jahr: 2140 }, { name: 'früh', betrag: 50000, jahr: 2035 }] });
+    const r = analyse(S, E, undefined, {});
+    if (r.leer) throw new Error('leer');
+    const texte = r.base.events.map((e) => e.text);
+    expect(texte).toContain('Zufluss: früh');
+    expect(texte).not.toContain('Zufluss: spät');
+  });
+});

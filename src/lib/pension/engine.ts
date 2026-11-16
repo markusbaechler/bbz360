@@ -523,7 +523,7 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
       // Betrag wird nach der Rechnung mit der tatsächlich ausbezahlten (allenfalls plafonierten) Rente ersetzt
       ev(Math.max(A0, p.Aahv), i, `AHV-Rente ${p.Aahv < A0 ? 'läuft' : 'beginnt'}${bezTxt}`, ahvMonat(p, PX(p.Aahv).ahv) * p.ahvF * PX(p.Aahv).ahv.monatsrentenProJahr, { proJahr: true, ahv: true });
     });
-    zufluesse.forEach((z) => ev(z.A, null, `Zufluss: ${z.name || 'einmaliger Zufluss'}`, z.betrag));
+    zufluesse.filter((z) => z.A <= Aend).forEach((z) => ev(z.A, null, `Zufluss: ${z.name || 'einmaliger Zufluss'}`, z.betrag));
     if (ps.length) ev(Math.max(...ps.map((p) => p.A75)), null, `Ausgaben sinken um ${Math.round((1 - inp.reduktion75) * 100)}% (jüngere Person 75)`);
 
     for (let Am = A0; Am <= Aend; Am++) {

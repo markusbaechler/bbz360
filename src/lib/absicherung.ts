@@ -108,11 +108,13 @@ export function absicherung(S: PensState, E: Engine, e: AbsicherungEingaben): Ab
    * und einen Lohn, der wegfällt.
    */
   const aktiv = ps.map((p, i) => p.brutto > 0 && alter[i] < E.refAlter(p) && alter[i] < p.pensAlter);
-  const netto = ps.map((p, i) => (aktiv[i] ? p.brutto * nettoQuote : 0));
+  /** Lohn als Einnahme des Haushalts: bis zum geplanten Pensionierungsalter, auch über dem Referenzalter (wie Rechenkern und Budget). */
+  const hatLohn = ps.map((p, i) => p.brutto > 0 && alter[i] < p.pensAlter);
+  const netto = ps.map((p, i) => (hatLohn[i] ? p.brutto * nettoQuote : 0));
   const name = (i: number): string => (e.namen?.[i] || '').trim() || `Person ${i + 1}`;
   // Was nicht gerechnet ist, wird gesagt: Renten einer nicht mehr erwerbstätigen zweiten Person, übrige Einkommen
   const ungerechnet = (partner: number): string[] => [
-    ...(partner >= 0 && !aktiv[partner] && alter[partner] >= Math.min(ps[partner].pensAlter, E.refAlter(ps[partner])) ? [`${name(partner)} ist nicht mehr erwerbstätig: Ihre Renten sind hier nicht gerechnet; die Lücke ist entsprechend kleiner.`] : []),
+    ...(partner >= 0 && !hatLohn[partner] && alter[partner] >= ps[partner].pensAlter ? [`${name(partner)} ist nicht mehr erwerbstätig. Die Renten von ${name(partner)} sind hier nicht gerechnet; die Lücke ist entsprechend kleiner.`] : []),
     ...((S.einkommen || []).length ? ['Übrige Einkommen des Haushalts (z. B. Mietertrag, Nebenerwerb) sind hier nicht gerechnet.'] : []),
   ];
   const ausgaben = typeof S.ausgabenHeute === 'number' && S.ausgabenHeute > 0 ? S.ausgabenHeute * 12 : 0;

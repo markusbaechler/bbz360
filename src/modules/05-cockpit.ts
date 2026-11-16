@@ -467,7 +467,8 @@ function openModal(cat: SKey): void {
   // Tausender-Formatierung nur auf numerischen Betragsfeldern (nie Freitext).
   body.querySelectorAll<HTMLInputElement>('input[data-num]').forEach((inp) => {
     const v = pN(inp.value); if (v > 0) inp.value = fmtInput(v);
-    inp.addEventListener('focus', () => { inp.value = String(pN(inp.value) || ''); });
+    // Inhalt markieren: Tippen ersetzt den bisherigen Betrag, statt ihn zu verlängern
+    inp.addEventListener('focus', () => { inp.value = String(pN(inp.value) || ''); inp.select(); });
     inp.addEventListener('blur', () => { const n = pN(inp.value); if (n > 0) inp.value = fmtInput(n); });
   });
   body.querySelector<HTMLElement>('[data-save]')?.addEventListener('click', () => save(cat));
@@ -510,7 +511,10 @@ function save(t: SKey): void {
     S.finanzieren.laufzeit = $v('f-laufzeit'); S.finanzieren.kommentar = $v('f-kommentar');
   }
   snapSaved = true;
-  renderControls(); calc(); inHaushalt(t); closeModal();
+  renderControls(); calc(); inHaushalt(t);
+  // Der Stand kann sich beim Schreiben weiter geändert haben (z. B. aus der Einzelperson wird ein Paar, dessen
+  // Summen 3a/PK nun beide Personen umfassen): neu lesen, sonst gälte die alte Summe beim nächsten Speichern als Änderung
+  ausHaushalt(); calc(); closeModal();
 }
 
 // ── Load / Init ──────────────────────────────────────────────────────────────

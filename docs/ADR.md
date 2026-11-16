@@ -569,6 +569,24 @@ Kundenfall, nicht zwei.**
 23. **Kontrast:** Schrift auf dunklem Grund mindestens Weiss 70%; `--mut-3` (neutral 400) ist keine Schriftfarbe.
     Alle 19 Seiten bestehen die automatische Prüfung (axe, WCAG 2.1 AA), leer und mit gefülltem Fall.
 
+**Nachtrag nach dem dritten Prüflauf (2026-11-16).**
+24. **Kein veralteter Stand auf dem Bildschirm.** Ein Modul liest den Stand beim Laden und schreibt ihn bei der
+    nächsten Eingabe. Holt der Browser eine Seite mit «Zurück» aus seinem Zwischenspeicher, oder hat ein anderer
+    Tab gespeichert, wird die Seite neu geladen (`lib/data.ts`). Das Cockpit liest den Stand nach jedem Speichern
+    neu.
+25. **Vorbelegt ist nicht erfasst** (07a). Felder, die nur vorbelegt und nie geändert wurden, stehen in
+    `finanzierung_data.vorbelegt`; sie werden bei jedem Besuch neu aus dem Stand geholt, und der Abschluss rechnet
+    mit denselben Werten. Ein nur vorbelegter Kaufpreis ist kein Kauf, solange keine Eigenmittel erfasst sind
+    (`kaufErfasst`): Der blosse Besuch von 07a ändert den Lebensplan nicht.
+26. **Lohn als Einnahme** zählt bis zum geplanten Pensionierungsalter, auch über dem Referenzalter (05b, 07e,
+    Rechenkern). Ein eigener Invaliditäts- oder Todesfall wird nur vor dem Referenzalter gerechnet. (Punkt 15 ist
+    damit präzisiert: Für 05b gilt nur das Pensionierungsalter.)
+27. **PK-Vorbezug:** Die Teuerung bis zum Kauf rechnet in Monaten ab heute, wie der Kern auszahlt.
+28. **Anlage ohne Liquidität** ist vorgemerkt und ändert auch die Rendite nicht.
+29. **Nach dem Einlesen eines PensCheck-Stands** entfallen im Cockpit Netto, Gliederung der Ausgaben und
+    Verpflichtungen des bisherigen Falls.
+30. **Betragsfelder im Cockpit** markieren beim Fokus ihren Inhalt: Tippen ersetzt den Betrag.
+
 **Bewusst nicht geändert (bekannte Grenzen).**
 - Eine zweite Person ohne Geburtsdatum rechnet mit dem Vorgabe-Jahrgang, bis
   er in den Stammdaten oder in der Pensionierung erfasst ist.
@@ -585,3 +603,5 @@ Kundenfall, nicht zwei.**
   gerechnet; der Fall sagt es.
 - Ein automatischer Differenztest gegen den PensCheck-Rechenkern fehlt im Repo (das Original liegt in einem anderen
   Repository). Die Gleichheit ohne die neuen Felder ist von Hand belegt: 1302 Zufallsläufe, 0 Abweichungen.
+- 07b schreibt beim Abschluss der Konklusion auch einen nur vorbelegten Anlagebetrag fest; sinkt die Liquidität
+  später, begrenzt der Lebensplan ihn auf die Liquidität und sagt es im Hinweis.

@@ -133,3 +133,84 @@ test('07f: ein unvollständig getipptes Jahr gilt nicht; das Feld zeigt beim Ver
   await expect(z.locator('[data-zf="jahr"]')).toHaveValue('2035');
   expect((await stand(page)).haushalt.zufluesse).toEqual([{ name: '', betrag: 100000, jahr: 2035 }]);
 });
+
+// ---------- Dritter Prüflauf ----------
+
+test('07a: Vorbelegungen frieren beim ersten Besuch nicht ein; der Abschluss rechnet mit denselben Werten', async ({ page }) => {
+  await leer(page, { p1name: 'Anna Muster', p1geb: '1975-04-10' });
+  const cockpit = async (brutto: string, leasing: string) => {
+    await page.goto('modules/05-cockpit.html');
+    await page.locator('#cfr-eink').click();
+    await page.locator('#f-brutto1').fill(brutto);
+    await page.locator('#f-leasing').fill(leasing);
+    await page.locator('[data-save="ausgaben"]').click();
+  };
+  await cockpit('100000', '500');
+  await page.goto('modules/07a-finanzieren.html'); // nur ansehen
+  await expect(page.locator('#income')).toHaveValue(/100.000/);
+  await page.waitForTimeout(400); // 07a speichert verzögert
+  await cockpit('150000', '900');
+  await page.goto('modules/07a-finanzieren.html');
+  await expect(page.locator('#income')).toHaveValue(/150.000/);
+  await expect(page.locator('#obligations')).toHaveValue(/10.800/);
+  // ein von Hand erfasster Wert bleibt
+  await page.locator('#income').fill('160000');
+  await page.locator('#income').blur();
+  await page.waitForTimeout(400);
+  await cockpit('170000', '900');
+  await page.goto('modules/07a-finanzieren.html');
+  await expect(page.locator('#income')).toHaveValue(/160.000/);
+});
+
+test('07a nur besucht: ein Ziel «Wohnen» bleibt im Lebensplan eine gerechnete Ausgabe; der Abschluss zeigt keine Finanzierung', async ({ page }) => {
+  await musterEinlesen(page);
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('bbzData')!);
+    d.ziele = [{ id: 'r', katId: 'wohnen', typ: 'ziel', insp: 'Renovation / Umbau', name: 'Umbau', jahr: 2030, betrag: 80000 }];
+    localStorage.setItem('bbzData', JSON.stringify(d));
+  });
+  await page.goto('modules/07a-finanzieren.html');
+  await expect(page.locator('#price')).toHaveValue(/80.000/);
+  await page.waitForTimeout(400);
+  expect((await stand(page)).finanzierung_data.vorbelegt).toContain('price');
+  await page.goto('modules/07-lebensplan.html');
+  const zeile = page.locator('tr', { hasText: 'Umbau' });
+  await expect(zeile).toContainText('06 Ziele');
+  await expect(zeile).toContainText('Einmalige Ausgabe');
+  await page.goto('modules/10-abschluss.html');
+  await expect(page.locator('.ab-sec', { hasText: 'EIGENHEIMFINANZIERUNG' })).toHaveCount(0);
+});
+
+test('Cockpit: aus der Einzelperson wird ein Paar — das nächste Speichern kürzt 3a von Person 1 nicht', async ({ page }) => {
+  await musterEinlesen(page);
+  const vorher = (await stand(page)).haushalt.personen.map((p: { s3a: number }) => p.s3a);
+  expect(vorher[1]).toBeGreaterThan(0);
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('bbzData')!);
+    d.haushalt.haushalt = 'single';
+    localStorage.setItem('bbzData', JSON.stringify(d));
+  });
+  await page.goto('modules/05-cockpit.html');
+  await page.locator('#cfr-eink').click();
+  await page.locator('#f-brutto2').fill('60000');
+  await page.locator('[data-save="ausgaben"]').click();
+  // ohne Neuladen ein weiteres Modal unverändert übernehmen
+  await page.locator('#br-vorsorgen').click();
+  await page.locator('[data-save="vorsorgen"]').click();
+  const h = (await stand(page)).haushalt;
+  expect(h.haushalt).toBe('verheiratet');
+  expect(h.personen.map((p: { s3a: number }) => p.s3a)).toEqual(vorher);
+});
+
+test('PensCheck-Stand einlesen: die Verpflichtungen des bisherigen Falls entfallen', async ({ page }) => {
+  await leer(page, { p1name: 'Anna Muster', p1geb: '1975-04-10' });
+  await page.goto('modules/05-cockpit.html');
+  await page.locator('#cfr-eink').click();
+  await page.locator('#f-leasing').fill('500');
+  await page.locator('#f-unterhalt').fill('1000');
+  await page.locator('[data-save="ausgaben"]').click();
+  await musterEinlesen(page, { leeren: false });
+  await page.goto('modules/07a-finanzieren.html');
+  await expect(page.locator('#obligations')).toHaveValue('');
+  await expect(page.locator('#income')).not.toHaveValue('');
+});

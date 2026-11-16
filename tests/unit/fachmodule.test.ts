@@ -273,7 +273,7 @@ describe('Zweiter Prüflauf: Absicherung', () => {
     // ihr Lohn zählt in den Fällen von Person 2 nicht als Einnahme; dass ihre Renten fehlen, wird gesagt
     const f = r.faelle[0];
     expect(f.posten.some((p) => p.art === 'lohn')).toBe(false);
-    expect(f.hinweise.join(' ')).toMatch(/nicht mehr erwerbstätig: Ihre Renten sind hier nicht gerechnet/);
+    expect(f.hinweise.join(' ')).toMatch(/nicht mehr erwerbstätig\. Die Renten von Person 1 sind hier nicht gerechnet/);
   });
   it('übrige Einkommen des Haushalts sind nicht gerechnet: der Hinweis steht in jedem Fall', () => {
     const S = muster({ einkommen: [{ person: 0, art: 'sonstiges', betrag: 12000, bisJahr: 0, text: 'Mietertrag' }] });
@@ -287,5 +287,28 @@ describe('Zweiter Prüflauf: Absicherung', () => {
     const r = absicherung(muster(), E, ein({ namen: ['Anna', 'Beat'] }));
     expect(r.faelle[0].posten[0].label).toBe('Nettolohn Beat');
     expect(absicherung(muster(), E, ein()).faelle[0].posten[0].label).toBe('Nettolohn Person 2');
+  });
+});
+
+describe('Dritter Prüflauf: Absicherung', () => {
+  const ein = (o: Partial<AbsicherungEingaben> = {}): AbsicherungEingaben => ({ kinder: 0, kinderAbh: 0, ursache: 'krankheit', bedarfMonat: 0, pk: [PK_LEER, PK_LEER], ...o });
+  it('Partnerin über dem Referenzalter, die laut Plan noch arbeitet: Ihr Lohn zählt als Einnahme (wie Budget und Rechenkern)', () => {
+    const S = muster();
+    Object.assign(S.personen[0], { jahrgang: 1970, brutto: 100000, pensAlter: 65 });
+    Object.assign(S.personen[1], { jahrgang: 1960, brutto: 80000, pensAlter: 68 }); // 66, arbeitet bis 68
+    const r = absicherung(S, E, ein({ namen: ['Max', 'Eva'] }));
+    // für Eva selbst wird kein Fall gerechnet (über dem Referenzalter) …
+    expect(r.faelle.every((f) => f.person === 0)).toBe(true);
+    // … aber ihr Lohn steht in den Fällen von Max, ohne den Hinweis «nicht mehr erwerbstätig»
+    const f = r.faelle.find((x) => x.ereignis === 'invalid')!;
+    expect(f.posten[0]).toMatchObject({ label: 'Nettolohn Eva', art: 'lohn' });
+    expect(f.posten[0].betrag).toBeGreaterThan(0);
+    expect(f.hinweise.join(' ')).not.toMatch(/nicht mehr erwerbstätig/);
+  });
+  it('der Hinweis zu den fehlenden Renten redet nicht den Kunden an', () => {
+    const S = muster();
+    Object.assign(S.personen[1], { jahrgang: 1960, brutto: 0, pensAlter: 64 });
+    const h = absicherung(S, E, ein({ namen: ['Max', 'Eva'] })).faelle[0].hinweise.join(' ');
+    expect(h).toMatch(/Die Renten von Eva sind hier nicht gerechnet/);
   });
 });

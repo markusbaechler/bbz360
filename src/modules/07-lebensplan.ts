@@ -36,7 +36,7 @@ const daten = grundlagen as unknown as ParamDatei;
 const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
 const H = haushaltLesen();
 // Planungshorizont wie im Rechenkern: Einträge danach können nicht gerechnet werden
-const plan = lebensplan(BBZ.all(), H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: planBisJahr(H, horizon(H, E)) });
+const plan = lebensplan(BBZ.all(), H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: planBisJahr(H, horizon(H, E)), A0 });
 
 const WORT = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' } as const;
 type Ampel = keyof typeof WORT;

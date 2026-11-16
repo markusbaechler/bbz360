@@ -148,25 +148,31 @@ export function prefills(d: SessionData, H: PensState): { cockpit_einkommen: num
  * sich die Stammdaten oder der Stand in einem anderen Modul aendern.
  * anlageFaehig: Liquiditaet abzueglich der im Cockpit erfassten Reserve.
  */
-export function vorbelegung(): { einkommen: number; pkSaldo: number; anlageFaehig: number } {
+export function vorbelegung(): { einkommen: number; pkSaldo: number; anlageFaehig: number; verpflichtungen: number } {
   const d = BBZ.all(), H = haushaltLesen();
   const p = prefills(d, H);
   const reserve = zahl(obj(obj(d.cockpit_data).sparen).reserve);
   const anlage = Math.max(0, Math.round(H.liquiditaet - reserve));
   // Ohne gespeicherten Haushalts-Stand (ältere Sitzung, Cockpit seit der Umstellung nicht besucht) gelten die
   // Schlüssel, die das Cockpit damals geschrieben hat; sie können dann nicht veraltet sein.
-  if (!d.haushalt) return { einkommen: zahl(d.cockpit_einkommen) || p.cockpit_einkommen, pkSaldo: zahl(d.cockpit_pk_saldo) || p.cockpit_pk_saldo, anlageFaehig: zahl(d.cockpit_anlage_f) || anlage };
-  return { einkommen: p.cockpit_einkommen, pkSaldo: p.cockpit_pk_saldo, anlageFaehig: anlage };
+  // Verpflichtungen pro Jahr: Leasing und Unterhalt aus dem Cockpit (Monatsbeträge)
+  const a = obj(obj(d.cockpit_data).ausgaben);
+  const verpflichtungen = Math.round((zahl(a.leasing) + zahl(a.unterhalt)) * 12);
+  if (!d.haushalt) return { einkommen: zahl(d.cockpit_einkommen) || p.cockpit_einkommen, pkSaldo: zahl(d.cockpit_pk_saldo) || p.cockpit_pk_saldo, anlageFaehig: zahl(d.cockpit_anlage_f) || anlage, verpflichtungen: zahl(d.cockpit_verpflichtungen) || verpflichtungen };
+  return { einkommen: p.cockpit_einkommen, pkSaldo: p.cockpit_pk_saldo, anlageFaehig: anlage, verpflichtungen };
 }
 
 /**
- * Nach dem Einlesen eines fremden Stands: Das im Cockpit erfasste Nettoeinkommen gehoerte zum alten Fall und
- * entfaellt (der Bruttolohn kommt aus dem eingelesenen Stand).
+ * Nach dem Einlesen eines fremden Stands: Was im Cockpit nur zum bisherigen Fall gehoerte, entfaellt — das
+ * Nettoeinkommen und die Gliederung der Ausgaben samt Verpflichtungen (Leasing, Unterhalt). Der Bruttolohn und
+ * die Ausgaben kommen aus dem eingelesenen Stand; das Cockpit gliedert sie beim naechsten Besuch neu.
  */
 export function cockpitNettoLoeschen(): void {
   const d = BBZ.all(), cd = obj(d.cockpit_data), a = obj(cd.ausgaben);
-  if (!zahl(a.eMann) && !zahl(a.eFrau)) return;
-  BBZ.set('cockpit_data', { ...cd, ausgaben: { ...a, eMann: 0, eFrau: 0 } });
+  BBZ.merge({
+    ...(d.cockpit_data ? { cockpit_data: { ...cd, ausgaben: { ...a, eMann: 0, eFrau: 0, haushalt: 0, leasing: 0, unterhalt: 0, uebrige: 0 } } } : {}),
+    cockpit_verpflichtungen: 0,
+  });
 }
 
 /**
