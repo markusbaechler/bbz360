@@ -29,6 +29,7 @@ const MODULES: Record<'einstieg' | 'kundenbild' | 'abschluss', Mod[]> = {
     { id: 'm06', num: '06', name: 'Ziele & Wünsche', desc: 'Zeitachse & Lebensplanung', file: 'modules/06-ziele.html', toggleable: false },
   ],
   abschluss: [
+    { id: 'm07', num: '07', name: 'Lebensplan', desc: 'Alles in einem Bild', file: 'modules/07-lebensplan.html', toggleable: true },
     { id: 'm08', num: '08', name: 'Vereinbarungen', desc: 'Nächste Schritte', file: 'modules/08-vereinbarungen.html', toggleable: false },
     { id: 'm09', num: '09', name: 'Feedback', desc: 'Zufriedenheitsdialog', file: 'modules/09-feedback.html', toggleable: true },
     { id: 'm10', num: '10', name: 'Abschluss', desc: 'Ausstieg & Gesprächsbericht', file: 'modules/10-abschluss.html', toggleable: false },

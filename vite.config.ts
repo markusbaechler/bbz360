@@ -20,6 +20,7 @@ export default defineConfig({
         '05-cockpit': 'modules/05-cockpit.html',
         '05b-budget': 'modules/05b-budget.html',
         '06-ziele': 'modules/06-ziele.html',
+        '07-lebensplan': 'modules/07-lebensplan.html',
         '07a-finanzieren': 'modules/07a-finanzieren.html',
         '07b-anlegen': 'modules/07b-anlegen.html',
         '07c-pension': 'modules/07c-pension.html',

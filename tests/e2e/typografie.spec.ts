@@ -10,7 +10,7 @@
 import { test, expect } from '@playwright/test';
 
 const MODULE = ['01-agenda', '02-bank', '03-berater', '04-philosophie', '05-cockpit', '05b-budget',
-  '06-ziele', '07a-finanzieren', '07b-anlegen', '07c-pension', '08-vereinbarungen', '09-feedback', '10-abschluss'];
+  '06-ziele', '07-lebensplan', '07a-finanzieren', '07b-anlegen', '07c-pension', '08-vereinbarungen', '09-feedback', '10-abschluss'];
 
 const wurzelGroesse = (page: import('@playwright/test').Page): Promise<string> =>
   page.evaluate(() => getComputedStyle(document.documentElement).fontSize);

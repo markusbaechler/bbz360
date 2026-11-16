@@ -1,6 +1,6 @@
 # bbz360 — Beratungsdialog v2
 
-Digitales Beratungsgespräch der bbz bank st.gallen: 15 Module von der Agenda
+Digitales Beratungsgespräch der bbz bank st.gallen: 16 Module von der Agenda
 bis zum Gesprächsbericht, neu aufgebaut nach **Design-Grammatik v3**
 (`design/DESIGN-SPEC.md`) mit Vite + TypeScript.
 
@@ -16,6 +16,7 @@ bis zum Gesprächsbericht, neu aufgebaut nach **Design-Grammatik v3**
 | 05 | Finanz-Cockpit — KPIs, Erfassungsmodale, Simulation | referenz-05 |
 | 05b | Budget & Liquidität — Budget im Ruhestand (8 Positionen, Musterbudgets), Ausgaben heute, Sparbetrag, Reserve | bbz Brand System (ADR-17) |
 | 06 | Ziele & Wünsche — Zeitachse, Lebensthemen, Wunschliste (zweistufige Erfassung) | Zielkarten + Sequenz |
+| 07 | Lebensplan — Ziele, Eigenheim, Anlegen und Pensionierung in einem Bild und einer Rechnung | bbz Brand System (ADR-18) |
 | 07a | Eigenheimfinanzierung — Tragbarkeit, Varianten | 05-Simulations-Muster |
 | 07b | Anlegen — Profilierung (6 Phasen) + Umsetzung (3 Phasen) | referenz-08 |
 | 07c | Pensionierung — Standortbestimmung nach PensCheck: Bühne mit Bild und Ampel, geführte Erfassung, Themenkarten, «So oder so», Aktionsplan, PDF-Bericht | bbz Brand System (ADR-16) |

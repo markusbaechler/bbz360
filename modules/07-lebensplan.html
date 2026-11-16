@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>bbz360 — Lebensplan</title>
+  <script type="module" src="/src/modules/07-lebensplan.ts"></script>
+</head>
+<body class="pc-app lp-app">
+  <header class="bbz-topbar">
+    <a class="bbz-logo" href="../index.html" title="Zurück zum Beratercockpit" aria-label="Zurück zum Beratercockpit">bbz</a>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+  </header>
+  <div class="wrap">
+    <section class="hero lp-hero" aria-labelledby="lpTitel">
+      <div>
+        <p class="pc-kicker lp-kicker">07 · LEBENSPLAN</p>
+        <h1 id="lpTitel">Alles in einem Bild.</h1>
+        <p class="lead">Ziele, Eigenheim, Anlegen und Pensionierung auf einer Zeitachse und in einer Rechnung.</p>
+      </div>
+    </section>
+
+    <p class="rfehler" id="lpFehler" role="alert" hidden><b>Die Rechnung ist fehlgeschlagen.</b> Bitte die Angaben in den Modulen prüfen.</p>
+
+    <main id="main" class="lp-main">
+      <section class="panel lp-panel" aria-labelledby="lpUrteilTitel" aria-live="polite">
+        <h2 class="vh" id="lpUrteilTitel">Urteil.</h2>
+        <div class="kpis lp-kpis" id="lpKpis"></div>
+        <p class="cap" id="lpUrteilText"></p>
+      </section>
+
+      <section class="panel lp-panel" aria-labelledby="lpBildTitel">
+        <h2 id="lpBildTitel">Der Plan im Bild.</h2>
+        <div id="lpBildKopf"></div>
+        <div class="bild" id="lpBild" role="img" aria-labelledby="lpBildTitel" aria-describedby="lpBildText"></div>
+        <p class="vh" id="lpBildText"></p>
+        <p class="cap">Pro Jahr in heutiger Kaufkraft, auf der Altersachse von Person 1. Marken zeigen, was mitrechnet; ein Fragezeichen steht für Vorgemerktes, das nicht gerechnet ist.</p>
+      </section>
+
+      <section class="panel lp-panel" aria-labelledby="lpListeTitel">
+        <h2 id="lpListeTitel">Was im Plan steckt.</h2>
+        <div class="tblwrap" tabindex="0" role="region" aria-label="Tabelle, seitlich scrollbar">
+          <table class="cmp lp-tab">
+            <thead><tr><th>Was</th><th>Jahr</th><th>Alter</th><th>Betrag</th><th>Aus Modul</th><th>In der Rechnung</th></tr></thead>
+            <tbody id="lpListe"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel lp-panel lp-annahmen" aria-labelledby="lpAnnTitel">
+        <h2 id="lpAnnTitel">So ist gerechnet.</h2>
+        <ul>
+          <li>Grundlage ist der Haushalts-Stand (Cockpit, Budget, Pensionierung). Der Lebensplan fügt dazu, was in den anderen Modulen erfasst ist; gespeichert wird hier nichts.</li>
+          <li>Ziele und Wünsche mit Jahr und Betrag gehen als einmalige Ausgabe im genannten Jahr ein, in heutiger Kaufkraft.</li>
+          <li>Eigenheimkauf: Die eigenen Barmittel fliessen im Kaufjahr ab. Liegenschaft, Hypothek, Wohnkosten nach dem Kauf und ein PK-Vorbezug sind nicht eingerechnet, solange sie nicht in der Pensionierung erfasst sind.</li>
+          <li>Anlage: Der Anlagebetrag wechselt von der Liquidität in die Wertschriften; ohne eigene Angabe in der Pensionierung gilt die erwartete Rendite der gewählten Strategie aus dem Modul Anlegen für alle Wertschriften.</li>
+          <li>Zuflüsse wie Erbschaften sind vorgemerkt und nicht gerechnet.</li>
+          <li>Das Urteil ist eine erste Einschätzung nach PensCheck und ersetzt keine Finanzplanung.</li>
+        </ul>
+      </section>
+    </main>
+
+    <nav class="bu-weiter" aria-label="Weiter">
+      <a class="bbz-button bbz-button--ghost" href="06-ziele.html">← Ziele &amp; Wünsche</a>
+      <a class="bbz-button bbz-button--primary" href="08-vereinbarungen.html">Weiter: Vereinbarungen →</a>
+    </nav>
+  </div>
+</body>
+</html>

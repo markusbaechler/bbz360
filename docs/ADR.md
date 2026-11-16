@@ -291,3 +291,38 @@ Cockpit erfasst **Bruttolohn**, das Budget wird ein **eigenes Modul 05b**.
 **Nicht abgeglichen.** Die Finanzierung im Cockpit (Betrag, Kreditform) und die
 Liegenschaften der Pensionierung (Verkehrswert, Hypothek) sind noch getrennt;
 das gehört zum Lebensplan (Phase 5) bzw. zu 07a.
+
+---
+
+## ADR-18 — Lebensplan: ein abgeleiteter Stand über 06, 07a, 07b und 07c
+
+**Kontext.** Zielbild Phase 5: Ziele, Eigenheim, Anlegen und Pensionierung
+sollen in einer Zeitachse und einer Rechnung zusammenkommen.
+
+**Entscheid.**
+- `lib/lebensplan.ts` leitet aus Session und Haushalts-Stand **einen** Stand
+  ab, den der Pensionierungs-Rechenkern unverändert rechnet. Der Stand wird
+  nicht gespeichert; Quelle bleiben die Module.
+- Modul **07 Lebensplan** (`modules/07-lebensplan.html`) zeigt das Bild des
+  PensCheck mit Marken für alles, was mitrechnet, das Urteil mit und ohne
+  Ziele sowie die Liste aller Einträge mit Quelle und Status.
+- Der Rechenkern bleibt unangetastet. Was er nicht abbilden kann, wird als
+  «vorgemerkt» mit Begründung ausgewiesen, nie stillschweigend weggelassen.
+
+**Was mitrechnet.**
+- 06: Ziele und Wünsche mit Jahr und Betrag als einmalige Ausgabe.
+- 07a: die eigenen Barmittel im Kaufjahr (Jahr des ersten Ziels «Wohnen»,
+  wie beim Kaufpreis-Prefill); dieses Ziel wird nicht zusätzlich gezählt.
+- 07b: der Anlagebetrag wechselt von der Liquidität in die Wertschriften;
+  ohne eigene Rendite in der Pensionierung gilt die erwartete Rendite der
+  finalen Strategie (`finance.ts: STRATS`) für alle Wertschriften.
+
+**Bekannte Grenzen (im Modul unter «So ist gerechnet» genannt).**
+- Nach einem Eigenheimkauf sind Liegenschaftswert, Hypothek, Wohnkosten und
+  ein PK-Vorbezug nicht eingerechnet. Der Kern kennt keinen Kauf in der
+  Zukunft; das wäre eine Erweiterung des Rechenkerns.
+- Zuflüsse (Erbschaft) sind vorgemerkt; ihre Berechnung gehört zu Phase 8.
+- 07b und der PensCheck führen eigene Renditeannahmen (z. B. «Ausgewogen»
+  2.75% gegenüber Profil «ausgewogen» 3%). Der Lebensplan nimmt die Annahme
+  aus 07b, weil sie dem Kunden dort gezeigt wurde.
+- Der Abschluss (10) zeigt weiterhin das Urteil der Pensionierung allein.

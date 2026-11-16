@@ -21,6 +21,7 @@ export const MODULES: NavModule[] = [
   { id: '05', label: 'Cockpit', file: '05-cockpit.html' },
   { id: '05b', label: 'Budget', file: '05b-budget.html', sub: true },
   { id: '06', label: 'Ziele', file: '06-ziele.html' },
+  { id: '07', label: 'Lebensplan', file: '07-lebensplan.html' },
   { id: '07a', label: 'Finanzieren', file: '07a-finanzieren.html', sub: true },
   { id: '07b', label: 'Anlegen', file: '07b-anlegen.html', sub: true },
   { id: '07c', label: 'Pension', file: '07c-pension.html', sub: true },

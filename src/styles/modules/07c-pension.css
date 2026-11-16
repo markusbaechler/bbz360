@@ -10,7 +10,7 @@ a.bbz-logo{cursor:pointer;transition:box-shadow .15s}
 a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 .bbz-nav{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
 .bbz-nav::-webkit-scrollbar{display:none}
-.bbz-nav-tab{color:rgba(255,255,255,.5);font-size:14px;padding:6px 8px;white-space:nowrap;text-decoration:none;border-radius:7px}
+.bbz-nav-tab{color:rgba(255,255,255,.5);font-size:14px;padding:6px 7px;white-space:nowrap;text-decoration:none;border-radius:7px}
 .bbz-nav-tab.active{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
 /* Unter-Module (05b, 07a–07c …): inaktiv nur die Nummer, sonst laeuft die Topbar ueber (13+ Reiter). */
 .bbz-nav-tab.sub:not(.active) .bbz-nav-lbl{display:none}
@@ -18,7 +18,7 @@ a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 @media (max-width:1439px){
   .bbz-topbar{gap:10px;padding:0 14px}
   .bbz-nav{gap:1px}
-  .bbz-nav-tab{padding:6px 4px}
+  .bbz-nav-tab{padding:6px 3px}
 }
 @media print{.bbz-topbar{display:none}}
 
