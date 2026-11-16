@@ -543,6 +543,32 @@ Kundenfall, nicht zwei.**
 - **ADR-21:** Kontrast der inaktiven Navigationsreiter und der abgewählten
   Kacheln im Beratercockpit angehoben.
 
+**Nachtrag nach dem zweiten Prüflauf (2026-11-16).**
+12. **Vorbelegungen werden gerechnet, nicht gelesen.** 07a, 07b und 10 holen Einkommen, PK-Guthaben und
+    anlagefähiges Kapital über `vorbelegung()` aus dem aktuellen Stand; die gespeicherten Schlüssel
+    (`cockpit_einkommen`, `cockpit_pk_saldo`, `cockpit_anlage_f`) gelten nur noch für Sitzungen ohne
+    Haushalts-Stand. Modul 10 rechnet die Absicherung auf `haushaltLesen()` wie 07e.
+13. **Aus der Einzelperson wird ein Paar:** Die Summen im Cockpit galten der Einzelperson; 3a und PK von Person 1
+    bleiben, die Werte von Person 2 kommen dazu.
+14. **Netto je Person** (05b): im Cockpit erfasst, sonst aus dem Bruttolohn geschätzt. Nach dem Einlesen eines
+    PensCheck-Stands entfällt das Netto des bisherigen Falls.
+15. **Erwerbstätig** heisst in 05b und 07e: Lohn erfasst, vor dem geplanten Pensionierungsalter und vor dem
+    Referenzalter (wie im Rechenkern und in 07d).
+16. **Verpflichtungen** (Leasing, Unterhalt) sind Monatsbeträge, unabhängig von der Eingabe-Frequenz der Einkommen.
+17. **Sparen, Anlegen, Vorsorgen sind keine Ausgaben:** Die Vorschläge «Liquidität aufbauen», «Anlageziel
+    Wertschriften», «Vermögen strukturieren», «Vorsorgelücke schliessen», «BVG-Einkauf», «Säule 3a aufbauen» aus 06
+    bleiben vorgemerkt.
+18. **PK-Vorbezug:** Der Kern zahlt ihn in heutiger Kaufkraft aus; um denselben, teuerungsbereinigten Betrag sinkt
+    das Guthaben. Grenze: Eigenmittel (höchstens der Kaufpreis) und Guthaben.
+19. **Planungshorizont in Kalenderjahren** ist das letzte Jahr, das der Kern rechnet (`planBisJahr`).
+20. **Ungültige Jahre** (0, ausserhalb 1990–2150) in Zufluss, Ausgabe und Kauf werden verworfen, nicht geklemmt.
+21. **Zuflüsse aus 07f** stehen in der Liste des Lebensplans und des Abschlusses.
+22. **Keine Entwarnung ohne Rechnung:** Der Abschluss unterscheidet «gedeckt», «kein Fall gerechnet» und «Rechnung
+    nicht möglich»; 07d sagt ohne Rechnung nichts über Kapitalbezüge in der Sperrfrist. Ein Todesfall wird nur
+    gerechnet, wenn jemand mit Bedarf zurückbleibt (Partner oder abhängige Kinder).
+23. **Kontrast:** Schrift auf dunklem Grund mindestens Weiss 70%; `--mut-3` (neutral 400) ist keine Schriftfarbe.
+    Alle 19 Seiten bestehen die automatische Prüfung (axe, WCAG 2.1 AA), leer und mit gefülltem Fall.
+
 **Bewusst nicht geändert (bekannte Grenzen).**
 - Eine zweite Person ohne Geburtsdatum rechnet mit dem Vorgabe-Jahrgang, bis
   er in den Stammdaten oder in der Pensionierung erfasst ist.
@@ -552,3 +578,10 @@ Kundenfall, nicht zwei.**
   Miete nicht automatisch zurück.
 - Im Kaufmonat rechnet die Vermögenssteuer einen Monat lang mit dem alten
   freien Vermögen und der neuen Liegenschaft.
+- Dieselbe Erbschaft in 06 (als Geldzufluss) und in 07f erfasst zählt doppelt; beide stehen in der Liste.
+- Die Grenze des PK-Vorbezugs ist das Altersguthaben bei der Pensionierung, nicht das Guthaben im Kaufjahr; der
+  Vorbezug gehört immer Person 1. Ein Kauf im Januar des Pensionierungsjahres gilt als «nach der Pensionierung».
+- In der Absicherung sind Renten einer nicht mehr erwerbstätigen zweiten Person und übrige Einkommen nicht
+  gerechnet; der Fall sagt es.
+- Ein automatischer Differenztest gegen den PensCheck-Rechenkern fehlt im Repo (das Original liegt in einem anderen
+  Repository). Die Gleichheit ohne die neuen Felder ist von Hand belegt: 1302 Zufallsläufe, 0 Abweichungen.

@@ -13,7 +13,7 @@
 /* Phasenliste (Muster wie 08; .rail-phase kommt aus theme.css) */
 .fb-phaselist { display: flex; flex-direction: column; gap: 5px; }
 .rail-phase.done .pc { background: rgba(255, 255, 255, 0.22); color: #fff; }
-.rail-phase.done span:last-child { color: rgba(255, 255, 255, 0.6); }
+.rail-phase.done span:last-child { color: rgba(255, 255, 255, 0.7); }
 .rail-phase.done { cursor: pointer; }
 .rail-phase.next { cursor: default; }
 

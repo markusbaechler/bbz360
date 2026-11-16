@@ -64,6 +64,8 @@ export interface AbsicherungEingaben {
   /** Bedarf pro Monat; 0 = aus den heutigen Ausgaben bzw. aus dem Nettoeinkommen abgeleitet. */
   bedarfMonat: number;
   pk: [PkLeistungen, PkLeistungen];
+  /** Namen der Personen für die Beschriftung; fehlt einer, steht «Person 1» bzw. «Person 2». */
+  namen?: string[];
 }
 export const PK_LEER: PkLeistungen = { ivRente: 0, partnerRente: 0, kinderRente: 0, todesfallKapital: 0 };
 
@@ -99,10 +101,20 @@ export function absicherung(S: PensState, E: Engine, e: AbsicherungEingaben): Ab
   const kinder = Math.max(0, Math.round(e.kinder));
   const abh = Math.min(kinder, Math.max(0, Math.round(e.kinderAbh)));
   const nettoQuote = (1 - E.P.annahmen.sozialabgaben) * (1 - (+S.steuerEink || 0) / 100);
-  const netto = ps.map((p) => p.brutto * nettoQuote);
   const alter = ps.map((p) => E.BASIS - p.jahrgang);
-  /** Erwerbstätig vor dem Referenzalter: Nur dann gibt es IV-Rente, UVG-Deckung und einen Lohn, der wegfällt. */
-  const aktiv = ps.map((p, i) => p.brutto > 0 && alter[i] < E.refAlter(p));
+  /**
+   * Erwerbstätig: Lohn erfasst, vor dem Referenzalter und vor dem geplanten Pensionierungsalter (wie im Rechenkern:
+   * danach gibt es keinen Lohn mehr, auch wenn das Feld noch gefüllt ist). Nur dann gibt es IV-Rente, UVG-Deckung
+   * und einen Lohn, der wegfällt.
+   */
+  const aktiv = ps.map((p, i) => p.brutto > 0 && alter[i] < E.refAlter(p) && alter[i] < p.pensAlter);
+  const netto = ps.map((p, i) => (aktiv[i] ? p.brutto * nettoQuote : 0));
+  const name = (i: number): string => (e.namen?.[i] || '').trim() || `Person ${i + 1}`;
+  // Was nicht gerechnet ist, wird gesagt: Renten einer nicht mehr erwerbstätigen zweiten Person, übrige Einkommen
+  const ungerechnet = (partner: number): string[] => [
+    ...(partner >= 0 && !aktiv[partner] && alter[partner] >= Math.min(ps[partner].pensAlter, E.refAlter(ps[partner])) ? [`${name(partner)} ist nicht mehr erwerbstätig: Ihre Renten sind hier nicht gerechnet; die Lücke ist entsprechend kleiner.`] : []),
+    ...((S.einkommen || []).length ? ['Übrige Einkommen des Haushalts (z. B. Mietertrag, Nebenerwerb) sind hier nicht gerechnet.'] : []),
+  ];
   const ausgaben = typeof S.ausgabenHeute === 'number' && S.ausgabenHeute > 0 ? S.ausgabenHeute * 12 : 0;
   const bedarf = e.bedarfMonat > 0 ? e.bedarfMonat * 12 : ausgaben > 0 ? ausgaben : netto.reduce((x, v) => x + v, 0) * 0.8;
   const bedarfQuelle = e.bedarfMonat > 0 ? 'eingabe' : ausgaben > 0 ? 'ausgaben' : 'netto';
@@ -115,7 +127,7 @@ export function absicherung(S: PensState, E: Engine, e: AbsicherungEingaben): Ab
     const rente = E.ahvMonat(p) * 12; // geschätzte volle Rente pro Jahr (ohne 13. Rente)
     const vV = Math.min(p.brutto, UVG_MAX_VERDIENST);
     const pk = e.pk[i] ?? PK_LEER;
-    const lohnPartner: Posten[] = partner >= 0 && netto[partner] > 0 ? [{ label: `Nettolohn Person ${partner + 1}`, betrag: netto[partner], art: 'lohn' }] : [];
+    const lohnPartner: Posten[] = partner >= 0 && netto[partner] > 0 ? [{ label: `Nettolohn ${name(partner)}`, betrag: netto[partner], art: 'lohn' }] : [];
 
     // ---------- Invalidität ----------
     {
@@ -135,11 +147,13 @@ export function absicherung(S: PensState, E: Engine, e: AbsicherungEingaben): Ab
       if (pkSoll <= 0) hinweise.push('Keine Invalidenleistung der Pensionskasse erfasst (Vorsorgeausweis).');
       else if (pkIst < pkSoll - 1) hinweise.push('Die Pensionskassenleistung ist gekürzt: Zusammen mit den übrigen Renten gilt die Grenze von 90% des Lohns.');
       if (unfall && p.brutto > UVG_MAX_VERDIENST) hinweise.push('Der Lohn liegt über dem UVG-Höchstverdienst; der Teil darüber ist nur mit einer Zusatzversicherung gedeckt.');
+      hinweise.push(...ungerechnet(partner));
       faelle.push({ person: i, ereignis: 'invalid', posten, summe, bedarf, luecke: bedarf - summe, kapital: 0, hinweise });
     }
 
     // ---------- Tod ----------
-    if (paar || kinder > 0) {
+    // Nur wenn jemand mit Bedarf zurückbleibt: Partnerin oder Partner, oder Kinder unter 18 bzw. in Ausbildung
+    if (paar || abh > 0) {
       const h = partner >= 0 ? ps[partner] : null;
       const witweAb45 = !!h && h.geschlecht === 'w' && alter[partner] >= WITWE_AB;
       const imRentenalter = !!h && alter[partner] >= E.refAlter(h);
@@ -166,15 +180,16 @@ export function absicherung(S: PensState, E: Engine, e: AbsicherungEingaben): Ab
       const summe = posten.reduce((x, q) => x + q.betrag, 0);
       const hinweise: string[] = [];
       if (h && !verheiratet) hinweise.push('Im Konkubinat gibt es weder eine AHV- noch eine UVG-Rente für die Partnerin oder den Partner; die Pensionskasse zahlt nur, wenn das Reglement es vorsieht und die Begünstigung gemeldet ist.');
-      else if (h && imRentenalter) hinweise.push('Die hinterbliebene Person hat das Referenzalter erreicht: Witwen- bzw. Witwerrente und eigene Altersrente werden nicht zusammen ausgerichtet. Ihre eigenen Renten und der Verwitwetenzuschlag sind hier nicht gerechnet.');
+      else if (h && imRentenalter) hinweise.push('Die hinterbliebene Person hat das Referenzalter erreicht: Witwen- bzw. Witwerrente und eigene Altersrente werden nicht zusammen ausgerichtet; der Verwitwetenzuschlag ist hier nicht gerechnet.');
       else if (h && !anspruchAhv) hinweise.push(`Kein Anspruch auf eine AHV-${h.geschlecht === 'w' ? 'Witwenrente' : 'Witwerrente'} nach der vereinfachten Prüfung (keine Kinder${h.geschlecht === 'w' ? '; Witwe unter 45' : ''}).`);
       if (unfall && h && verheiratet && !anspruchUvg) hinweise.push(h.geschlecht === 'w' ? 'Keine UVG-Rente für die Witwe (keine Kinder, unter 45); sie erhält eine einmalige Abfindung, die hier nicht gerechnet ist.' : 'Keine UVG-Rente für den Witwer ohne rentenberechtigte Kinder.');
       if (pkSoll <= 0) hinweise.push('Keine Hinterlassenenleistung der Pensionskasse erfasst (Vorsorgeausweis).');
+      hinweise.push(...ungerechnet(partner));
       faelle.push({ person: i, ereignis: 'tod', posten, summe, bedarf, luecke: bedarf - summe, kapital: pk.todesfallKapital, hinweise });
     }
   });
   return {
     bedarf, bedarfQuelle, faelle,
-    hinweis: faelle.length ? '' : 'Keine Person des Haushalts ist heute erwerbstätig und vor dem Referenzalter. Invalidität und Tod während des Erwerbslebens lassen sich so nicht rechnen; die Renten im Ruhestand zeigt die Pensionierung.',
+    hinweis: faelle.length ? '' : 'Keine Person des Haushalts ist heute erwerbstätig (Lohn erfasst, vor der geplanten Pensionierung und vor dem Referenzalter). Invalidität und Tod während des Erwerbslebens lassen sich so nicht rechnen; die Renten im Ruhestand zeigt die Pensionierung.',
   };
 }

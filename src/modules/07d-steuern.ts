@@ -57,7 +57,7 @@ function zeigeAbzuege(): void {
     sp.dataset.st = a.sperrfristVerletzt ? 'schlecht' : '';
     sp.textContent = a.sperrfristVerletzt
       ? `Sperrfrist: Nach einem Einkauf darf der eingekaufte Betrag drei Jahre lang nicht als Kapital bezogen werden. Der Plan sieht ${a.sperrfristJahre.join(' und ')} einen Kapitalbezug aus der Pensionskasse vor; das liegt innerhalb von drei Jahren nach einem Einkauf ${ein.einkaufJahr} oder kann je nach Datum des Einkaufs hineinfallen. Der Abzug kann dann verweigert werden.`
-      : `Sperrfrist: drei Jahre ab dem Einkauf, je nach Datum bis ${a.sperrfristBis}. In dieser Zeit darf der eingekaufte Betrag nicht als Kapital bezogen werden; der Plan sieht bis dahin keinen Kapitalbezug aus der Pensionskasse vor.`;
+      : `Sperrfrist: drei Jahre ab dem Einkauf, je nach Datum bis ${a.sperrfristBis}. In dieser Zeit darf der eingekaufte Betrag nicht als Kapital bezogen werden${R ? '; der Plan sieht bis dahin keinen Kapitalbezug aus der Pensionskasse vor.' : '. Ob der Plan in dieser Zeit einen Kapitalbezug vorsieht, ist nicht geprüft: Die Rechnung liegt nicht vor.'}`;
   }
 }
 function zeigeKapital(): void {

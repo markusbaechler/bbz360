@@ -7,11 +7,11 @@
 .bbz-rail { padding: 30px 28px; gap: 18px; }
 .bbz-rail .rail-title { margin-top: 8px; line-height: 1.25; font-size: var(--fs-card); }
 .fz-kpis { display: flex; flex-direction: column; gap: 14px; border-top: 1px solid rgba(255, 255, 255, 0.18); padding-top: 16px; }
-.fz-kpi .kl { color: rgba(255, 255, 255, 0.5); font-size: 10.5px; letter-spacing: 0.07em; font-weight: var(--w-bold); }
+.fz-kpi .kl { color: rgba(255, 255, 255, 0.7); font-size: 10.5px; letter-spacing: 0.07em; font-weight: var(--w-bold); }
 .fz-kpi .kv { color: #fff; font-size: var(--fs-kpi); font-weight: var(--w-black); margin-top: 1px; white-space: nowrap; }
 .fz-kpi .kv.warn { color: #ffd9a8; }
 .fz-kpi .kv.crit { color: #ffb3b8; }
-.fz-kpi .ks { color: rgba(255, 255, 255, 0.45); font-size: var(--fs-2xs); margin-top: 1px; }
+.fz-kpi .ks { color: rgba(255, 255, 255, 0.7); font-size: var(--fs-2xs); margin-top: 1px; }
 .fz-ratesbtn { width: 100%; text-align: left; font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--w-med); color: rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--r-md); padding: 9px 12px; cursor: pointer; min-height: 40px; }
 .fz-ratesbtn:hover { background: rgba(255, 255, 255, 0.15); }
 
@@ -21,7 +21,7 @@
 .fz-row { display: grid; grid-template-columns: 1fr 280px; gap: 16px; min-height: 0; flex: 1 1 auto; max-height: 760px; }
 .fz-result { display: flex; flex-direction: column; gap: 14px; min-height: 0; padding: 20px 24px; }
 .fz-banner { display: flex; align-items: center; gap: 10px; border-radius: var(--r-md); padding: 10px 16px; font-size: var(--fs-base); font-weight: var(--w-bold); }
-.fz-banner.s-idle { background: var(--bg); color: var(--mut); }
+.fz-banner.s-idle { background: var(--bg); color: var(--ink-4); }
 .fz-banner.s-ok { background: var(--green-soft); color: var(--green); }
 .fz-banner.s-warn { background: #f6ecdd; color: var(--amber); }
 .fz-banner.s-crit { background: var(--bg); color: var(--ink); border: 1.5px solid var(--ink-4); } /* Regel 6: kritisch neutral, nicht rot */

@@ -80,6 +80,7 @@ feld('naNachlass').addEventListener('input', () => { const v = zahlAus(feld('naN
 // gespeicherten Wert nicht (Feld rot).
 interface Zeile { name: string; betrag: number; jahr: number }
 const voll = (z: Zeile): boolean => z.betrag > 0 && z.jahr > 0;
+const fehlt = (z: Zeile): string => `Rechnet noch nicht mit: ${z.betrag > 0 ? 'Jahr fehlt' : z.jahr > 0 ? 'Betrag fehlt' : 'Betrag und Jahr fehlen'}.`;
 const entwurfRoh = (lesen<{ zuflussEntwurf: unknown }>('nachlass', { zuflussEntwurf: [] }).zuflussEntwurf);
 const zeilen: Zeile[] = [
   ...(S.zufluesse ?? []).map((z) => ({ ...z })),
@@ -107,7 +108,7 @@ function zuZeigen(): void {
       <input type="text" inputmode="decimal" data-zf="betrag" aria-label="Betrag in CHF" placeholder="Betrag" value="${inFeld(z.betrag)}">
       <input type="text" inputmode="numeric" data-frei data-zf="jahr" aria-label="Jahr" placeholder="Jahr" value="${z.jahr > 0 ? z.jahr : ''}">
       <button type="button" class="bbz-button bbz-button--ghost sm" data-zf-weg aria-label="Zufluss entfernen">×</button>
-    </div><p class="cap fm-entwurf" data-entwurf="${i}"${voll(z) ? ' hidden' : ''}>Rechnet noch nicht mit: Betrag und Jahr fehlen.</p>`).join('') : '<p class="cap">Noch keine Zuflüsse erfasst.</p>';
+    </div><p class="cap fm-entwurf" data-entwurf="${i}"${voll(z) ? ' hidden' : ''}>${fehlt(z)}</p>`).join('') : '<p class="cap">Noch keine Zuflüsse erfasst.</p>';
   ($('naZuPlus') as HTMLButtonElement).disabled = zeilen.length >= MAX_ZUFLUESSE;
 }
 $('naZuPlus').addEventListener('click', () => { zeilen.push({ name: '', betrag: 0, jahr: 0 }); zuZeigen(); $('naZufluesse').querySelector<HTMLInputElement>('.fm-zeile:last-of-type input')?.focus(); });
@@ -130,8 +131,14 @@ $('naZufluesse').addEventListener('input', (ev) => {
   }
   // Hinweis der Zeile nachführen, ohne die Felder neu aufzubauen
   const hinweis = $('naZufluesse').querySelector<HTMLElement>(`[data-entwurf="${zeilen.indexOf(z)}"]`);
-  if (hinweis) hinweis.hidden = voll(z);
+  if (hinweis) { hinweis.hidden = voll(z); hinweis.textContent = fehlt(z); }
   zuSichern();
+});
+// Feld verlassen mit ungültigem Jahr (z. B. «203»): Es gilt weiter der gespeicherte Wert, das Feld zeigt ihn wieder
+$('naZufluesse').addEventListener('focusout', (ev) => {
+  const el = ev.target as HTMLInputElement, z = zeilen[Number(el.closest<HTMLElement>('[data-zeile]')?.dataset.zeile)];
+  if (!z || el.dataset.zf !== 'jahr') return;
+  if (el.value.trim() !== (z.jahr > 0 ? String(z.jahr) : '')) { el.value = z.jahr > 0 ? String(z.jahr) : ''; el.classList.remove('bad'); }
 });
 tausender($('main'));
 zeigen();

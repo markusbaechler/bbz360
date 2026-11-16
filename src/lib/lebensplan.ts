@@ -30,10 +30,17 @@ const SCHON_GERECHNET: Record<string, string> = {
   'Auszahlung Säule 3a / 3b': 'Die Säule 3a zahlt die Pensionierung bereits aus; ein Guthaben der Säule 3b gehört ins freie Vermögen.',
   'Verkauf (Liegenschaft, Firma, Depot)': 'Den Verkauf einer Liegenschaft erfasst die Pensionierung («Verkauf mit Alter»); Depots stehen bereits im Vermögen.',
   'Liegenschaft verkaufen': 'Den Verkauf einer Liegenschaft erfasst die Pensionierung («Verkauf mit Alter»); er ist keine Ausgabe.',
+  // Sparen, Anlegen und Vorsorgen sind keine Ausgaben: Das Geld bleibt im Vermögen bzw. in der Vorsorge.
+  'Liquidität aufbauen (Sparziel)': 'Sparen ist keine Ausgabe; das Geld bleibt im Vermögen. Den Sparbetrag zeigt das Budget (05b).',
+  'Anlageziel Wertschriften': 'Anlegen schichtet Vermögen um und ist keine Ausgabe; den Anlagebetrag erfasst Modul 07b.',
+  'Vermögen strukturieren': 'Eine Umschichtung im Vermögen ist keine Ausgabe.',
+  'Vorsorgelücke schliessen': 'Sparen oder Einzahlen in die Vorsorge ist keine Ausgabe; das Geld bleibt im Vermögen bzw. in der Vorsorge.',
+  'BVG-Einkauf': 'Ein Einkauf ist keine Ausgabe, er erhöht die Pensionskasse. Seine Steuerwirkung zeigt Modul 07d; die höhere Leistung ist in der Pensionierung zu erfassen.',
+  'Säule 3a aufbauen': 'Die Einzahlungen in die Säule 3a rechnet die Pensionierung bereits.',
 };
 const PROB: Record<string, string> = { moeglich: 'möglich', wahrscheinlich: 'wahrscheinlich', sicher: 'sicher' };
 
-export type PlanQuelle = '06' | '07a' | '07b' | '07c';
+export type PlanQuelle = '06' | '07a' | '07b' | '07c' | '07f';
 export type PlanArt = 'ziel' | 'wunsch' | 'zufluss' | 'kauf' | 'anlage' | 'pension';
 
 export interface PlanEintrag {
@@ -91,6 +98,18 @@ export function kaufZiel(d: SessionData): Record<string, unknown> | null {
 }
 
 /**
+ * Letztes Kalenderjahr, das der Rechenkern rechnet: Er läuft je Person bis zum Monat vor dem Geburtstag nach dem
+ * Horizont-Alter (engine: Aend = Geburtsmonat + Horizont × 12 + 11), also ausser bei Januar-Geburt ins Folgejahr.
+ */
+export function planBisJahr(S: PensState, hz: { horizont: number; horizontP?: number[] | null }): number {
+  const ps = S.personen.slice(0, S.haushalt === 'single' ? 1 : 2);
+  return Math.max(...ps.map((p, i) => {
+    const h = hz.horizontP && hz.horizontP[i] > 0 ? hz.horizontP[i] : hz.horizont;
+    return Math.floor((p.jahrgang * 12 + ((p.geburtsmonat || 6) - 1) + h * 12 + 11) / 12);
+  }));
+}
+
+/**
  * Baut den Lebensplan.
  * d: Session (bbzData), H: Haushalts-Stand, heute: laufendes Kalenderjahr.
  */
@@ -102,6 +121,7 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
   const alterIn = (jahr: number | null): number | null => (jahr == null ? null : jahr - jg);
   const neu: Wunsch[] = [];
   const zufluesse: Zufluss[] = [...(S.zufluesse ?? [])];
+  const erwartet = [...zufluesse]; // aus Nachlass (07f): rechnen bereits mit, erscheinen unten in der Liste
   /** Warum ein Eintrag mit diesem Jahr nicht gerechnet werden kann; '' wenn er kann. */
   const zeitHinweis = (jahr: number | null): string =>
     jahr == null ? 'Vorgemerkt: Jahr fehlt.' : jahr < heute ? 'Vorgemerkt: Das Jahr liegt zurück.' : jahr > bisJahr ? `Vorgemerkt: liegt nach dem Planungshorizont (${bisJahr}).` : '';
@@ -115,7 +135,8 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
   const kauf = preis > 0;
   const wohnZiel = kauf ? kaufZiel(d) : null;
   if (kauf) {
-    const jahr = jahrVon(wohnZiel?.jahr), eigen = bar + vorbezug, hypothek = Math.max(0, preis - eigen);
+    // Eigenmittel zählen höchstens bis zum Kaufpreis (wie im Rechenkern)
+    const jahr = jahrVon(wohnZiel?.jahr), eigen = Math.min(preis, bar + vorbezug), hypothek = Math.max(0, preis - eigen);
     const name = text(wohnZiel?.name) || text(wohnZiel?.insp) || 'Eigenheimkauf';
     let rechnet = false, hinweis: string, abfluss = 0;
     if (!wohnZiel) hinweis = 'Vorgemerkt: Der Kauf ist keinem Ziel zugeordnet (in 07a wählen), das Kaufjahr fehlt.';
@@ -130,12 +151,15 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
       const p = S.personen[0];
       const G = typeof p.pkGuthabenPlan === 'number' && p.pkGuthabenPlan > 0 ? p.pkGuthabenPlan : p.pkRente / (uws65 / 100) + p.pkKapital;
       const vorPension = jahr! < jg + p.pensAlter;
-      const fremd = vorPension ? Math.min(vorbezug, G) : 0;
+      // Der Rechenkern zahlt den Vorbezug in heutiger Kaufkraft aus (× Teuerung bis zum Kauf); um denselben,
+      // teuerungsbereinigten Betrag sinkt das Guthaben.
+      const teuerung = Math.pow(1 + (+S.inflation || 0) / 100, Math.max(0, jahr! - heute));
+      const fremd = vorPension && G > 0 ? Math.min(vorbezug, eigen, G / teuerung) : 0;
       if (fremd > 0) {
-        const f = Math.max(0, 1 - fremd / G);
+        const f = Math.max(0, 1 - (fremd * teuerung) / G);
         p.pkRente *= f;
         p.pkKapital *= f;
-        if (typeof p.pkGuthabenPlan === 'number') p.pkGuthabenPlan = Math.max(0, p.pkGuthabenPlan - fremd);
+        if (typeof p.pkGuthabenPlan === 'number') p.pkGuthabenPlan = Math.max(0, p.pkGuthabenPlan - fremd * teuerung);
       }
       S.liegenschaften.push({
         name: name.slice(0, 60), typ: 'eigen', verkehrswert: preis, hypothek, zins, unterhalt: 0.5, nebenkosten: 400, mietertrag: 0, verkaufAlter: 0,
@@ -145,7 +169,8 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
       abfluss = eigen - fremd;
       const vbText = vorbezug <= 0 ? ''
         : !vorPension ? ` Der PK-Vorbezug von CHF ${fmt(vorbezug)} ist nach der Pensionierung nicht mehr möglich; der Betrag kommt aus dem freien Vermögen.`
-          : fremd < vorbezug ? ` Vom PK-Vorbezug von CHF ${fmt(vorbezug)} sind nur CHF ${fmt(fremd)} durch das Guthaben gedeckt; der Rest kommt aus dem freien Vermögen.`
+          : !(G > 0) ? ` Für Person 1 ist kein Pensionskassenguthaben erfasst; der PK-Vorbezug von CHF ${fmt(vorbezug)} kommt in der Rechnung aus dem freien Vermögen.`
+            : fremd < vorbezug ? ` Vom PK-Vorbezug von CHF ${fmt(vorbezug)} rechnen nur CHF ${fmt(fremd)} mit (Grenze: Eigenmittel bzw. das Altersguthaben von Person 1); der Rest kommt aus dem freien Vermögen.`
             : ` Davon PK-Vorbezug CHF ${fmt(fremd)}: besteuert, kürzt die Pensionskasse von Person 1.`;
       hinweis = `Kauf im Januar ${jahr} mit Eigenmitteln von CHF ${fmt(eigen)} und Hypothek CHF ${fmt(hypothek)} zu ${zins}%.${vbText} `
         + `Danach Zins, 0.5% Unterhalt und CHF 400 Nebenkosten pro Monat${miete > 0 ? `; die Miete von CHF ${fmt(miete)} fällt weg` : '; eine wegfallende Miete ist nicht erfasst (07a «Aktuelle Wohnkosten»)'}.`;
@@ -184,6 +209,14 @@ export function lebensplan(d: SessionData, H: PensState, heute: number = new Dat
       hinweis = `Einmalige Ausgabe ${jahr === heute ? 'sofort' : `im Januar ${jahr}`}, in heutiger Kaufkraft.${eintritt}`;
     }
     eintraege.push({ quelle: '06', art, name, jahr, alter: alterIn(jahr), betrag: betrag > 0 ? betrag : null, rechnet, hinweis, abfluss });
+  }
+  // ---------- 07f erwartete Zuflüsse ----------
+  for (const z of erwartet) {
+    const zh = z.jahr > bisJahr ? `Vorgemerkt: liegt nach dem Planungshorizont (${bisJahr}).` : '';
+    eintraege.push({
+      quelle: '07f', art: 'zufluss', name: z.name || 'Erwarteter Zufluss', jahr: z.jahr, alter: alterIn(z.jahr), betrag: z.betrag, rechnet: !zh, abfluss: zh ? 0 : -z.betrag,
+      hinweis: zh || `Einmaliger Zufluss ins freie Vermögen ${z.jahr <= heute ? 'sofort' : `im Januar ${z.jahr}`}, in heutiger Kaufkraft (erfasst unter Nachlass).`,
+    });
   }
   S.wuensche = [...S.wuensche, ...neu];
   if (zufluesse.length) S.zufluesse = zufluesse;

@@ -32,7 +32,7 @@ export interface BudgetKennzahlen {
   ausgabenHeute: number;
   /** Nettoeinkommen pro Monat: aus dem Cockpit erfasst, sonst aus dem Bruttolohn geschaetzt; null ohne Lohn. */
   netto: number | null;
-  nettoQuelle: 'cockpit' | 'schaetzung' | null;
+  nettoQuelle: 'cockpit' | 'schaetzung' | 'gemischt' | null;
   /** Netto − Ausgaben heute (pro Monat) und Anteil am Netto; null, wenn eines von beiden fehlt. */
   sparbetrag: number | null;
   sparquote: number | null;
@@ -47,7 +47,7 @@ export interface BudgetKennzahlen {
  * nettoCockpit: im Cockpit 05 erfasstes Nettoeinkommen pro Monat (0 = nicht erfasst). Fehlt es, wird das Netto
  * wie im Rechenkern geschaetzt: Bruttolohn abzueglich Sozialabgaben und pauschaler Einkommenssteuer.
  */
-export function budgetKennzahlen(S: PensState, E: Engine, nettoCockpit = 0): BudgetKennzahlen {
+export function budgetKennzahlen(S: PensState, E: Engine, nettoCockpit: number | number[] = 0): BudgetKennzahlen {
   const werte = budgetWerte(S, E), eigen = hatEigenheim(S, E);
   const positionen = BUDGET_KEYS.map((key) => {
     const [, label, hinweis] = BUDGET_POS.find(([k]) => k === key)!;
@@ -55,9 +55,21 @@ export function budgetKennzahlen(S: PensState, E: Engine, nettoCockpit = 0): Bud
     const erfasst = istWohnen ? eigen || (S.fix.wohnen != null && isFinite(+S.fix.wohnen)) : S.budget[key] != null && isFinite(+S.budget[key]);
     return { key, label, hinweis, wert: werte[key], fest: istWohnen && eigen, erfasst };
   });
-  const brutto = S.personen.slice(0, S.haushalt === 'single' ? 1 : 2).reduce((x, p) => x + (+p.brutto || 0), 0);
-  const geschaetzt = (brutto / 12) * (1 - E.P.annahmen.sozialabgaben) * (1 - (+S.steuerEink || 0) / 100);
-  const netto = nettoCockpit > 0 ? nettoCockpit : geschaetzt > 0 ? Math.round(geschaetzt) : null;
+  // Je Person (ADR-22): das im Cockpit erfasste Netto, sonst die Schätzung aus ihrem Bruttolohn. Wer das geplante
+  // Pensionierungsalter erreicht hat, hat keinen Lohn mehr (wie im Rechenkern), auch wenn das Feld noch gefüllt ist.
+  const ps = S.personen.slice(0, S.haushalt === 'single' ? 1 : 2);
+  const quote = (1 - E.P.annahmen.sozialabgaben) * (1 - (+S.steuerEink || 0) / 100);
+  const jePerson = Array.isArray(nettoCockpit) ? nettoCockpit : null;
+  const teile = ps.map((p, i) => {
+    const erfasst = jePerson ? +jePerson[i] || 0 : 0;
+    if (erfasst > 0) return { betrag: erfasst, quelle: 'cockpit' as const };
+    const lohn = E.BASIS - p.jahrgang < p.pensAlter ? +p.brutto || 0 : 0;
+    return { betrag: (lohn / 12) * quote, quelle: 'schaetzung' as const };
+  }).filter((t) => t.betrag > 0);
+  const gesamt = !jePerson && (nettoCockpit as number) > 0;
+  const summeNetto = gesamt ? (nettoCockpit as number) : teile.reduce((x, t) => x + t.betrag, 0);
+  const netto = summeNetto > 0 ? Math.round(summeNetto) : null;
+  const nettoQuelle: BudgetKennzahlen['nettoQuelle'] = netto == null ? null : gesamt || teile.every((t) => t.quelle === 'cockpit') ? 'cockpit' : teile.every((t) => t.quelle === 'schaetzung') ? 'schaetzung' : 'gemischt';
   const ausgabenHeute = typeof S.ausgabenHeute === 'number' ? S.ausgabenHeute : 0;
   const summe = budgetSumme(S, E);
   const ruhe = S.budgetAktiv ? summe : S.ausgabenRuhestand;
@@ -69,7 +81,7 @@ export function budgetKennzahlen(S: PensState, E: Engine, nettoCockpit = 0): Bud
     ausgabenRuhestand: S.ausgabenRuhestand,
     ausgabenHeute,
     netto,
-    nettoQuelle: nettoCockpit > 0 ? 'cockpit' : netto != null ? 'schaetzung' : null,
+    nettoQuelle,
     sparbetrag: netto != null && ausgabenHeute > 0 ? netto - ausgabenHeute : null,
     sparquote: netto != null && ausgabenHeute > 0 ? (netto - ausgabenHeute) / netto : null,
     reserveMonate: ausgabenHeute > 0 ? S.liquiditaet / ausgabenHeute : null,

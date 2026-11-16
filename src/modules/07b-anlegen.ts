@@ -21,6 +21,7 @@ import '../styles/theme.css';
 import '../styles/modules/07b-anlegen.css';
 import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from '../lib/data';
+import { vorbelegung } from '../lib/haushalt';
 import { mountNav } from '../lib/nav';
 import { STRATS as CORE_STRATS, simulate, stressStrategyIdx, stressScore, horizonMaxStrategyIdx } from '../lib/finance';
 import { fmt } from '../lib/format';
@@ -202,7 +203,7 @@ function renderScr0(): void {
     inp.value = stateA.amount ? fmtCH(stateA.amount) : '';
     BBZ.set('anlage_betrag', stateA.amount); // ADR-22: der Lebensplan liest den Betrag von hier
   });
-  const saved = BBZ.get('cockpit_anlage_f') as number | null;
+  const saved = vorbelegung().anlageFaehig; // aus dem aktuellen Stand (ADR-22)
   if (saved) {
     const hint = el('cockpitAmtHint');
     hint.textContent = 'Ihr anlagefähiges Kapital aus dem Finanz-Cockpit: CHF ' + fmtCH(saved);
@@ -672,7 +673,7 @@ function wireCalcLinks(): void {
 // ── Restore (v1 window.onload) ───────────────────────────────────────────────
 function restore(): void {
   // Der hier erfasste Betrag geht der Vorbelegung aus dem Cockpit vor (ADR-22)
-  const saved = (Number(BBZ.get('anlage_betrag')) > 0 ? BBZ.get('anlage_betrag') : BBZ.get('cockpit_anlage_f')) as number | null;
+  const saved = (Number(BBZ.get('anlage_betrag')) > 0 ? BBZ.get('anlage_betrag') : vorbelegung().anlageFaehig) as number | null;
   if (saved) { stateA.amount = Math.round(Number(saved)); stateB.amount = Number(saved); }
   const savedWish = BBZ.get('anlage_strategiewunsch');
   if (savedWish !== null && savedWish !== undefined && savedWish !== '') stateA.stratIdx = parseInt(String(savedWish), 10);

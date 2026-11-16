@@ -248,3 +248,20 @@ describe('A2/B1/C6: Stammdaten', () => {
     expect(r.H.bericht.kunde).toBe('');
   });
 });
+
+describe('Zweiter Prüflauf: aus der Einzelperson wird im Cockpit ein Paar', () => {
+  it('3a und PK von Person 1 bleiben; die verborgenen Werte von Person 2 kommen dazu (vorher: Person 1 gekürzt)', () => {
+    const H = sanitize({ ...clone(EXAMPLE), haushalt: 'single' });
+    H.personen[0].s3a = 50000; H.personen[0].pkGuthabenHeute = 300000;
+    H.personen[1].s3a = 40000; H.personen[1].pkGuthabenHeute = 100000;
+    const g = gemeinsamAusHaushalt(H); // was das Cockpit zeigt: nur Person 1
+    expect([g.s3a, g.pk]).toEqual([50000, 300000]);
+    const neu = gemeinsamInHaushalt(H, { ...g, paar: true, brutto: [g.brutto[0], 60000] });
+    expect(neu.haushalt).toBe('verheiratet');
+    expect(neu.personen.map((p) => p.s3a)).toEqual([50000, 40000]);
+    expect(neu.personen.map((p) => p.pkGuthabenHeute)).toEqual([300000, 100000]);
+    // ändert das Cockpit im selben Schritt die Summe, gilt sie für Person 1
+    const neu2 = gemeinsamInHaushalt(H, { ...g, paar: true, s3a: 70000, brutto: [g.brutto[0], 60000] });
+    expect(neu2.personen.map((p) => p.s3a)).toEqual([70000, 40000]);
+  });
+});

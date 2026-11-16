@@ -1,6 +1,6 @@
 # Assessment der Fusion PensCheck → bbz360
 
-Stand: 2026-11-16 · Geprüfter Commit: `446225f` (Branch `claude/loving-albattani-efae2x`) · Status: **Befunde behoben (siehe «Behebung» am Ende); zweiter Prüflauf ausstehend**
+Stand: 2026-11-16 · Geprüfter Commit: `446225f` (Branch `claude/loving-albattani-efae2x`) · Status: **Befunde des ersten und zweiten Prüflaufs behoben (siehe am Ende); dritter Prüflauf siehe dort**
 
 ## Urteil
 
@@ -306,3 +306,44 @@ vorsichtig nach Usanz (A15), der Kauf ist ein Ziel (A9). Regeln und Einzelheiten
 | C6 | behoben | Kundenname folgt den Stammdaten | `haushalt.test.ts` |
 | C7 | behoben | Anzeige «wie geplant»; keine Zeile «Witwenrente» im Konkubinat; Ganzzahlfelder nur Ziffern | `fachmodule.test.ts` |
 | C9 | behoben | die beiden Tests sind korrigiert | – |
+
+
+---
+
+## Zweiter Prüflauf (2026-11-16, nach der Behebung, Commit `66aceb8`)
+
+Derselbe Lauf wie beim Assessment: drei unabhängige Prüfer (Datenfluss; Kern/Lebensplan/Abschluss; Fachmodule),
+Portvergleich, Schadcode, Zugänglichkeit, schmale Bildschirme.
+
+**Hält:** Rechenkern ohne die neuen Felder bit-gleich zum PensCheck (1302 Zufallsläufe, 0 Abweichungen); Jahresbilanz
+geht in 432 Läufen auf; Erbrecht (18 Kombinationen), AHV/IV, UVG und Kapitalbezugssteuer von Hand nachgerechnet;
+keine HTML-Injektion; Portvergleich: 23 von 32 Dateien identisch, die übrigen 9 mit den dokumentierten Änderungen.
+
+**Gefunden: 21 Befunde in Randfällen, dazu Kontrast auf den bestehenden Seiten.** Alle behoben, je mit Test:
+
+| Bereich | Befund | Test |
+|---|---|---|
+| Datenfluss | Verpflichtungen bei Frequenz «pro Jahr» zwölfmal zu klein | `pruef2.spec.ts` |
+| Datenfluss | Einzelperson → Paar im Cockpit kürzte 3a/PK von Person 1 | `haushalt.test.ts` |
+| Datenfluss, Budget | Netto einer Person galt als Netto des Haushalts | `budget.test.ts` |
+| Datenfluss | Person 2 aus den Stammdaten entfernt: 07a/10 mit Paar-Einkommen | `pruef2.spec.ts` |
+| Datenfluss | Modul 10 rechnete die Absicherung ohne nachgeführte Stammdaten | `pruef2.spec.ts` |
+| Datenfluss | anlagefähiges Kapital in 07b veraltet | `pruef2.spec.ts` |
+| Datenfluss | Import liess das alte Netto stehen | `pruef2.spec.ts` |
+| Lebensplan | Spar-, Anlage-, Vorsorgeziele als Ausgabe gerechnet | `lebensplan.test.ts` |
+| Lebensplan | PK-Vorbezug: Auszahlung teuerungsbereinigt, Kürzung nominal | `lebensplan.test.ts` |
+| Lebensplan | Planungshorizont ein Jahr zu früh | `lebensplan.test.ts` |
+| Kern | Jahr 0 wurde zu 1990 und zählte sofort | `kern-erweiterung.test.ts` |
+| Lebensplan | Eigenmittel über dem Kaufpreis: Anzeige ≠ Rechnung | `lebensplan.test.ts` |
+| Lebensplan | Zuflüsse aus 07f gerechnet, aber nicht in der Liste | `lebensplan.test.ts` |
+| Lebensplan | Hinweistexte zum Vorbezug | `lebensplan.test.ts` |
+| Absicherung | alleinstehend, erwachsene Kinder: Todesfall mit vollem Bedarf als Lücke | `fachmodule.test.ts` |
+| Abschluss | «gedeckt», obwohl kein Fall gerechnet | `pruef2.spec.ts` |
+| Steuern | Sperrfrist-Entwarnung ohne Rechnung | `pruef2.spec.ts` |
+| Absicherung | Feld «davon» zeigte anderen Wert als gerechnet | `pruef2.spec.ts` |
+| Absicherung | Renten/übrige Einkommen fehlen ohne Hinweis | `fachmodule.test.ts` |
+| Absicherung, Budget | «erwerbstätig» ohne Blick auf das Pensionierungsalter | `fachmodule.test.ts`, `budget.test.ts` |
+| Nachlass, Texte | unvollständiges Jahr, Entwurfshinweis, Namen statt «Person N» | `pruef2.spec.ts`, `fachmodule.test.ts` |
+| Kontrast | blasse Schrift auf den bestehenden Seiten, fehlendes Label | axe auf 19 Seiten: 0 Verstösse |
+
+Regeln dazu: ADR-22, Nachtrag (Punkte 12–23) und die ergänzten Grenzen.

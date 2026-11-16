@@ -38,9 +38,8 @@ const S = haushaltLesen();
  * Nettoeinkommen pro Monat aus dem Cockpit 05 (0 = dort nicht erfasst). Aeltere Staende mit Einkommens-Typ
  * «brutto» tragen kein Netto (lib/haushalt.ts: cockpitEinkommen); gezaehlt werden die Personen des Haushalts.
  */
-function nettoCockpit(): number {
-  const netto = cockpitEinkommen(BBZ.all()).netto;
-  return (netto[0] + (S.haushalt === 'single' ? 0 : netto[1])) / 12;
+function nettoCockpit(): number[] {
+  return cockpitEinkommen(BBZ.all()).netto.map((v) => v / 12); // je Person; fehlt eines, schätzt die Bibliothek aus dem Bruttolohn
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -125,7 +124,7 @@ function zeigen(): void {
   const kpi = (l: string, v: string, s: string, st = ''): string => `<div class="kpi"${st ? ` data-st="${st}"` : ''}><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s}</span></div>`;
   const ruhe = k.aktiv ? k.summe : k.ausgabenRuhestand;
   $('buKpis').innerHTML = [
-    kpi('Nettoeinkommen pro Monat', k.netto != null ? chf(k.netto) : '–', k.nettoQuelle === 'cockpit' ? 'aus dem Finanz-Cockpit' : k.nettoQuelle === 'schaetzung' ? 'geschätzt aus dem Bruttolohn' : 'Lohn im Cockpit erfassen'),
+    kpi('Nettoeinkommen pro Monat', k.netto != null ? chf(k.netto) : '–', k.nettoQuelle === 'cockpit' ? 'aus dem Finanz-Cockpit' : k.nettoQuelle === 'gemischt' ? 'Cockpit und Schätzung aus dem Bruttolohn' : k.nettoQuelle === 'schaetzung' ? 'geschätzt aus dem Bruttolohn' : 'Lohn im Cockpit erfassen'),
     kpi('Sparbetrag pro Monat', k.sparbetrag != null ? chf(k.sparbetrag) : '–', k.sparquote != null ? `${pct(k.sparquote)} des Nettoeinkommens` : 'Einkommen und Ausgaben erfassen', k.sparbetrag == null ? '' : k.sparbetrag < 0 ? 'schlecht' : 'gut'),
     kpi('Reserve', k.reserveMonate != null ? `${k.reserveMonate.toFixed(1)} Monate` : '–', `Liquidität ${chf(S.liquiditaet)}`, k.reserveMonate == null ? '' : k.reserveMonate < 3 ? 'knapp' : 'gut'),
     kpi('Ruhestand zu heute', k.ruhestandZuHeute != null ? pct(k.ruhestandZuHeute) : '–', ruhe > 0 ? `${chf(ruhe)} im Ruhestand` : 'Budget oder Betrag erfassen'),

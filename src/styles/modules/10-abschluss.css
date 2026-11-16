@@ -8,7 +8,7 @@
 .ab-thanks { margin-top: 10px; line-height: 1.2; font-size: var(--fs-welcome); font-family: var(--font-head); } /* Begrüssungs-Moment (§3) */
 .bbz-rail .rail-sub { font-size: var(--fs-base); color: rgba(255, 255, 255, 0.72); margin-top: 12px; }
 .ab-notiz { color: #fff; font-size: var(--fs-base); line-height: 1.6; margin-top: 10px; outline: none; min-height: 24px; }
-.ab-notiz:empty::before { content: attr(data-placeholder); color: rgba(255, 255, 255, 0.4); font-style: italic; }
+.ab-notiz:empty::before { content: attr(data-placeholder); color: rgba(255, 255, 255, 0.7); font-style: italic; }
 
 /* ── BÜHNE ───────────────────────────────────────────────────────────────── */
 .ab-work { justify-content: center; }

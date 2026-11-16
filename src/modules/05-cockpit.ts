@@ -219,7 +219,8 @@ function calc(): void {
   // ADR-17/22: Einkommen pro Jahr fuer 07a — je Person der Bruttolohn; fehlt er, ihr Nettoeinkommen (wie bisher).
   // Dieselbe Regel wie lib/haushalt.ts: prefills().
   BBZ.set('cockpit_einkommen', (S.ausgaben.brutto1 > 0 ? S.ausgaben.brutto1 : S.ausgaben.eMann * mult) + (S.ausgaben.brutto2 > 0 ? S.ausgaben.brutto2 : S.ausgaben.eFrau * mult));
-  BBZ.set('cockpit_verpflichtungen', (S.ausgaben.leasing + S.ausgaben.unterhalt) * mult);
+  // Leasing und Unterhalt sind immer Monatsbeträge; die Frequenz gilt nur für die Einkommen
+  BBZ.set('cockpit_verpflichtungen', (S.ausgaben.leasing + S.ausgaben.unterhalt) * 12);
   BBZ.set('cockpit_pk_saldo', S.vorsorgen.pkSaldo || 0);
   BBZ.set('cockpit_anlage_f', anlageF);
   BBZ.set('cockpit_data', JSON.parse(JSON.stringify(S)));

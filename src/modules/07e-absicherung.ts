@@ -55,7 +55,7 @@ feld('abBedarf').value = inFeld(ein.bedarfMonat);
 const TITEL = { invalid: 'wird invalid', tod: 'stirbt' } as const;
 function zeigen(): void {
   document.querySelectorAll<HTMLElement>('[data-ursache]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.ursache === ein.ursache)));
-  const r = absicherung(S, E, ein);
+  const r = absicherung(S, E, { ...ein, namen: [personName(0), personName(1)] });
   $('abBedarfHinweis').textContent = r.bedarfQuelle === 'eingabe' ? 'eigene Angabe'
     : r.bedarfQuelle === 'ausgaben' ? `leer = heutige Ausgaben, ${chf(r.bedarf / 12)} pro Monat`
       : `leer = 80% des Nettoeinkommens, ${chf(r.bedarf / 12)} pro Monat (Ausgaben heute im Budget erfassen)`;
@@ -90,7 +90,9 @@ feld('abKinder').addEventListener('input', () => {
   if (n === null) return;
   ein.kinder = n;
   // «davon» kann nicht grösser sein als die Zahl aller Kinder
-  if (ein.kinderAbh > n) { ein.kinderAbh = n; feld('abKinderAbh').value = n > 0 ? String(n) : ''; }
+  if (ein.kinderAbh > n) ein.kinderAbh = n;
+  // Das Feld zeigt immer, womit gerechnet wird (auch nach einer zuvor abgewiesenen Eingabe)
+  feld('abKinderAbh').value = ein.kinderAbh > 0 ? String(ein.kinderAbh) : '';
   feld('abKinderAbh').classList.remove('bad');
   sichern(); zeigen();
 });

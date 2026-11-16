@@ -15,7 +15,7 @@ import bundledParams from '../../public/data/params.json';
 import bundledVerification from '../../public/data/verification.json';
 import { mountNav } from '../lib/nav';
 import { BBZ } from '../lib/data';
-import { haushaltImport, haushaltLesen, haushaltSchreiben, stammdatenAnwenden } from '../lib/haushalt';
+import { cockpitNettoLoeschen, haushaltImport, haushaltLesen, haushaltSchreiben, stammdatenAnwenden } from '../lib/haushalt';
 import { createEngine, monthOf } from '../lib/pension/engine';
 import { applyBudget } from '../lib/pension/analyse';
 import { resolveParams, nextParams, pruefZahl } from '../lib/pension/params';
@@ -328,6 +328,7 @@ $('btnImportJa').onclick = async () => {
   ns = stammdatenAnwenden(ns, BBZ.all());
   // Wie beim Link im PensCheck: eigene Angaben, direkt im Ergebnis
   Object.assign(ns.ui, { edited: true, practice: false, tutorStep: 'ergebnis', tutorMax: 99 });
+  cockpitNettoLoeschen(); // das Netto des bisherigen Falls gilt nicht für den eingelesenen
   if (app.replaceState(ns, true)) toast('Angaben aus dem PensCheck übernommen.');
 };
 

@@ -22,5 +22,5 @@ export async function musterEinlesen(page: Page, { leeren = true }: { leeren?: b
   // Rückfrage erscheint nur, wenn schon eigene Angaben da sind
   const ja = page.locator('#btnConfirmJa');
   if (await ja.isVisible().catch(() => false)) await ja.click();
-  await expect(page.locator('#verdictText')).toContainText(/Reicht|Knapp/);
+  await expect(page.locator('#verdictText')).toContainText(/Reicht|Knapp|reicht/);
 }

@@ -8,10 +8,10 @@
 .ad-body:has(> .bbz-speicherhinweis) { grid-template-rows: auto var(--topbar-h) 1fr 44px; }
 .ad-topbar { background: var(--blue-dk); display: flex; align-items: center; gap: 14px; padding: 0 24px; }
 .ad-topname { color: #fff; font-size: var(--fs-nav); font-weight: var(--w-bold); }
-.ad-backlink { margin-left: auto; color: rgba(255, 255, 255, 0.65); font-size: var(--fs-sm); text-decoration: none; padding: 6px 10px; border-radius: var(--r-sm); }
+.ad-backlink { margin-left: auto; color: rgba(255, 255, 255, 0.7); font-size: var(--fs-sm); text-decoration: none; padding: 6px 10px; border-radius: var(--r-sm); }
 .ad-backlink:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
 .ad-viewtabs { display: flex; gap: 4px; margin-left: 20px; }
-.ad-vtab { font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--w-med); color: rgba(255, 255, 255, 0.6); background: none; border: none; cursor: pointer; padding: 6px 14px; border-radius: var(--r-sm); }
+.ad-vtab { font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--w-med); color: rgba(255, 255, 255, 0.7); background: none; border: none; cursor: pointer; padding: 6px 14px; border-radius: var(--r-sm); }
 .ad-vtab:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 .ad-vtab.on { background: rgba(255, 255, 255, 0.16); color: #fff; font-weight: var(--w-bold); }
 
@@ -77,7 +77,7 @@
 .ad-tb:hover { background: var(--blue-lt); color: var(--blue); }
 .ad-kacheleditor { border: 1.5px solid var(--blue-line); border-radius: var(--r-md); padding: 12px 14px; min-height: 220px; font-size: var(--fs-base); color: var(--ink-2); line-height: 1.6; outline: none; overflow-y: auto; }
 .ad-kacheleditor:focus { border-color: var(--blue); }
-.ad-kacheleditor:empty::before { content: attr(data-placeholder); color: var(--mut-3); font-style: italic; }
+.ad-kacheleditor:empty::before { content: attr(data-placeholder); color: var(--mut); font-style: italic; }
 .ad-kacheleditor h3 { font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--ink); margin: 10px 0 4px; }
 .ad-kacheleditor ul { padding-left: 20px; margin: 6px 0; }
 

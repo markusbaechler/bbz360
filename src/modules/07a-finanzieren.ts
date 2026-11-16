@@ -23,6 +23,7 @@ import '../styles/theme.css';
 import '../styles/modules/07a-finanzieren.css';
 import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from '../lib/data';
+import { vorbelegung } from '../lib/haushalt';
 import { mountNav } from '../lib/nav';
 import { tragbarkeit, type TragbarkeitResult } from '../lib/finance';
 import { fmt, parseNum as pN, age as calcAge } from '../lib/format';
@@ -51,11 +52,13 @@ function preload(): void {
     const e = $i(id);
     if (e && val && !pN(e.value)) e.value = fmt(val);
   };
-  if (d.cockpit_einkommen) setIfEmpty('income', d.cockpit_einkommen);
+  // Aus dem aktuellen Stand gerechnet, nicht aus dem gespeicherten Schlüssel (ADR-22)
+  const vb = vorbelegung();
+  if (vb.einkommen) setIfEmpty('income', vb.einkommen);
   if (d.cockpit_verpflichtungen) setIfEmpty('obligations', d.cockpit_verpflichtungen);
-  if (typeof d.cockpit_pk_saldo === 'number' && d.cockpit_pk_saldo > 0) {
+  if (vb.pkSaldo > 0) {
     const e = $('pk-info-label');
-    e.textContent = 'Vorhandenes PK-Guthaben (Cockpit): CHF ' + fmt(Math.round(d.cockpit_pk_saldo));
+    e.textContent = 'Vorhandenes PK-Guthaben (Cockpit): CHF ' + fmt(Math.round(vb.pkSaldo));
     e.hidden = false;
   }
   // ADR-22: Der Kauf gehört zu einem Ziel aus Modul 06 — dem hier gewählten, sonst dem ersten Ziel «Wohnen» mit

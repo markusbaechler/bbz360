@@ -29,7 +29,7 @@
 .br-content h3:first-child { margin-top: 0; }
 .br-content b, .br-content strong { color: var(--ink); }
 .br-content ul { padding-left: 20px; margin: 6px 0; }
-.br-content.empty::before { content: attr(data-placeholder); color: var(--mut-3); font-style: italic; }
+.br-content.empty::before { content: attr(data-placeholder); color: var(--mut); font-style: italic; }
 .br-chint { margin-top: auto; padding-top: 10px; font-size: var(--fs-xs); font-weight: var(--w-bold); color: var(--blue); }
 
 /* ── MODAL: Foto + Editor ────────────────────────────────────────────────── */
@@ -54,7 +54,7 @@
 .br-editor h3 { font-size: var(--fs-lg); font-weight: var(--w-bold); color: var(--ink); margin: 12px 0 5px; }
 .br-editor h3:first-child { margin-top: 0; }
 .br-editor ul { padding-left: 22px; margin: 8px 0; }
-.br-editor:empty::before { content: attr(data-placeholder); color: var(--mut-3); font-style: italic; }
+.br-editor:empty::before { content: attr(data-placeholder); color: var(--mut); font-style: italic; }
 body.edit-mode .br-editor { border: 1.5px dashed var(--line); border-radius: var(--r-md); padding: 12px 14px; cursor: text; }
 body.edit-mode .br-editor:focus { border-color: var(--blue); background: var(--blue-soft); }
 .br-modal-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px 18px; border-top: 1px solid var(--line-soft); }

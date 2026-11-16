@@ -15,7 +15,7 @@ import grundlagen from '../../public/data/params.json';
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
 import { haushaltLesen } from '../lib/haushalt';
-import { lebensplan } from '../lib/lebensplan';
+import { lebensplan, planBisJahr } from '../lib/lebensplan';
 import type { PlanEintrag } from '../lib/lebensplan';
 import { horizon } from '../lib/pension/analyse';
 import type { AnalyseErgebnis, Auswertung } from '../lib/pension/analyse';
@@ -36,7 +36,7 @@ const daten = grundlagen as unknown as ParamDatei;
 const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
 const H = haushaltLesen();
 // Planungshorizont wie im Rechenkern: Einträge danach können nicht gerechnet werden
-const plan = lebensplan(BBZ.all(), H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: H.personen[0].jahrgang + horizon(H, E).horizont });
+const plan = lebensplan(BBZ.all(), H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: planBisJahr(H, horizon(H, E)) });
 
 const WORT = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' } as const;
 type Ampel = keyof typeof WORT;
@@ -45,6 +45,7 @@ const QUELLE: Record<PlanEintrag['quelle'], [string, string]> = {
   '07a': ['07a Finanzieren', '07a-finanzieren.html'],
   '07b': ['07b Anlegen', '07b-anlegen.html'],
   '07c': ['07c Pensionierung', '07c-pension.html'],
+  '07f': ['07f Nachlass', '07f-nachlass.html'],
 };
 
 // ---------- Liste (braucht keine Rechnung) ----------

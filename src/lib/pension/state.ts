@@ -161,6 +161,14 @@ function num<const D>(v: unknown, key: string, def: D, scope?: string): number |
   if (int) v = Math.round(v);
   return Math.min(max, Math.max(min, v as number));
 }
+/** bbz360 (ADR-19): Kalenderjahr nur, wenn es im gültigen Bereich liegt; sonst 0 (der Eintrag bzw. das Feld entfällt, statt auf den Rand geklemmt zu werden). */
+function jahrOd0(v: unknown): number {
+  const n = typeof v === 'string' ? (v.trim() === '' ? NaN : Number(v)) : v;
+  if (typeof n !== 'number' || !isFinite(n)) return 0;
+  const { min, max } = limitFor('jahr');
+  const r = Math.round(n);
+  return r >= min && r <= max ? r : 0;
+}
 /** Zahl oder leer (Felder, die leer «automatisch» bzw. «unbekannt» bedeuten). */
 const numOrEmpty = (v: unknown, key: string, scope?: string): NumLeer => (v === '' || v == null ? '' : num(v, key, '', scope));
 const oneOf = <const T, const D>(v: unknown, list: readonly T[], def: D): T | D => (list.includes(v as T) ? (v as T) : def);
@@ -191,7 +199,7 @@ function cleanLg(l: Roh): Liegenschaft {
     unterhalt: num(l.unterhalt, 'unterhalt', typ === 'eigen' ? 0.5 : 1), nebenkosten: num(l.nebenkosten, 'nebenkosten', 400),
     mietertrag: num(l.mietertrag, 'mietertrag', 0), verkaufAlter: num(l.verkaufAlter, 'verkaufAlter', 0),
     // bbz360 (ADR-19): Kauf in der Zukunft; die Felder gibt es nur, wenn sie gesetzt sind (sonst bleibt der Stand wie im PensCheck)
-    ...(num(l.kaufJahr, 'jahr', 0) > 0 ? { kaufJahr: num(l.kaufJahr, 'jahr', 0) } : {}),
+    ...(jahrOd0(l.kaufJahr) > 0 ? { kaufJahr: jahrOd0(l.kaufJahr) } : {}),
     ...(num(l.kaufFremd, 'betrag', 0) > 0 ? { kaufFremd: num(l.kaufFremd, 'betrag', 0) } : {}),
     ...(num(l.kaufMieteWeg, 'nebenkosten', 0) > 0 ? { kaufMieteWeg: num(l.kaufMieteWeg, 'nebenkosten', 0) } : {}),
   };
@@ -205,6 +213,7 @@ function cleanWunsch(w: Roh): Wunsch | null {
   if (typ === 'ausland') out.wohnform = oneOf(w.wohnform, ['miete', 'kauf'], 'miete');
   // nur erfasste Zahlen übernehmen; für fehlende gelten die Richtwerte des Rechenkerns (W_DEF)
   for (const k of ['betrag', 'von', 'bis', 'alter', 'jahr', 'monate', 'preisniveau', 'anteilVariabel', 'reise', 'miete', 'kaufpreis', 'nebenkosten', 'laufend', 'wochen', 'preisWoche', 'verwaltung', 'mietSteuer', 'verkaufAlter'] as const) {
+    if (k === 'jahr') { if (jahrOd0(w.jahr) > 0) out.jahr = jahrOd0(w.jahr); continue; } // bbz360: ungültiges Jahr verwerfen statt klemmen
     if (w[k] != null && w[k] !== '') { const v = num(w[k], k, null, 'w'); if (v != null) out[k] = v; }
   }
   return out;
@@ -308,7 +317,7 @@ export function sanitize(input: unknown): PensState {
   }));
   s.wuensche = list(o.wuensche, MAX_WUENSCHE).map(cleanWunsch).filter(Boolean) as Wunsch[];
   // bbz360 (ADR-19): Zuflüsse; der Schlüssel fehlt, solange keine erfasst sind (Stand bleibt wie im PensCheck)
-  const zf = list(o.zufluesse, MAX_ZUFLUESSE).map((z) => ({ name: text(z.name), betrag: num(z.betrag, 'betrag', 0), jahr: num(z.jahr, 'jahr', 0) })).filter((z) => z.betrag > 0 && z.jahr > 0);
+  const zf = list(o.zufluesse, MAX_ZUFLUESSE).map((z) => ({ name: text(z.name), betrag: num(z.betrag, 'betrag', 0), jahr: jahrOd0(z.jahr) })).filter((z) => z.betrag > 0 && z.jahr > 0);
   if (zf.length) s.zufluesse = zf;
   // Feld- und Merkerkarten gibt es je Ziel nur einmal (die erste bleibt); Wunschkarten dürfen mehrfach vorkommen.
   // Der erste gültige Vergleich bleibt; spätere fallen zurück bzw. weg (cleanThema).

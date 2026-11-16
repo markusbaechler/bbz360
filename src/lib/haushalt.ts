@@ -143,6 +143,33 @@ export function prefills(d: SessionData, H: PensState): { cockpit_einkommen: num
 }
 
 /**
+ * Vorbelegungen fuer 07a, 07b und 10, immer aus dem aktuellen Stand gerechnet (ADR-22, Regeln 2 und 3): Die
+ * gespeicherten Schluessel `cockpit_einkommen`, `cockpit_pk_saldo` und `cockpit_anlage_f` koennen veralten, wenn
+ * sich die Stammdaten oder der Stand in einem anderen Modul aendern.
+ * anlageFaehig: Liquiditaet abzueglich der im Cockpit erfassten Reserve.
+ */
+export function vorbelegung(): { einkommen: number; pkSaldo: number; anlageFaehig: number } {
+  const d = BBZ.all(), H = haushaltLesen();
+  const p = prefills(d, H);
+  const reserve = zahl(obj(obj(d.cockpit_data).sparen).reserve);
+  const anlage = Math.max(0, Math.round(H.liquiditaet - reserve));
+  // Ohne gespeicherten Haushalts-Stand (ältere Sitzung, Cockpit seit der Umstellung nicht besucht) gelten die
+  // Schlüssel, die das Cockpit damals geschrieben hat; sie können dann nicht veraltet sein.
+  if (!d.haushalt) return { einkommen: zahl(d.cockpit_einkommen) || p.cockpit_einkommen, pkSaldo: zahl(d.cockpit_pk_saldo) || p.cockpit_pk_saldo, anlageFaehig: zahl(d.cockpit_anlage_f) || anlage };
+  return { einkommen: p.cockpit_einkommen, pkSaldo: p.cockpit_pk_saldo, anlageFaehig: anlage };
+}
+
+/**
+ * Nach dem Einlesen eines fremden Stands: Das im Cockpit erfasste Nettoeinkommen gehoerte zum alten Fall und
+ * entfaellt (der Bruttolohn kommt aus dem eingelesenen Stand).
+ */
+export function cockpitNettoLoeschen(): void {
+  const d = BBZ.all(), cd = obj(d.cockpit_data), a = obj(cd.ausgaben);
+  if (!zahl(a.eMann) && !zahl(a.eFrau)) return;
+  BBZ.set('cockpit_data', { ...cd, ausgaben: { ...a, eMann: 0, eFrau: 0 } });
+}
+
+/**
  * Liest einen im oeffentlichen PensCheck erfassten Stand: Link («…#angaben=CODE»), blosser Code oder JSON-Stand.
  * Der Inhalt ist fremd und wird vollstaendig geprueft. Wirft bei unlesbarem Inhalt.
  */
@@ -210,19 +237,22 @@ export function gemeinsamAusHaushalt(H: PensState): Gemeinsam {
 export function gemeinsamInHaushalt(H0: PensState, g: Gemeinsam): PensState {
   const H: PensState = g.paar && H0.haushalt === 'single' ? { ...H0, haushalt: 'verheiratet' } : H0;
   const n = anzahl(H);
-  const alt = gemeinsamAusHaushalt(H);
+  // Wird hier aus der Einzelperson ein Paar, hat das Cockpit die Summen der Einzelperson gezeigt: Verglichen und
+  // geteilt wird wie bei einer Person; die bisher verborgenen Werte von Person 2 bleiben und kommen dazu.
+  const nSumme = anzahl(H0);
+  const alt = gemeinsamAusHaushalt(H0);
   const personen = H.personen.map((p) => ({ ...p }));
-  const teile = (summe: number, p2: number): [number, number] => (n === 1 ? [summe, p2] : summe >= p2 ? [summe - p2, p2] : [0, summe]);
+  const teile = (summe: number, p2: number): [number, number] => (nSumme === 1 ? [summe, p2] : summe >= p2 ? [summe - p2, p2] : [0, summe]);
   const gleich = (a: number, b: number): boolean => Math.round(a) === Math.round(b);
   if (!gleich(g.s3a, alt.s3a)) {
-    const [a, b] = teile(Math.max(0, g.s3a), n === 2 ? personen[1].s3a : 0);
+    const [a, b] = teile(Math.max(0, g.s3a), personen[1].s3a);
     personen[0].s3a = a;
-    if (n === 2) personen[1].s3a = b;
+    if (nSumme === 2) personen[1].s3a = b;
   }
   if (!gleich(g.pk, alt.pk)) {
-    const [a, b] = teile(Math.max(0, g.pk), n === 2 ? zahlLeer(personen[1].pkGuthabenHeute) : 0);
+    const [a, b] = teile(Math.max(0, g.pk), zahlLeer(personen[1].pkGuthabenHeute));
     personen[0].pkGuthabenHeute = a > 0 ? a : '';
-    if (n === 2) personen[1].pkGuthabenHeute = b > 0 ? b : '';
+    if (nSumme === 2) personen[1].pkGuthabenHeute = b > 0 ? b : '';
   }
   personen[0].brutto = g.brutto[0];
   personen[0].geschlecht = g.geschlecht[0];

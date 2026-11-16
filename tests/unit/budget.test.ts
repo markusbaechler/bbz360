@@ -64,3 +64,22 @@ describe('Budget & Liquidität (05b)', () => {
     expect(leer.nettoQuelle).toBeNull();
   });
 });
+
+describe('Zweiter Prüflauf: Nettoeinkommen je Person', () => {
+  it('Netto nur für Person 1 im Cockpit: Person 2 wird aus ihrem Bruttolohn geschätzt (vorher: fehlte ganz)', () => {
+    const S = migrate(clone(EXAMPLE));
+    S.personen[1].brutto = 45000;
+    const nur2 = budgetKennzahlen({ ...S, personen: [{ ...S.personen[0], brutto: 0 }, S.personen[1]] }, E).netto!;
+    const k = budgetKennzahlen(S, E, [6000, 0]);
+    expect(k.netto).toBe(Math.round(6000 + nur2));
+    expect(k.nettoQuelle).toBe('gemischt');
+    expect(budgetKennzahlen(S, E, [6000, 3000]).nettoQuelle).toBe('cockpit');
+    expect(budgetKennzahlen(S, E, [0, 0]).nettoQuelle).toBe('schaetzung');
+  });
+  it('wer das Pensionierungsalter erreicht hat, hat keinen Lohn mehr (wie im Rechenkern)', () => {
+    const S = migrate(clone(EXAMPLE));
+    S.haushalt = 'single';
+    S.personen[0].jahrgang = 1964; S.personen[0].pensAlter = 60; S.personen[0].brutto = 160000;
+    expect(budgetKennzahlen(S, E).netto).toBeNull();
+  });
+});

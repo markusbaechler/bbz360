@@ -179,3 +179,19 @@ describe('Liegenschaftskauf in der Zukunft', () => {
     expect(amp.st).toBe('gelb');
   });
 });
+
+describe('Zweiter Prüflauf: ungültige Jahre werden verworfen, nicht auf 1990 geklemmt', () => {
+  it('Zufluss, Ausgabe und Kauf mit Jahr 0 oder ausserhalb des Bereichs', async () => {
+    const { sanitize, EXAMPLE, clone } = await import('../../src/lib/pension/state');
+    const roh = clone(EXAMPLE) as any;
+    roh.zufluesse = [{ name: 'a', betrag: 300000, jahr: 0 }, { name: 'b', betrag: 1000, jahr: 35 }, { name: 'c', betrag: 1000, jahr: 2040 }];
+    roh.wuensche = [{ typ: 'einmal', aktiv: true, name: 'w', betrag: 5000, alter: 70, jahr: 0 }, { typ: 'einmal', aktiv: true, name: 'x', betrag: 5000, alter: 70, jahr: 2044 }];
+    roh.liegenschaften[0].kaufJahr = 0;
+    const s = sanitize(roh);
+    expect(s.zufluesse).toEqual([{ name: 'c', betrag: 1000, jahr: 2040 }]);
+    expect(s.wuensche[0].jahr).toBeUndefined();
+    expect(s.wuensche[0].alter).toBe(70);
+    expect(s.wuensche[1].jahr).toBe(2044);
+    expect('kaufJahr' in s.liegenschaften[0]).toBe(false);
+  });
+});

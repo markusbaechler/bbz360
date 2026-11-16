@@ -25,7 +25,6 @@ import { tragbarkeit } from '../lib/finance';
 import { fmt, parseNum, fmtDate } from '../lib/format';
 import { imageUrl, setImageOverride } from '../lib/images';
 import grundlagen from '../../public/data/params.json';
-import { sanitize } from '../lib/pension/state';
 import { horizon } from '../lib/pension/analyse';
 import { kurzAus } from '../lib/pension/kurz';
 import type { PensionKurz } from '../lib/pension/kurz';
@@ -37,9 +36,9 @@ import type { PkLeistungen } from '../lib/absicherung';
 import { NACHLASS_THEMEN, STEUER_THEMEN, vorgemerkt } from '../lib/fach-themen';
 import { rechenEingaben } from '../lib/pension/themen';
 import type { Gesamtauswertung } from '../lib/pension/auswertung';
-import { lebensplan } from '../lib/lebensplan';
+import { lebensplan, planBisJahr } from '../lib/lebensplan';
 import type { PlanEintrag } from '../lib/lebensplan';
-import { gemeinsamAusHaushalt, haushaltLesen } from '../lib/haushalt';
+import { gemeinsamAusHaushalt, haushaltLesen, vorbelegung } from '../lib/haushalt';
 import type { SessionData } from '../lib/schema';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
@@ -102,7 +101,7 @@ function gather(): {
   const pkSaldo = gH ? gH.pk : Number(D.cockpit_pk_saldo ?? cd.vorsorgen?.pkSaldo) || 0;
   const anlage = gH ? gH.wertschriften : cd.anlegen?.volumen ?? 0;
   const kpis = [
-    { label: 'Bruttoeinkommen p.a.', val: CHF(D.cockpit_einkommen), sub: 'annualisiert' },
+    { label: 'Bruttoeinkommen p.a.', val: CHF(vorbelegung().einkommen), sub: 'annualisiert' },
     { label: 'Verpflichtungen p.a.', val: CHF(D.cockpit_verpflichtungen), sub: 'laufend' },
     { label: 'Liquide Mittel', val: liq > 0 ? CHF(liq) : '–', sub: 'Zahlungs- & Sparkonten' },
     { label: '3. Säule (Säule 3a)', val: s3 > 0 ? CHF(s3) : '–', sub: 'Vorsorge' },
@@ -158,7 +157,7 @@ function rechnePlan(): void {
   const A0 = monthOf(), jahr = Math.floor(A0 / 12), daten = grundlagen as unknown as ParamDatei;
   const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
   const hz = horizon(H, E);
-  const plan = lebensplan(session, H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: H.personen[0].jahrgang + hz.horizont });
+  const plan = lebensplan(session, H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: planBisJahr(H, hz) });
   planStatus = 'laeuft';
   planFertig = new Promise<void>((fertig) => {
     const worker = new Worker(new URL('../pension-ui/worker.ts', import.meta.url), { type: 'module' });
@@ -177,26 +176,34 @@ function rechnePlan(): void {
 const pensAlterTxt = (p: PensionKurz): string => p.pensAlter.join(' / ');
 
 // 07d–07f: vorgemerkte Themen (Steuern, Nachlass) und die groesste Luecke der Absicherung (ADR-20).
-interface FachKurz { steuern: string[]; nachlass: string[]; luecke: { text: string; betrag: number } | null; absicherungErfasst: boolean }
+/** absStatus: 'luecke' | 'gedeckt' = gerechnet; 'keine' = kein Fall zu rechnen (niemand erwerbstätig); 'fehler' = Rechnung nicht möglich. */
+interface FachKurz { steuern: string[]; nachlass: string[]; luecke: { text: string; betrag: number } | null; absicherungErfasst: boolean; absStatus: 'luecke' | 'gedeckt' | 'keine' | 'fehler' }
 function fachKurz(): FachKurz {
   const steuern = vorgemerkt(STEUER_THEMEN, D.steuern), nachlass = vorgemerkt(NACHLASS_THEMEN, D.nachlass);
   let luecke: FachKurz['luecke'] = null;
+  let absStatus: FachKurz['absStatus'] = 'fehler';
   const ab = D.absicherung as { ursache?: string; bedarfMonat?: number; pk?: Partial<PkLeistungen>[] } | undefined;
-  const erfasst = !!ab && !!D.haushalt;
+  const erfasst = !!ab;
   if (erfasst) {
     try {
       const A0 = monthOf(), jahr = Math.floor(A0 / 12), daten = grundlagen as unknown as ParamDatei;
       const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
       const z = (v: unknown): number => (typeof v === 'number' && isFinite(v) && v > 0 ? v : 0);
       const pk = (i: number): PkLeistungen => { const q = ab!.pk?.[i] ?? {}; return { ivRente: z(q.ivRente), partnerRente: z(q.partnerRente), kinderRente: z(q.kinderRente), todesfallKapital: z(q.todesfallKapital) }; };
-      const H = sanitize(D.haushalt);
+      const H = haushaltLesen(); // derselbe Stand wie in 07e (mit nachgeführten Stammdaten)
       const r = absicherung(H, E, { kinder: z(D.familie_kinder), kinderAbh: z(D.familie_kinder_abh), ursache: ab!.ursache === 'unfall' ? 'unfall' : 'krankheit', bedarfMonat: z(ab!.bedarfMonat), pk: [pk(0), pk(1)] });
       const f = r.faelle.reduce<(typeof r.faelle)[number] | null>((m, x) => (!m || x.luecke > m.luecke ? x : m), null);
-      if (f && f.luecke > 0) luecke = { text: `Person ${f.person + 1} ${f.ereignis === 'tod' ? 'stirbt' : 'wird invalid'}`, betrag: f.luecke };
+      const wer = (i: number): string => String((i === 0 ? D.p1name : D.p2name) || '').trim() || `Person ${i + 1}`;
+      if (f && f.luecke > 0) luecke = { text: `${wer(f.person)} ${f.ereignis === 'tod' ? 'stirbt' : 'wird invalid'}`, betrag: f.luecke };
+      absStatus = !f ? 'keine' : luecke ? 'luecke' : 'gedeckt';
     } catch (e) { console.error(e); }
   }
-  return { steuern, nachlass, luecke, absicherungErfasst: erfasst };
+  return { steuern, nachlass, luecke, absicherungErfasst: erfasst, absStatus };
 }
+const ABS_TEXT: Record<FachKurz['absStatus'], string> = {
+  luecke: '', gedeckt: 'Bedarf in allen Fällen gedeckt',
+  keine: 'kein Fall gerechnet (niemand ist heute erwerbstätig)', fehler: 'Rechnung nicht möglich, bitte in Modul 07e prüfen',
+};
 const ampelKl = (p: PensionKurz | null): string => (p?.st === 'rot' ? 'crit' : p?.st === 'gelb' ? 'warn' : '');
 
 // ── Bühnen-Zusammenfassung ───────────────────────────────────────────────────
@@ -236,7 +243,7 @@ function renderSummary(): void {
       </div></div>` : ''}
     ${g.fach.steuern.length || g.fach.nachlass.length || g.fach.absicherungErfasst ? `<div class="ab-sec"><div class="ab-sech">07d–07f · STEUERN, ABSICHERUNG, NACHLASS</div>
       ${g.fach.steuern.length ? `<div class="ab-vrow"><span class="ab-vcheck">✓</span><span>Steuern prüfen: ${g.fach.steuern.map(esc).join(' · ')}</span></div>` : ''}
-      ${g.fach.absicherungErfasst ? `<div class="ab-vrow"><span class="ab-vcheck">${g.fach.luecke ? '!' : '✓'}</span><span>Absicherung: ${g.fach.luecke ? `grösste Lücke ${CHF(g.fach.luecke.betrag)} pro Jahr (${esc(g.fach.luecke.text)})` : 'Bedarf in allen Fällen gedeckt'}</span></div>` : ''}
+      ${g.fach.absicherungErfasst ? `<div class="ab-vrow"><span class="ab-vcheck">${g.fach.absStatus === 'gedeckt' ? '✓' : g.fach.absStatus === 'luecke' ? '!' : '?'}</span><span>Absicherung: ${g.fach.luecke ? `grösste Lücke ${CHF(g.fach.luecke.betrag)} pro Jahr (${esc(g.fach.luecke.text)})` : ABS_TEXT[g.fach.absStatus]}</span></div>` : ''}
       ${g.fach.nachlass.length ? `<div class="ab-vrow"><span class="ab-vcheck">✓</span><span>Nachlass regeln: ${g.fach.nachlass.map(esc).join(' · ')}</span></div>` : ''}
     </div>` : ''}
     <div class="ab-sec"><div class="ab-sech">08 · VEREINBARUNGEN <small>${g.vereinb.length}</small></div>
@@ -351,7 +358,7 @@ function buildReport(): string {
   if (printBranches.includes('07e')) {
     html += section('7e', 'Absicherung', 'Invalidität & Todesfall',
       g.fach.absicherungErfasst
-        ? `<p class="rp-reason">${g.fach.luecke ? `Grösste Lücke zum Bedarf: ${CHF(g.fach.luecke.betrag)} pro Jahr (${esc(g.fach.luecke.text)}).` : 'Der Bedarf ist in allen gerechneten Fällen gedeckt.'} Gerechnet mit gesetzlichen Anteilen von AHV/IV und UVG sowie den Leistungen der Pensionskasse laut Vorsorgeausweis; vereinfachte Einschätzung.</p>`
+        ? `<p class="rp-reason">${g.fach.luecke ? `Grösste Lücke zum Bedarf: ${CHF(g.fach.luecke.betrag)} pro Jahr (${esc(g.fach.luecke.text)}).` : g.fach.absStatus === 'gedeckt' ? 'Der Bedarf ist in allen gerechneten Fällen gedeckt.' : `${ABS_TEXT[g.fach.absStatus]}.`} Gerechnet mit gesetzlichen Anteilen von AHV/IV und UVG sowie den Leistungen der Pensionskasse laut Vorsorgeausweis; vereinfachte Einschätzung.</p>`
         : '<div class="rp-empty">Keine Angaben zur Absicherung erfasst.</div>');
   }
   if (printBranches.includes('07f')) {

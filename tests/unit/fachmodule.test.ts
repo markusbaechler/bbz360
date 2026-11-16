@@ -257,3 +257,35 @@ describe('Nachlass (07f)', () => {
     expect(nachlassAnnahme(muster({ haushalt: 'single' }))).toBe(1100000);
   });
 });
+
+describe('Zweiter Prüflauf: Absicherung', () => {
+  const ein = (o: Partial<AbsicherungEingaben> = {}): AbsicherungEingaben => ({ kinder: 0, kinderAbh: 0, ursache: 'krankheit', bedarfMonat: 0, pk: [PK_LEER, PK_LEER], ...o });
+  it('alleinstehend mit nur erwachsenen Kindern: kein Todesfall (vorher: ganzer Bedarf als Lücke)', () => {
+    const S = muster({ haushalt: 'single' });
+    expect(absicherung(S, E, ein({ kinder: 2, kinderAbh: 0 })).faelle.map((f) => f.ereignis)).toEqual(['invalid']);
+    expect(absicherung(S, E, ein({ kinder: 2, kinderAbh: 1 })).faelle.map((f) => f.ereignis)).toEqual(['invalid', 'tod']);
+  });
+  it('wer das geplante Pensionierungsalter erreicht hat, ist nicht erwerbstätig, auch mit gefülltem Lohnfeld', () => {
+    const S = muster();
+    S.personen[0].jahrgang = 1964; S.personen[0].pensAlter = 60; S.personen[0].brutto = 160000; // 62, pensioniert mit 60
+    const r = absicherung(S, E, ein());
+    expect(r.faelle.every((f) => f.person === 1)).toBe(true);
+    // ihr Lohn zählt in den Fällen von Person 2 nicht als Einnahme; dass ihre Renten fehlen, wird gesagt
+    const f = r.faelle[0];
+    expect(f.posten.some((p) => p.art === 'lohn')).toBe(false);
+    expect(f.hinweise.join(' ')).toMatch(/nicht mehr erwerbstätig: Ihre Renten sind hier nicht gerechnet/);
+  });
+  it('übrige Einkommen des Haushalts sind nicht gerechnet: der Hinweis steht in jedem Fall', () => {
+    const S = muster({ einkommen: [{ person: 0, art: 'sonstiges', betrag: 12000, bisJahr: 0, text: 'Mietertrag' }] });
+    expect(S.einkommen).toHaveLength(1);
+    const r = absicherung(S, E, ein());
+    expect(r.faelle.length).toBeGreaterThan(0);
+    expect(r.faelle.every((f) => f.hinweise.some((h) => /Übrige Einkommen/.test(h)))).toBe(true);
+    expect(absicherung(muster(), E, ein()).faelle.some((f) => f.hinweise.some((h) => /Übrige Einkommen/.test(h)))).toBe(false);
+  });
+  it('Namen aus den Stammdaten statt «Person 2» in den Posten', () => {
+    const r = absicherung(muster(), E, ein({ namen: ['Anna', 'Beat'] }));
+    expect(r.faelle[0].posten[0].label).toBe('Nettolohn Beat');
+    expect(absicherung(muster(), E, ein()).faelle[0].posten[0].label).toBe('Nettolohn Person 2');
+  });
+});
