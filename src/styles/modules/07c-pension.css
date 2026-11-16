@@ -3,7 +3,7 @@
    heissen gleich wie die des bbz Brand System und wuerden sich gegenseitig
    ueberschreiben. Die Topbar ist deshalb hier mit festen Werten nachgebaut
    (Masse und Farben wie theme.css; ADR-15: Navigation fix 14px). */
-.bbz-topbar{position:sticky;top:0;z-index:40;height:56px;background:#00335f;display:flex;align-items:center;gap:16px;padding:0 24px;
+.bbz-topbar{position:sticky;top:0;z-index:40;height:56px;background:#00315C;display:flex;align-items:center;gap:16px;padding:0 24px;
   margin:0 calc(-1 * max(16px, env(safe-area-inset-right))) 0 calc(-1 * max(16px, env(safe-area-inset-left)));font-family:var(--sans)}
 .bbz-logo{width:30px;height:30px;border-radius:6px;background:#fff;color:#004078;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none}
 a.bbz-logo{cursor:pointer;transition:box-shadow .15s}

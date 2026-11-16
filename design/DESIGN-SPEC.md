@@ -1,4 +1,4 @@
-# DESIGN-SPEC v3 — bbz360
+# DESIGN-SPEC v3 — bbz360 (mit Nachtrag v4, siehe §7)
 **Status: VERBINDLICH. Ersetzt LAYOUT-KONZEPT-V2.md vollstaendig** (dieses als
 DEPRECATED markieren, nicht loeschen). Grundlage: vier vom Product Owner im
 Live-Browser abgenommene Referenz-Screens in `design/`.
@@ -132,3 +132,44 @@ Richtwerte bei Root 16px und wachsen proportional mit; die Deckel (30px bzw.
 Nach dem ersten Modul je Vorlagen-Typ stoppen: Screenshots 1920x1080 +
 1366x768, Inventar-Tabelle abgehakt, max 3 Saetze Abweichungen. Commit erst
 nach "weiter".
+
+
+## 7. Nachtrag v4 — bbz Brand System (2026-11, ADR-16 bis ADR-21)
+
+Entscheid des Product Owners: Der Look des PensCheck (bbz Brand System, Paket
+«web») führt. Umfang: **Tokens, Schriften und Markenzeichen**; Bühnen-Grammatik
+und Layout der Module 01–10 bleiben, wie in §1–§6 beschrieben.
+
+**Für die Module 01–10, index und admin (theme.css):**
+- **Schriften:** Grundschrift Selawik (auf Windows Segoe UI) für Fliesstext,
+  Tabellen und alle Zahlen; Space Grotesk nur für grosse Titel (Säulen-Titel,
+  Begrüssungs-Moment). Beide sind eingebettet; es wird nichts mehr von Google
+  Fonts geladen. DM Sans entfällt.
+- **Gewichte:** nur 400 und 700. Die in §3 genannten Gewichte 500 und 900
+  werden auf 400 bzw. 700 abgebildet (`--w-med`, `--w-black`).
+- **Farben:** Die Theme-Tokens tragen die Werte des Brand System (Neutrale,
+  Blau-Rampe, Signalfarben). Die Semantik bleibt: Rot = Kundeninhalt, Amber =
+  mittelfristig.
+- **Markenzeichen:** Vertikallinie am Säulen-Titel (`.rail-title`).
+- §3 gilt weiter für Grössen und Deckel; `typografie.spec.ts` und
+  `enge-schirme.spec.ts` sind mit dem neuen Look grün.
+
+**Für die neuen Module 05b, 07, 07c–07f:**
+- Sie laufen vollständig im Brand System (`src/styles/pension/`) und laden
+  `theme.css` nicht. Die Topbar ist in `07c-pension.css` nachgebaut.
+- **Regel 1 («die Seite scrollt nie») gilt für sie nicht:** Es sind
+  Arbeitsseiten mit Bild, Tabellen und Erläuterungen, die scrollen.
+- Jedes rechnende Modul zeigt unter «So ist gerechnet» seine Grundlagen und
+  Vereinfachungen.
+
+**Navigation (ersetzt die Aussage «11 Tabs» in §3):** 17 Reiter. Unter-Module
+(05b, 07a–07f) zeigen inaktiv nur ihre Nummer, die Bezeichnung steht im
+Tooltip und im `aria-label`; reicht der Platz nicht, verzichtet auch das
+aktive Unter-Modul auf die Bezeichnung. `--fs-nav` bleibt absolut 14px.
+
+**§4 Modul-Zuordnung (ergänzt):** 05b Budget, 07 Lebensplan, 07c Pensionierung,
+07d Steuern, 07e Absicherung, 07f Nachlass — alle Brand System, ohne
+Referenz-HTML in `design/`; massgebend ist die PensCheck-Oberfläche.
+
+**Offen:** Die Angleichung von Layout und Bühnen-Grammatik zwischen den beiden
+Modulfamilien ist bewusst nicht Teil von v4.

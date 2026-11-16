@@ -44,7 +44,9 @@
 .ix-lbl { font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: var(--w-bold); color: var(--mut); }
 .ix-lbl small { font-weight: var(--w-reg); text-transform: none; letter-spacing: 0; }
 .ix-module { flex: 0 0 auto; }
-.ix-modcols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+/* Seit 07c–07f (ADR-20) traegt die Vertiefung sechs Kacheln: breitere Spalte, Kacheln zweispaltig. */
+.ix-modcols { display: grid; grid-template-columns: 1fr 1fr 1.9fr 1fr; gap: 24px; }
+#gridVertiefung { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ix-sec { font-size: var(--fs-xs); letter-spacing: 0.06em; font-weight: var(--w-bold); color: var(--ink-4); text-transform: uppercase; margin-bottom: 10px; }
 .ix-sec small { font-weight: var(--w-reg); text-transform: none; letter-spacing: 0; color: var(--mut); }
 .ix-grid { display: flex; flex-direction: column; gap: 8px; }

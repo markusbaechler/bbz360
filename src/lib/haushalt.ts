@@ -59,7 +59,8 @@ export function haushaltAusSession(d: SessionData): PensState {
   const wertschriften = zahl(obj(cd.anlegen).volumen);
   const kunde = [d.p1name, d.p2name].filter((n) => typeof n === 'string' && n.trim()).join(' & ');
   // «Eigene Angaben» (Rueckfrage vor dem Ersetzen) nur, wenn aus der Session etwas uebernommen wurde
-  const edited = !!kunde || liquiditaet > 0 || wertschriften > 0 || personen.some((p) => Object.keys(p).length > 0);
+  // (das Geschlecht allein zaehlt nicht: Das Cockpit traegt dafuer immer eine Vorgabe)
+  const edited = !!kunde || liquiditaet > 0 || wertschriften > 0 || personen.some((p) => Object.keys(p).some((k) => k !== 'geschlecht'));
 
   return sanitize({
     haushalt: paar ? 'verheiratet' : 'single',

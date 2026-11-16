@@ -1,6 +1,6 @@
 # Zielbild: Fusion PensCheck → bbz360
 
-Stand: 2026-11-16 · Status: **Phasen 1–5 freigegeben**, Phasen 6–9 in Arbeit · Grundlage: Interview mit dem Auftraggeber (drei Fragerunden)
+Stand: 2026-11-16 · Status: **alle Phasen 1–9 umgesetzt**; fachliche Abnahme der Module 07d–07f durch die Bank steht aus · Grundlage: Interview mit dem Auftraggeber (drei Fragerunden)
 
 ## 1. Ziel
 
@@ -49,7 +49,7 @@ Kundendatenmodell** und zeigen sich in **einem durchgängigen Lebensplan**.
 | 4 Budget 05b, Cockpit auf gemeinsamen Daten | umgesetzt (ADR-17) |
 | 5 Lebensplan | umgesetzt (ADR-18); Eigenheimkauf und Zuflüsse über die Kern-Erweiterung (ADR-19) |
 | 6–8 Steuern, Absicherung, Nachlass | umgesetzt (ADR-20); **fachliche Abnahme durch die Bank steht aus** |
-| 9 Look, Bericht, PWA | offen (PDF-Bericht der Pensionierung ist mit Phase 2 bereits da) |
+| 9 Look, Bericht, PWA | umgesetzt (ADR-21): Brand-Tokens und -Schriften in allen Modulen, PWA/offline; PDF-Bericht der Pensionierung seit Phase 2, Gesprächsbericht (10) mit Lebensplan und Fachmodulen |
 
 ## 3. Nicht-Ziele
 

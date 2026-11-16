@@ -424,3 +424,41 @@ fachliche Abnahme durch die Bank danach. **Diese Abnahme steht aus.**
   gleichnamige Komponente `.bbz-nav` des Brand System zurückgesetzt.
 - Jedes Modul nennt unter «So ist gerechnet» Grundlagen und Vereinfachungen
   und hält fest, dass es keine Steuer- bzw. Rechtsberatung ist.
+
+---
+
+## ADR-21 — Look v4 (Brand-Tokens und -Schriften) und PWA/offline
+
+**Kontext.** Zielbild Phase 9: «PensCheck-Look führt» im Umfang Tokens,
+Schriften und Markenzeichen; dazu offline-fähig als PWA.
+
+**Look.**
+- `theme.css` (v4) trägt die Farbwerte des bbz Brand System, die Schriften
+  Selawik/Segoe UI und Space Grotesk (eingebettet) und nur noch die Gewichte
+  400 und 700; Vertikallinie am Säulen-Titel. Layout und Bühnen-Grammatik der
+  Module 01–10 sind unverändert (DESIGN-SPEC §7).
+- Der Abruf von Google Fonts ist aus allen Seiten entfernt: keine fremden
+  Adressen mehr im Seitengerüst (Voraussetzung für offline).
+- Beratercockpit: Die Spalte «Vertiefung» ist breiter und zweispaltig, weil
+  sie sechs Kacheln trägt.
+
+**PWA.**
+- `vite-plugin-pwa`: Manifest (`bbz360`, standalone), Service Worker mit
+  Vorab-Cache aller Seiten, Skripte, Stile, Grundlagen, Schriften und Bilder
+  (rund 4.7 MB). Multi-Page-App: kein Rückfall auf `index.html`.
+- `registerType: 'prompt'` ohne eigene Oberfläche: Eine neue Version wird im
+  Hintergrund geladen und gilt, sobald alle Fenster der App geschlossen
+  waren. Mitten im Gespräch wird nichts neu geladen.
+- Kundendaten bleiben wie bisher im localStorage (ADR-8, ADR-14); der
+  Zwischenspeicher des Service Workers zählt nicht zu dessen 5 MB.
+- `tests/e2e/offline.spec.ts`: Module laden ohne Netz, die Pensionierung
+  rechnet, Lebensplan und Abschluss zeigen das Urteil.
+
+**Konsequenzen.**
+- Nach einem Deploy sehen Geräte die neue Version erst nach dem Schliessen
+  aller Fenster. Wer sofort aktualisieren muss, schliesst die App und öffnet
+  sie neu.
+- Lokal hochgeladene Bilder (Overrides) liegen weiterhin im localStorage und
+  sind nicht Teil des Vorab-Caches.
+- Der PDF-Bericht der Pensionierung lädt jsPDF beim ersten Gebrauch nach;
+  die Dateien sind im Vorab-Cache enthalten.

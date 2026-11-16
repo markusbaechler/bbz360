@@ -58,6 +58,12 @@ describe('Erster Haushalts-Stand aus Stammdaten und Cockpit', () => {
     Object.assign((pa.cockpit_data as { ausgaben: object }).ausgaben, { freq: 'pa', eMann: 120000 });
     expect(haushaltAusSession(pa).personen[0].brutto).toBe(120000);
   });
+  it('eine blosse Geschlechts-Vorgabe aus dem Cockpit gilt nicht als eigene Angabe', () => {
+    const nurVorgabe = haushaltAusSession(migrate({ cockpit_data: { ausgaben: { geschlecht1: 'w', geschlecht2: 'm' } } }));
+    expect(nurVorgabe.personen.map((p) => p.geschlecht)).toEqual(['w', 'm']);
+    expect(nurVorgabe.ui.edited).toBe(false);
+    expect(haushaltAusSession(migrate({ cockpit_data: { ausgaben: { brutto1: 90000 } } })).ui.edited).toBe(true);
+  });
   it('ohne zweite Person: Einzelhaushalt; leere Session ergibt einen gueltigen Stand', () => {
     expect(haushaltAusSession(migrate({ p1name: 'Anna' })).haushalt).toBe('single');
     const leer = haushaltAusSession(migrate({}));

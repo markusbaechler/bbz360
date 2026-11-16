@@ -1,5 +1,5 @@
 /* ============================================================================
-   theme.css v3.0 — bbz360 Single Source of Truth
+   theme.css v4.0 — bbz360 Single Source of Truth (Brand-Tokens und -Schriften, DESIGN-SPEC §7)
    Abgeleitet aus den eingefrorenen Referenzen in design/ (14.07.2026).
    ERSETZT v2 vollstaendig. Wichtigste Korrekturen gegenueber v2:
    - Root FIX 16px (fluider clamp-Root abgeschafft — Ursache der 60px-Titel)
@@ -8,18 +8,23 @@
    - Buehnen-Grammatik als Klassen: .bbz-app/.bbz-rail/.bbz-stage/.bbz-bar
    - Seite scrollt nie; Scroll nur in .bbz-scroll-Regionen
    ========================================================================== */
+@import './pension/bbz-fonts-embedded.css';
 :root{
-  /* Farben (unveraendert, Semantik reserviert: red=Kundeninhalt, amber=mittelfristig) */
-  --blue:#004078; --blue-dk:#00335f; --blue-md:#2f6ea3; --blue-lt:#dce8f4;
-  --blue-soft:#f4f8fb; --blue-line:#c7d6e4;
-  --red:#950e13; --red-ink:#5a1518; --red-soft:#faf6f6; --red-kicker:#8a5a5d;
-  --green:#2e6b45; --green-soft:#e7efe9; --amber:#b45309; --slate:#475569;
+  /* Farben: seit v4 (ADR-21) die Werte des bbz Brand System (src/styles/pension/bbz-base.css).
+     Semantik unveraendert reserviert: red=Kundeninhalt, amber=mittelfristig. */
+  --blue:#004078; --blue-dk:#00315C; --blue-md:#2278C3; --blue-lt:#D9E6F2;
+  --blue-soft:#F0F5F9; --blue-line:#B0CEE8;
+  --red:#932528; --red-ink:#5a1518; --red-soft:#faf6f6; --red-kicker:#8a5a5d;
+  --green:#115F3B; --green-soft:#e7efe9; --amber:#8E5E0C; --slate:#535965;
   /* System-Warnung (Technik, kein Kundeninhalt) — red/amber sind semantisch belegt */
   --warn:#8a2b00;
-  --ink:#0f2a44; --ink-2:#1c2b3a; --ink-3:#3d4c5c; --ink-4:#5f7d99;
-  --mut:#8b98a5; --mut-2:#98a5b2; --mut-3:#b0bcc7;
-  --bg:#eef2f6; --surface:#fff; --line:#dde5ec; --line-soft:#edf1f5;
-  --font:'DM Sans',system-ui,sans-serif;
+  --ink:#15181E; --ink-2:#252932; --ink-3:#3C424E; --ink-4:#535965;
+  --mut:#6C7484; --mut-2:#6C7484; --mut-3:#959DAC;
+  --bg:#F7F8FA; --surface:#fff; --line:#D9DCE3; --line-soft:#EDEFF2;
+  /* Schriften des Brand System, eingebettet (kein Abruf bei Google Fonts mehr): Grundschrift Selawik
+     (auf Windows Segoe UI), Auszeichnung Space Grotesk nur fuer grosse Titel (ab 1.5rem). */
+  --font:"Segoe UI",Selawik,system-ui,sans-serif;
+  --font-head:"Space Grotesk",Selawik,"Segoe UI",system-ui,sans-serif;
   /* Typo-Skala (Root fix 16px). DECKEL: --fs-title. */
   --fs-2xs:.6875rem; /*11 Kicker*/ --fs-xs:.75rem; /*12*/ --fs-sm:.8125rem; /*13*/
   /* ABSOLUT, skaliert bewusst NICHT mit: die Topbar traegt 11 Tabs und lief ab
@@ -29,7 +34,8 @@
   --fs-lg:1.1875rem; /*19 Quittungs-Wert*/ --fs-card:1.375rem; /*22 Karten-Titel*/
   --fs-kpi:1.5rem; /*24*/ --fs-title:1.75rem; /*28 Saeulen-Titel*/
   --fs-welcome:2.125rem; /*34 NUR Gastgeber-/Buehnen-Begruessung*/
-  --w-reg:400;--w-med:500;--w-bold:700;--w-black:900;
+  /* Brand System: nur 400 und 700 (kein Semibold, kein Black) */
+  --w-reg:400;--w-med:400;--w-bold:700;--w-black:700;
   --sp-1:.25rem;--sp-2:.5rem;--sp-3:.75rem;--sp-4:1rem;--sp-5:1.375rem;--sp-6:1.75rem;
   --r-sm:7px;--r-md:9px;--r-lg:13px;--r-xl:14px;--r-pill:999px;
   --topbar-h:56px;--bar-h:68px;--rail-w:360px;
@@ -94,7 +100,8 @@ a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 }
 
 /* Saeulen-Bausteine */
-.rail-title{color:#fff;font-size:var(--fs-title);font-weight:var(--w-black);letter-spacing:-.01em}
+/* Markenzeichen Vertikallinie am Saeulen-Titel; Auszeichnungsschrift (v4, ADR-21) */
+.rail-title{color:#fff;font-family:var(--font-head);font-size:var(--fs-title);font-weight:var(--w-black);letter-spacing:-.01em;border-left:3px solid #fff;padding-left:12px}
 .rail-sub{color:rgba(255,255,255,.6);font-size:var(--fs-sm);line-height:1.5;margin-top:6px}
 .rail-sect{border-top:1px solid rgba(255,255,255,.18);padding-top:18px}
 .rail-kicker{color:rgba(255,255,255,.45);font-size:var(--fs-2xs);letter-spacing:.08em;font-weight:var(--w-bold)}

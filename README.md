@@ -53,7 +53,8 @@ npm run build        # Produktion nach dist/
   Steuern), geprüfte Grundlagen in `public/data/params.json`. Gemeinsamer
   Haushalts-Stand `haushalt` über `src/lib/haushalt.ts` (ADR-16, Zielbild in
   `docs/ZIELBILD-FUSION.md`). Oberfläche: `src/pension-ui/` (Modul 07c).
-- **Design**: `src/styles/theme.css` ist Single Source of Truth;
+- **Design**: `src/styles/theme.css` (v4, Brand-Tokens und -Schriften) ist Single Source of Truth
+  für die Module 01–10; die neuen Module laufen im bbz Brand System (`src/styles/pension/`, DESIGN-SPEC §7);
   verbindliche Regeln in `design/DESIGN-SPEC.md` (Bühnen-Grammatik,
   6 Regeln, Inventar-Pflicht §5 inkl. Vereinfachungs-Verbot §5.4).
   Lesegrösse wächst mit der Bildschirmhöhe: `clamp(16px, 2.2vh, 20px)`,
@@ -108,6 +109,22 @@ App sie automatisch.
   schon einen eigenen `bbzAdmin`-Stand haben.
 - Im JSON steht nie Base64: Fotos sind Repo-Pfade, damit die Datei klein
   bleibt.
+
+## Offline (PWA)
+
+Die App ist installierbar und läuft nach dem ersten Laden ohne Netz
+(`vite-plugin-pwa`, ADR-21). Eine neue Version gilt, sobald alle Fenster der
+App geschlossen waren. Kundendaten bleiben im Browser (localStorage) und
+werden nicht übertragen.
+
+## Grundlagen der Rechnung
+
+Gesetzliche Werte, Tarife und Annahmen liegen mit ihren Quellen in
+`public/data/params.json` (aus dem PensCheck übernommen, Stand siehe Datei).
+`npm run verify:sources` prüft sie gegen die hinterlegten Quellen; es gibt
+keinen automatischen Prüflauf. Die Grundlagen werden bei Bedarf aus dem
+PensCheck-Repo nachgeführt. Die Fachmodule 07d–07f nennen ihre Grundlagen im
+Modul unter «So ist gerechnet» (ADR-20).
 
 ## Deploy
 
