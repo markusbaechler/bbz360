@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { migrate, SCHEMA_VERSION } from '../../src/lib/schema';
-import { haushaltAusSession, haushaltImport } from '../../src/lib/haushalt';
+import { gemeinsamAusHaushalt, gemeinsamInHaushalt, haushaltAusSession, haushaltImport, stammdatenNachfuehren } from '../../src/lib/haushalt';
 import { EXAMPLE, clone, encodeCode, sanitize } from '../../src/lib/pension/state';
 
 describe('Schema v3: gemeinsamer Haushalts-Stand', () => {
@@ -82,5 +82,70 @@ describe('Import eines PensCheck-Stands', () => {
   it('weist Unlesbares zurueck', () => {
     expect(() => haushaltImport('kein code')).toThrow();
     expect(() => haushaltImport('{"foo":1}')).toThrow();
+  });
+});
+
+describe('Cockpit ↔ Haushalt: Haushalt führt', () => {
+  const basis = () => sanitize(clone(EXAMPLE)); // P1 3a 49'000, P2 3a 49'000, keine PK-Guthaben heute
+  it('liest Summen über beide Personen', () => {
+    const g = gemeinsamAusHaushalt(basis());
+    expect(g).toMatchObject({ liquiditaet: 100000, wertschriften: 300000, s3a: 98000, pk: 0, brutto: [160000, 45000], geschlecht: ['m', 'w'], ausgabenHeute: 0 });
+  });
+  it('unveränderte Summen lassen die Aufteilung aus der Pensionierung stehen', () => {
+    const H = basis();
+    const out = gemeinsamInHaushalt(H, gemeinsamAusHaushalt(H));
+    expect(out.personen.map((p) => p.s3a)).toEqual([49000, 49000]);
+    expect(out.personen.map((p) => p.pkGuthabenHeute)).toEqual(['', '']);
+  });
+  it('eine höhere Summe geht an Person 1; eine tiefere als der Anteil von Person 2 senkt Person 2', () => {
+    const H = basis();
+    const mehr = gemeinsamInHaushalt(H, { ...gemeinsamAusHaushalt(H), s3a: 120000, pk: 500000 });
+    expect(mehr.personen.map((p) => p.s3a)).toEqual([71000, 49000]);
+    expect(mehr.personen.map((p) => p.pkGuthabenHeute)).toEqual([500000, '']);
+    const weniger = gemeinsamInHaushalt(H, { ...gemeinsamAusHaushalt(H), s3a: 30000 });
+    expect(weniger.personen.map((p) => p.s3a)).toEqual([0, 30000]);
+    expect(gemeinsamAusHaushalt(weniger).s3a).toBe(30000);
+  });
+  it('schreibt Lohn, Geschlecht, Vermögen und Ausgaben heute; hin und zurück ist stabil', () => {
+    const g = { liquiditaet: 80000, wertschriften: 150000, s3a: 98000, pk: 0, brutto: [120000, 60000] as [number, number], geschlecht: ['w', 'm'] as ['m' | 'w', 'm' | 'w'], ausgabenHeute: 8500 };
+    const out = gemeinsamInHaushalt(basis(), g);
+    expect(gemeinsamAusHaushalt(out)).toEqual(g);
+    expect(out.ui.edited).toBe(true);
+    // alles Übrige bleibt
+    expect(out.liegenschaften).toEqual(basis().liegenschaften);
+    expect(out.ausgabenRuhestand).toBe(10000);
+  });
+  it('Einzelperson: Summen betreffen nur Person 1', () => {
+    const H = sanitize({ ...clone(EXAMPLE), haushalt: 'single' });
+    expect(gemeinsamAusHaushalt(H).s3a).toBe(49000);
+    const out = gemeinsamInHaushalt(H, { ...gemeinsamAusHaushalt(H), s3a: 60000 });
+    expect(out.personen[0].s3a).toBe(60000);
+    expect(out.personen[1].s3a).toBe(49000);
+  });
+});
+
+describe('Stammdaten nachführen', () => {
+  const H0 = () => sanitize(clone(EXAMPLE)); // Jahrgänge 1972 / 1970, verheiratet
+  it('geänderte Geburtsdaten und Namen werden übernommen', () => {
+    const d = migrate({ p1name: 'Anna', p1geb: '1980-03-15', p2name: 'Beat', p2geb: '1979-12-01', haushalt_stamm: { p1geb: '', p2geb: '', paar: true, kunde: '' } });
+    const r = stammdatenNachfuehren(H0(), d);
+    expect(r.geaendert).toBe(true);
+    expect(r.H.personen[0]).toMatchObject({ jahrgang: 1980, geburtsmonat: 3 });
+    expect(r.H.personen[1]).toMatchObject({ jahrgang: 1979, geburtsmonat: 12 });
+    expect(r.H.bericht.kunde).toBe('Anna & Beat');
+  });
+  it('unveränderte Stammdaten überschreiben eine Anpassung in der Pensionierung nicht', () => {
+    const stamm = { p1geb: '1980-03-15', p2geb: '', paar: true, kunde: 'Anna & Beat' };
+    const d = migrate({ p1name: 'Anna', p1geb: '1980-03-15', p2name: 'Beat', haushalt_stamm: stamm });
+    const r = stammdatenNachfuehren(H0(), d); // Haushalt trägt bewusst 1972
+    expect(r.geaendert).toBe(false);
+    expect(r.H.personen[0].jahrgang).toBe(1972);
+  });
+  it('fällt die zweite Person weg, wird der Haushalt zur Einzelperson — und umgekehrt', () => {
+    const weg = stammdatenNachfuehren(H0(), migrate({ p1name: 'Anna', haushalt_stamm: { p1geb: '', p2geb: '', paar: true, kunde: 'Anna & Beat' } }));
+    expect(weg.H.haushalt).toBe('single');
+    const single = sanitize({ ...clone(EXAMPLE), haushalt: 'single' });
+    const dazu = stammdatenNachfuehren(single, migrate({ p1name: 'Anna', p2name: 'Beat', haushalt_stamm: { p1geb: '', p2geb: '', paar: false, kunde: 'Anna' } }));
+    expect(dazu.H.haushalt).toBe('verheiratet');
   });
 });

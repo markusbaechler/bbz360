@@ -84,8 +84,12 @@ export const MODAL_PARITY: Record<string, ModalSpec> = {
   },
   ausgaben: {
     trigger: '#cfr-eink',
-    fields: ['ausgaben__freq|mtl', 'ausgaben__freq|pa', 'ausgaben__typ|netto', 'ausgaben__typ|brutto',
-      'f-eMann', 'f-eFrau', 'f-haushalt', 'f-leasing', 'f-unterhalt', 'f-uebrige', 'f-kommentar'],
+    // ADR-17 (bewusste Abweichung von v1): Der Umschalter Einkommen-Typ netto/brutto ist ersetzt durch
+    // eigene Felder — f-eMann/f-eFrau = Netto (Cashflow), f-brutto1/2 + Geschlecht je Person (Haushalts-Stand).
+    fields: ['ausgaben__freq|mtl', 'ausgaben__freq|pa',
+      'f-eMann', 'f-eFrau', 'f-brutto1', 'f-brutto2',
+      'ausgaben__geschlecht1|m', 'ausgaben__geschlecht1|w', 'ausgaben__geschlecht2|m', 'ausgaben__geschlecht2|w',
+      'f-haushalt', 'f-leasing', 'f-unterhalt', 'f-uebrige', 'f-kommentar'],
     options: {},
     extras: ['cf-prev', 'cf-hint', 'cf-eff'],
   },

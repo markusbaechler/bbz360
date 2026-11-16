@@ -11,6 +11,7 @@ import '../styles/modules/05-cockpit.css';
 import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
+import { gemeinsamAusHaushalt, gemeinsamInHaushalt, haushaltLesen, haushaltSchreiben } from '../lib/haushalt';
 
 // ── State (v1-Defaults) ──────────────────────────────────────────────────────
 interface Cat { [k: string]: unknown }
@@ -19,7 +20,8 @@ const S = {
   sparen: { saldo: 0, banken: 1, konten: 1, quoteBetrag: 0, quoteFreq: 'mtl', quoteTyp: 'positiv', reserve: 0, sichergestellt: 'nein', kommentar: '' },
   vorsorgen: { pkSaldo: 0, pkBekannt: 'nein', pkEinkaeufe: 'nein', pkAusbezahlt: 'nein', s3Saldo: 0, s3Konten: 1, s3Banken: 1, s3Form: 'Konto', s3Einz: 'nein', s3EinzBetrag: 7258, s3Strategie: 'Unbekannt', kommentar: '' },
   anlegen: { vorhanden: 'nein', volumen: 0, strategie: 'Unbekannt', typ: 'Beratungsdepot', kommentar: '' },
-  ausgaben: { eMann: 0, eFrau: 0, typ: 'netto', freq: 'mtl', haushalt: 0, leasing: 0, unterhalt: 0, uebrige: 0, kommentar: '' },
+  // brutto1/2 + geschlecht1/2: seit ADR-17 eigens erfasst (Bruttolohn pro Jahr je Person); eMann/eFrau = Netto fuer den Cashflow.
+  ausgaben: { eMann: 0, eFrau: 0, typ: 'netto', freq: 'mtl', brutto1: 0, brutto2: 0, geschlecht1: 'm', geschlecht2: 'w', haushalt: 0, leasing: 0, unterhalt: 0, uebrige: 0, kommentar: '' },
   finanzieren: { vorhanden: 'nein', betrag: 0, form: 'Hypothek', laufzeit: '>3', kommentar: '' },
   chart: { mode: 'ohneBV', yld: 0, years: 10, spar: true },
 };
@@ -214,7 +216,9 @@ function calc(): void {
 
   // Prefills (v1 Z.731–737, unverändert)
   const mult = S.ausgaben.freq === 'mtl' ? 12 : 1;
-  BBZ.set('cockpit_einkommen', (S.ausgaben.eMann + S.ausgaben.eFrau) * mult);
+  // ADR-17: Bruttoeinkommen p.a. fuer 07a kommt aus den Bruttoloehnen; ohne sie bleibt der bisherige Wert (Netto).
+  const bruttoPa = S.ausgaben.brutto1 + S.ausgaben.brutto2;
+  BBZ.set('cockpit_einkommen', bruttoPa > 0 ? bruttoPa : (S.ausgaben.eMann + S.ausgaben.eFrau) * mult);
   BBZ.set('cockpit_verpflichtungen', (S.ausgaben.leasing + S.ausgaben.unterhalt) * mult);
   BBZ.set('cockpit_pk_saldo', S.vorsorgen.pkSaldo || 0);
   BBZ.set('cockpit_anlage_f', anlageF);
@@ -373,9 +377,12 @@ function buildForm(t: SKey): string {
   if (t === 'ausgaben') {
     return `<div class="ck-fg">${sec(1, 'Einkommen')}
       <div class="ck-ig f2"><label>Eingabe-Frequenz</label><div class="ck-rbg">${rbL('ausgaben__freq', 'mtl', 'pro Monat', S.ausgaben.freq)}${rbL('ausgaben__freq', 'pa', 'pro Jahr', S.ausgaben.freq)}</div></div>
-      <div class="ck-ig f2"><label>Einkommen-Typ</label><div class="ck-rbg">${rbL('ausgaben__typ', 'netto', 'Netto', S.ausgaben.typ)}${rbL('ausgaben__typ', 'brutto', 'Brutto', S.ausgaben.typ)}</div></div>
-      ${cfNum('eMann', 'Einkommen Mann (CHF)', S.ausgaben.eMann)}
-      ${cfNum('eFrau', 'Einkommen Frau (CHF)', S.ausgaben.eFrau)}
+      ${cfNum('eMann', `Nettoeinkommen ${pName(0)} (CHF)`, S.ausgaben.eMann)}
+      ${cfNum('eFrau', `Nettoeinkommen ${pName(1)} (CHF)`, S.ausgaben.eFrau)}
+      ${num('brutto1', `Bruttolohn ${pName(0)} (CHF / Jahr)`, S.ausgaben.brutto1, 'Für AHV, Tragbarkeit und Pensionierung')}
+      <div class="ck-ig"><label>Geschlecht ${pName(0)}</label><div class="ck-rbg">${rbL('ausgaben__geschlecht1', 'm', 'Mann', S.ausgaben.geschlecht1)}${rbL('ausgaben__geschlecht1', 'w', 'Frau', S.ausgaben.geschlecht1)}</div><span class="ck-hint">AHV-Referenzalter</span></div>
+      ${num('brutto2', `Bruttolohn ${pName(1)} (CHF / Jahr)`, S.ausgaben.brutto2)}
+      <div class="ck-ig"><label>Geschlecht ${pName(1)}</label><div class="ck-rbg">${rbL('ausgaben__geschlecht2', 'm', 'Mann', S.ausgaben.geschlecht2)}${rbL('ausgaben__geschlecht2', 'w', 'Frau', S.ausgaben.geschlecht2)}</div></div>
       ${sec(2, 'Ausgaben (alle Kategorien)')}
       ${cfNum('haushalt', 'Haushalt &amp; Lebenshaltung (CHF / mtl.)', S.ausgaben.haushalt)}
       ${cfNum('leasing', 'Leasing (CHF / mtl.)', S.ausgaben.leasing)}
@@ -494,6 +501,7 @@ function save(t: SKey): void {
     S.anlegen.volumen = $n('f-volumen'); S.anlegen.kommentar = $v('f-kommentar');
   } else if (t === 'ausgaben') {
     S.ausgaben.eMann = $n('f-eMann'); S.ausgaben.eFrau = $n('f-eFrau');
+    S.ausgaben.brutto1 = $n('f-brutto1'); S.ausgaben.brutto2 = $n('f-brutto2');
     S.ausgaben.haushalt = $n('f-haushalt'); S.ausgaben.leasing = $n('f-leasing');
     S.ausgaben.unterhalt = $n('f-unterhalt'); S.ausgaben.uebrige = $n('f-uebrige'); S.ausgaben.kommentar = $v('f-kommentar');
   } else if (t === 'finanzieren') {
@@ -501,7 +509,7 @@ function save(t: SKey): void {
     S.finanzieren.laufzeit = $v('f-laufzeit'); S.finanzieren.kommentar = $v('f-kommentar');
   }
   snapSaved = true;
-  renderControls(); calc(); closeModal();
+  renderControls(); calc(); inHaushalt(); closeModal();
 }
 
 // ── Load / Init ──────────────────────────────────────────────────────────────
@@ -512,6 +520,51 @@ function loadFromBBZ(): void {
     if (d[k] && typeof d[k] === 'object') Object.assign(S[k], d[k]);
   });
 }
+// ── Haushalt fuehrt (ADR-17) ─────────────────────────────────────────────────
+// Die mit Pensionierung/Budget geteilten Groessen stehen im Haushalts-Stand. Das Cockpit liest sie beim
+// Oeffnen (ausHaushalt) und schreibt sie beim Uebernehmen eines Modals zurueck (inHaushalt). Details ohne
+// Gegenstueck (Bank, Anzahl Konten, Kommentare, Aufteilung Zahlungsverkehr/Sparen) bleiben in cockpit_data.
+const pName = (i: 0 | 1): string => esc(String(BBZ.get(i === 0 ? 'p1name' : 'p2name') || '').trim() || `Person ${i + 1}`);
+const ausgSumme = (): number => S.ausgaben.haushalt + S.ausgaben.leasing + S.ausgaben.unterhalt + S.ausgaben.uebrige;
+
+function ausHaushalt(): void {
+  // Aeltere Staende: Einkommens-Typ «brutto» → Betraege gehoeren in die Bruttolohn-Felder, nicht in den Netto-Cashflow.
+  if (S.ausgaben.typ === 'brutto') {
+    const mult = S.ausgaben.freq === 'mtl' ? 12 : 1;
+    if (!S.ausgaben.brutto1 && !S.ausgaben.brutto2) { S.ausgaben.brutto1 = S.ausgaben.eMann * mult; S.ausgaben.brutto2 = S.ausgaben.eFrau * mult; }
+    S.ausgaben.eMann = 0; S.ausgaben.eFrau = 0; S.ausgaben.typ = 'netto';
+  }
+  if (!BBZ.get('haushalt')) return;
+  const g = gemeinsamAusHaushalt(haushaltLesen());
+  // Liquiditaet: Die Aufteilung Zahlungsverkehr/Sparen kennt nur das Cockpit; eine Differenz geht ins Sparen.
+  if (g.liquiditaet !== S.zahlen.saldo + S.sparen.saldo) {
+    if (g.liquiditaet >= S.zahlen.saldo) S.sparen.saldo = g.liquiditaet - S.zahlen.saldo;
+    else { S.zahlen.saldo = g.liquiditaet; S.sparen.saldo = 0; }
+  }
+  S.anlegen.volumen = g.wertschriften;
+  S.vorsorgen.s3Saldo = g.s3a;
+  S.vorsorgen.pkSaldo = g.pk;
+  S.ausgaben.brutto1 = g.brutto[0]; S.ausgaben.brutto2 = g.brutto[1];
+  S.ausgaben.geschlecht1 = g.geschlecht[0]; S.ausgaben.geschlecht2 = g.geschlecht[1];
+  // Ausgaben heute (z. B. im Budget geaendert): die Differenz traegt «Haushalt & Lebenshaltung».
+  if (g.ausgabenHeute > 0 && g.ausgabenHeute !== ausgSumme()) {
+    S.ausgaben.haushalt = Math.max(0, g.ausgabenHeute - (ausgSumme() - S.ausgaben.haushalt));
+  }
+}
+function inHaushalt(): void {
+  const H = haushaltLesen();
+  const alt = gemeinsamAusHaushalt(H);
+  haushaltSchreiben(gemeinsamInHaushalt(H, {
+    liquiditaet: S.zahlen.saldo + S.sparen.saldo,
+    wertschriften: S.anlegen.volumen,
+    s3a: S.vorsorgen.s3Saldo,
+    pk: S.vorsorgen.pkSaldo,
+    brutto: [S.ausgaben.brutto1, S.ausgaben.brutto2],
+    geschlecht: [S.ausgaben.geschlecht1 === 'w' ? 'w' : 'm', S.ausgaben.geschlecht2 === 'w' ? 'w' : 'm'],
+    ausgabenHeute: ausgSumme() > 0 ? ausgSumme() : alt.ausgabenHeute,
+  }));
+}
+
 function init(): void {
   mountNav(el('bbzNav'), { activeId: '05' });
   el('editToggle').addEventListener('click', () => {
@@ -521,6 +574,7 @@ function init(): void {
   el('modalClose').addEventListener('click', closeModal);
   el('modalBg').addEventListener('click', (e) => { if (e.target === el('modalBg')) closeModal(); });
   loadFromBBZ();
+  ausHaushalt();
   renderSkeleton();
   calc();
 }
