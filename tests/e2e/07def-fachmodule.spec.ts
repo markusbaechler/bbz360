@@ -24,8 +24,18 @@ test('07d Steuern: Kapitalbezüge, Abzüge, Sperrfrist, Themen', async ({ page }
   await expect(page.locator('#stAbzKpis .kpi').nth(2)).toContainText('CHF 15’000');
   // Sperrfrist: PK-Kapital des Musterfalls 2030 → Einkauf 2029 kollidiert
   await page.locator('#stEinkaufJahr').fill('2029');
-  await expect(page.locator('#stSperre')).toContainText('Sperrfrist bis Ende 2031');
+  await expect(page.locator('#stSperre')).toContainText('Der Plan sieht 2030 einen Kapitalbezug');
   await expect(page.locator('#stSperre')).toHaveAttribute('data-st', 'schlecht');
+  // A15: Einkauf drei Kalenderjahre vor dem Bezug kann je nach Datum noch in der Frist liegen
+  await page.locator('#stEinkaufJahr').fill('2027');
+  await expect(page.locator('#stSperre')).toHaveAttribute('data-st', 'schlecht');
+  // vier Jahre davor: kein Konflikt; B12: Einkauf nach dem Bezug: kein Konflikt
+  await page.locator('#stEinkaufJahr').fill('2026');
+  await expect(page.locator('#stSperre')).toContainText('je nach Datum bis 2029');
+  await expect(page.locator('#stSperre')).not.toHaveAttribute('data-st', 'schlecht');
+  await page.locator('#stEinkaufJahr').fill('2032');
+  await expect(page.locator('#stSperre')).not.toHaveAttribute('data-st', 'schlecht');
+  await page.locator('#stEinkaufJahr').fill('2029');
   // Vermögenssteuer und Themen
   await expect(page.locator('#stVermKpis')).toContainText('Vermögenssteuer pro Jahr');
   await page.locator('[data-thema="staffeln"]').check();
@@ -44,7 +54,12 @@ test('07e Absicherung: Fälle je Person, Unfall, Pensionskasse laut Ausweis', as
   await expect(page.locator('#abFaelle article')).toHaveCount(4); // 2 Personen × Invalidität/Tod
   const f = page.locator('[data-fall="0-tod"]');
   await expect(f).toContainText('AHV-Witwenrente');
+  // A13/A14: zwei Angaben — alle Kinder (Anspruch) und davon rentenberechtigte (Kinder- und Waisenrenten)
   await page.locator('#abKinder').fill('2');
+  await expect(f).not.toContainText('AHV-Waisenrenten');
+  await page.locator('#abKinderAbh').fill('3');
+  await expect(page.locator('#abKinderAbh')).toHaveClass(/bad/); // mehr als Kinder: abgewiesen
+  await page.locator('#abKinderAbh').fill('2');
   await expect(f).toContainText('AHV-Waisenrenten (2)');
   await page.locator('#abPk_0_partnerRente').fill('28000');
   await expect(f.locator('tr', { hasText: 'Pensionskasse' })).toContainText('CHF 28’000');
@@ -53,7 +68,15 @@ test('07e Absicherung: Fälle je Person, Unfall, Pensionskasse laut Ausweis', as
   await expect(page.locator('[data-fall="0-invalid"]')).toContainText('UVG-Invalidenrente');
   const d = await stand(page);
   expect(d.familie_kinder).toBe(2);
+  expect(d.familie_kinder_abh).toBe(2);
   expect(d.absicherung).toMatchObject({ ursache: 'unfall' });
+  // A14: Der Nachlass liest dieselbe Kinderzahl; eine Änderung dort begrenzt «davon rentenberechtigt»
+  await page.goto('modules/07f-nachlass.html');
+  await expect(page.locator('#naKinder')).toHaveValue('2');
+  await page.locator('#naKinder').fill('1');
+  const d2 = await stand(page);
+  expect(d2.familie_kinder).toBe(1);
+  expect(d2.familie_kinder_abh).toBe(1);
   expect(d.absicherung.pk[0].partnerRente).toBe(28000);
 });
 
@@ -81,10 +104,24 @@ test('07f Nachlass: Erbfolge, freie Quote, erwartete Erbschaft als Zufluss in Pe
   await page.locator('#schritte button[data-schritt="urteil"]').click();
   await page.locator('#resTabs [role="tab"]', { hasText: 'Ablauf' }).click();
   await expect(page.locator('#tabBody')).toContainText('Zufluss: Erbschaft Eltern');
-  // Entfernen räumt den Stand wieder auf
   await page.goto('modules/07f-nachlass.html');
   await expect(page.locator('[data-zf="name"]')).toHaveValue('Erbschaft Eltern');
-  await page.locator('[data-zf-weg]').click();
+  // B15: ein ungültiges Jahr lässt den gespeicherten Zufluss stehen (vorher: sofort aus der Rechnung entfernt)
+  await page.locator('[data-zf="jahr"]').fill('1999');
+  await expect(page.locator('[data-zf="jahr"]')).toHaveClass(/bad/);
+  expect((await stand(page)).haushalt.zufluesse).toEqual([{ name: 'Erbschaft Eltern', betrag: 300000, jahr: 2036 }]);
+  await page.locator('[data-zf="jahr"]').fill('2036');
+  // B15: eine unvollständige Zeile bleibt als Entwurf erhalten und ist als «rechnet noch nicht mit» markiert
+  await page.locator('#naZuPlus').click();
+  await page.locator('[data-zf="name"]').nth(1).fill('Schenkung Tante');
+  await page.locator('[data-zf="betrag"]').nth(1).fill('50000');
+  await expect(page.locator('[data-entwurf="1"]')).toBeVisible();
+  await page.reload();
+  await expect(page.locator('[data-zf="name"]')).toHaveCount(2);
+  await expect(page.locator('[data-zf="name"]').nth(1)).toHaveValue('Schenkung Tante');
+  expect((await stand(page)).haushalt.zufluesse).toHaveLength(1);
+  // Entfernen räumt den Stand wieder auf
+  await page.locator('[data-zf-weg]').first().click();
   expect('zufluesse' in (await stand(page)).haushalt).toBe(false);
 });
 

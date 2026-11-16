@@ -190,7 +190,7 @@ function fachKurz(): FachKurz {
       const z = (v: unknown): number => (typeof v === 'number' && isFinite(v) && v > 0 ? v : 0);
       const pk = (i: number): PkLeistungen => { const q = ab!.pk?.[i] ?? {}; return { ivRente: z(q.ivRente), partnerRente: z(q.partnerRente), kinderRente: z(q.kinderRente), todesfallKapital: z(q.todesfallKapital) }; };
       const H = sanitize(D.haushalt);
-      const r = absicherung(H, E, { kinder: z(D.familie_kinder), ursache: ab!.ursache === 'unfall' ? 'unfall' : 'krankheit', bedarfMonat: z(ab!.bedarfMonat), pk: [pk(0), pk(1)] });
+      const r = absicherung(H, E, { kinder: z(D.familie_kinder), kinderAbh: z(D.familie_kinder_abh), ursache: ab!.ursache === 'unfall' ? 'unfall' : 'krankheit', bedarfMonat: z(ab!.bedarfMonat), pk: [pk(0), pk(1)] });
       const f = r.faelle.reduce<(typeof r.faelle)[number] | null>((m, x) => (!m || x.luecke > m.luecke ? x : m), null);
       if (f && f.luecke > 0) luecke = { text: `Person ${f.person + 1} ${f.ereignis === 'tod' ? 'stirbt' : 'wird invalid'}`, betrag: f.luecke };
     } catch (e) { console.error(e); }

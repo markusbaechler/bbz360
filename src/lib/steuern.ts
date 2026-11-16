@@ -55,7 +55,7 @@ export function kapitalStaffelung(R: Auswertung, S: PensState, E: Engine): Kapit
 }
 
 export interface AbzugErsparnis {
-  /** Einzahlung in die Säule 3a pro Jahr je Person (0 ohne Erwerbseinkommen). */
+  /** Einzahlung in die Säule 3a pro Jahr je Person (0 ohne Erwerbseinkommen oder nach der Pensionierung). */
   s3a: number[];
   s3aSumme: number;
   /** Steuerersparnis pro Jahr aus den 3a-Einzahlungen; null ohne Grenzsteuersatz. */
@@ -63,31 +63,37 @@ export interface AbzugErsparnis {
   /** Einmalige Steuerersparnis eines PK-Einkaufs; null ohne Grenzsteuersatz oder Betrag. */
   einkaufErsparnis: number | null;
   /**
-   * Sperrfrist nach Art. 79b Abs. 3 BVG: Jahr, bis zu dem (einschliesslich) kein Kapital bezogen werden darf,
-   * und ob ein geplanter PK-Kapitalbezug in diese Frist fällt.
+   * Sperrfrist nach Art. 79b Abs. 3 BVG: drei Jahre ab dem Einkauf. Erfasst ist nur das Einkaufsjahr; vorsichtig
+   * gerechnet reicht die Frist deshalb bis und mit dem dritten Folgejahr (`sperrfristBis`).
    */
   sperrfristBis: number | null;
+  /** Jahre mit einem geplanten PK-Kapitalbezug vom Einkaufsjahr bis `sperrfristBis` (leer = kein Konflikt). */
+  sperrfristJahre: number[];
   sperrfristVerletzt: boolean;
 }
 
 /**
- * Wirkung von Abzügen. grenzsatz: Grenzsteuersatz in Prozent (im Gespräch erfasst; '' = unbekannt).
+ * Wirkung von Abzügen. grenzsatz: Grenzsteuersatz des Haushalts in Prozent (im Gespräch erfasst; '' = unbekannt).
  * Die Ersparnis ist Betrag × Grenzsteuersatz: eine Näherung, die bei grossen Beträgen zu hoch ausfällt, weil der
  * Grenzsteuersatz mit sinkendem steuerbarem Einkommen fällt.
  */
 export function abzugErsparnis(S: PensState, E: Engine, R: Auswertung | null, grenzsatz: number | '', einkauf: number, einkaufJahr: number | ''): AbzugErsparnis {
   const ps = S.personen.slice(0, S.haushalt === 'single' ? 1 : 2);
-  const s3a = ps.map((p) => Math.round(E.s3aJahr(S, p, 0)));
+  // Einzahlen kann nur, wer erwerbstätig ist: Lohn erfasst und die geplante Pensionierung noch nicht erreicht
+  const s3a = ps.map((p) => (E.BASIS - p.jahrgang < p.pensAlter ? Math.round(E.s3aJahr(S, p, 0)) : 0));
   const s3aSumme = s3a.reduce((x, v) => x + v, 0);
   const g = typeof grenzsatz === 'number' && grenzsatz > 0 ? grenzsatz / 100 : null;
-  const sperrfristBis = einkauf > 0 && typeof einkaufJahr === 'number' && einkaufJahr > 0 ? einkaufJahr + 2 : null;
-  // PK-Kapitalbezüge des Plans (ohne 3a und Freizügigkeit)
+  const jahr = einkauf > 0 && typeof einkaufJahr === 'number' && einkaufJahr > 0 ? einkaufJahr : null;
+  const sperrfristBis = jahr != null ? jahr + 3 : null;
+  // PK-Kapitalbezüge des Plans (ohne 3a und Freizügigkeit), vom Einkaufsjahr bis zum dritten Folgejahr. Das
+  // Eingabefeld kennt keine Person: geprüft sind die Bezüge beider Personen.
   const pkJahre = R ? R.base.kapListe.filter((k) => /^PK-/.test(k.art)).map((k) => k.year) : [];
+  const sperrfristJahre = jahr != null ? [...new Set(pkJahre.filter((j) => j >= jahr && j <= jahr + 3))].sort((a, b) => a - b) : [];
   return {
     s3a, s3aSumme,
     s3aErsparnis: g != null ? s3aSumme * g : null,
     einkaufErsparnis: g != null && einkauf > 0 ? einkauf * g : null,
-    sperrfristBis,
-    sperrfristVerletzt: sperrfristBis != null && pkJahre.some((j) => j <= sperrfristBis),
+    sperrfristBis, sperrfristJahre,
+    sperrfristVerletzt: sperrfristJahre.length > 0,
   };
 }

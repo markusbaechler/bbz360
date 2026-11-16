@@ -65,8 +65,8 @@ export function erbteilung(f: ErbFall): Erbteilung {
     frei = b(1, 1);
   }
   if (f.zivil === 'konkubinat') hinweise.push('Die Konkubinatspartnerin oder der Konkubinatspartner erbt von Gesetzes wegen nichts. Eine Begünstigung ist nur über Testament oder Erbvertrag im Rahmen der frei verfügbaren Quote möglich; je nach Kanton fällt darauf Erbschaftssteuer an.');
-  if (verheiratet && kinder > 0) hinweise.push('Mit Testament oder Erbvertrag kann der Ehegatte bis zu 3/4 des Nachlasses zu Eigentum erhalten (Pflichtteil der Nachkommen 1/4), oder die Nutzniessung am ganzen Teil der gemeinsamen Nachkommen (Art. 473 ZGB).');
-  hinweise.push('Vor der Erbteilung steht bei Verheirateten die güterrechtliche Auseinandersetzung; sie ist hier nicht gerechnet. Vorsorgeguthaben (Pensionskasse, Säule 3a) folgen der Begünstigtenordnung und sind im Nachlass nicht enthalten.');
+  if (verheiratet && kinder > 0) hinweise.push('Mit Testament oder Erbvertrag kann der Ehegatte bis zu 3/4 des Nachlasses zu Eigentum erhalten (Pflichtteil der Nachkommen 1/4). Sind die Nachkommen gemeinsame Kinder, ist auch möglich: die Hälfte zu Eigentum und die Nutzniessung an der anderen Hälfte, die den Nachkommen zufällt (Art. 473 ZGB).');
+  hinweise.push('Vor der Erbteilung steht bei Verheirateten die güterrechtliche Auseinandersetzung; sie ist hier nicht gerechnet. Vorsorgeguthaben (Pensionskasse, Säule 3a) folgen der Begünstigtenordnung und sind im Nachlass nicht enthalten; Guthaben der Säule 3a werden für die Berechnung der Pflichtteile aber hinzugerechnet (Art. 476 ZGB), die Pflichtteile fallen dann höher aus als hier gezeigt.');
   return {
     erben: erben.map((x) => ({ ...x, betrag: N * bruchWert(x.gesetzlich), pflichtBetrag: N * bruchWert(x.pflichtteil) })),
     frei, freiBetrag: N * bruchWert(frei), hinweise,

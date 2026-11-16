@@ -22,7 +22,14 @@ const S = haushaltLesen();
 const paar = S.haushalt !== 'single';
 
 interface Eingaben { grenzsatz: number; einkauf: number; einkaufJahr: number }
-const ein = lesen<Eingaben>('steuern', { grenzsatz: 0, einkauf: 0, einkaufJahr: 0 });
+// Gespeicherte Werte prüfen (ein importierter Stand kann alles enthalten)
+const roh = lesen<Partial<Eingaben>>('steuern', {});
+const imBereich = (v: unknown, max: number): number => (typeof v === 'number' && isFinite(v) && v > 0 && v <= max ? v : 0);
+const ein: Eingaben = {
+  grenzsatz: imBereich(roh.grenzsatz, 60),
+  einkauf: Math.round(imBereich(roh.einkauf, 5e6)),
+  einkaufJahr: Number.isInteger(roh.einkaufJahr) && (roh.einkaufJahr as number) >= 2000 && (roh.einkaufJahr as number) <= 2100 ? (roh.einkaufJahr as number) : 0,
+};
 const sichern = (): void => { BBZ.set('steuern', { ...lesen<object>('steuern', {}), grenzsatz: ein.grenzsatz, einkauf: ein.einkauf, einkaufJahr: ein.einkaufJahr }); };
 
 
@@ -49,8 +56,8 @@ function zeigeAbzuege(): void {
   if (a.sperrfristBis != null) {
     sp.dataset.st = a.sperrfristVerletzt ? 'schlecht' : '';
     sp.textContent = a.sperrfristVerletzt
-      ? `Sperrfrist bis Ende ${a.sperrfristBis}: Der Plan sieht in dieser Zeit einen Kapitalbezug aus der Pensionskasse vor. Der eingekaufte Betrag darf dann nicht als Kapital bezogen werden, und der Abzug kann verweigert werden.`
-      : `Sperrfrist bis Ende ${a.sperrfristBis}: In dieser Zeit darf der eingekaufte Betrag nicht als Kapital bezogen werden.`;
+      ? `Sperrfrist: Nach einem Einkauf darf der eingekaufte Betrag drei Jahre lang nicht als Kapital bezogen werden. Der Plan sieht ${a.sperrfristJahre.join(' und ')} einen Kapitalbezug aus der Pensionskasse vor; das liegt innerhalb von drei Jahren nach einem Einkauf ${ein.einkaufJahr} oder kann je nach Datum des Einkaufs hineinfallen. Der Abzug kann dann verweigert werden.`
+      : `Sperrfrist: drei Jahre ab dem Einkauf, je nach Datum bis ${a.sperrfristBis}. In dieser Zeit darf der eingekaufte Betrag nicht als Kapital bezogen werden; der Plan sieht bis dahin keinen Kapitalbezug aus der Pensionskasse vor.`;
   }
 }
 function zeigeKapital(): void {
@@ -67,8 +74,8 @@ function zeigeKapital(): void {
     return;
   }
   $('stKapKpis').innerHTML = kpi('Steuer wie geplant', chf(k.steuerGeplant), `auf ${chf(k.total)} in ${k.jahre.length} ${k.jahre.length === 1 ? 'Jahr' : 'Jahren'}`)
-    + kpi('Alles im selben Jahr', chf(k.steuerEinJahr), `${chf(k.steuerEinJahr - k.steuerGeplant)} mehr als geplant`, k.steuerEinJahr - k.steuerGeplant > 1 ? 'schlecht' : '')
-    + kpi('Jeder Bezug einzeln', chf(k.steuerEinzeln), `${chf(k.steuerGeplant - k.steuerEinzeln)} weniger als geplant`, k.steuerGeplant - k.steuerEinzeln > 1 ? 'gut' : '');
+    + kpi('Alles im selben Jahr', chf(k.steuerEinJahr), k.steuerEinJahr - k.steuerGeplant > 1 ? `${chf(k.steuerEinJahr - k.steuerGeplant)} mehr als geplant` : 'wie geplant', k.steuerEinJahr - k.steuerGeplant > 1 ? 'schlecht' : '')
+    + kpi('Jeder Bezug einzeln', chf(k.steuerEinzeln), k.steuerGeplant - k.steuerEinzeln > 1 ? `${chf(k.steuerGeplant - k.steuerEinzeln)} weniger als geplant` : 'wie geplant', k.steuerGeplant - k.steuerEinzeln > 1 ? 'gut' : '');
   const mehrfach = k.jahre.filter((j) => j.bezuege.length > 1);
   $('stKapText').textContent = mehrfach.length
     ? `In ${mehrfach.map((j) => j.jahr).join(', ')} fallen mehrere Bezüge ins selbe Jahr und werden zusammen besteuert. Eine Verteilung auf verschiedene Jahre senkt die Steuer.`

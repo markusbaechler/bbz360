@@ -61,24 +61,45 @@ function zeigen(): void {
 $('naWer').addEventListener('click', (ev) => { const b = (ev.target as Element).closest<HTMLElement>('[data-wer]'); if (!b) return; ein.erblasser = Number(b.dataset.wer) === 1 ? 1 : 0; sichern(); zeigen(); });
 document.querySelectorAll<HTMLElement>('[data-eltern]').forEach((b) => b.addEventListener('click', () => { ein.elternStamm = b.dataset.eltern === 'ja'; sichern(); zeigen(); }));
 feld('naKinder').addEventListener('input', () => {
-  const el = feld('naKinder'), t = el.value.trim(), n = Number(t);
-  const ok = t === '' || (Number.isInteger(n) && n >= 0 && n <= 12);
+  const el = feld('naKinder'), t = el.value.trim();
+  const ok = t === '' || (/^\d{1,2}$/.test(t) && Number(t) <= 12);
   el.classList.toggle('bad', !ok);
   if (!ok) return;
-  ein.kinder = t === '' ? 0 : n; sichern(); zeigen();
+  ein.kinder = t === '' ? 0 : Number(t);
+  // Dieselbe Angabe wie in der Absicherung; «davon unter 18 oder in Ausbildung» kann nicht grösser sein
+  const abh = Math.round(zahl(BBZ.get('familie_kinder_abh')));
+  sichern();
+  if (abh > ein.kinder) BBZ.set('familie_kinder_abh', ein.kinder);
+  zeigen();
 });
 feld('naNachlass').addEventListener('input', () => { const v = zahlAus(feld('naNachlass'), 1e9); if (v === null) return; ein.nachlass = v; sichern(); zeigen(); });
 
 // ---------- Erwartete Erbschaften: Zuflüsse im Haushalts-Stand ----------
-// Entwurf: Zeilen dürfen unvollständig sein; gespeichert wird, was Betrag und Jahr hat.
+// Vollständige Zeilen (Betrag und Jahr) stehen im Haushalts-Stand und rechnen mit. Unvollständige Zeilen bleiben
+// als Entwurf im Session-Objekt `nachlass`, damit nichts still verloren geht. Eine ungültige Eingabe ändert den
+// gespeicherten Wert nicht (Feld rot).
 interface Zeile { name: string; betrag: number; jahr: number }
-const zeilen: Zeile[] = (S.zufluesse ?? []).map((z) => ({ ...z }));
+const voll = (z: Zeile): boolean => z.betrag > 0 && z.jahr > 0;
+const entwurfRoh = (lesen<{ zuflussEntwurf: unknown }>('nachlass', { zuflussEntwurf: [] }).zuflussEntwurf);
+const zeilen: Zeile[] = [
+  ...(S.zufluesse ?? []).map((z) => ({ ...z })),
+  ...(Array.isArray(entwurfRoh) ? entwurfRoh : []).filter((z) => z && typeof z === 'object').slice(0, MAX_ZUFLUESSE)
+    .map((z: Record<string, unknown>) => ({ name: typeof z.name === 'string' ? z.name.slice(0, 60) : '', betrag: Math.round(zahl(z.betrag)), jahr: Number.isInteger(z.jahr) ? (z.jahr as number) : 0 }))
+    .filter((z) => !voll(z)),
+].slice(0, MAX_ZUFLUESSE);
+let gespeichert = JSON.stringify((S.zufluesse ?? []));
 function zuSichern(): void {
-  const gueltig: Zufluss[] = zeilen.filter((z) => z.betrag > 0 && z.jahr > 0).map((z) => ({ name: z.name, betrag: z.betrag, jahr: z.jahr }));
+  const gueltig: Zufluss[] = zeilen.filter(voll).map((z) => ({ name: z.name, betrag: z.betrag, jahr: z.jahr }));
+  // Entwurf: was noch nicht vollständig ist
+  BBZ.set('nachlass', { ...lesen<object>('nachlass', {}), zuflussEntwurf: zeilen.filter((z) => !voll(z) && (z.name || z.betrag || z.jahr)) });
+  // Haushalts-Stand nur schreiben, wenn sich die gültigen Zuflüsse geändert haben (kein Anlegen beim blossen Tippen)
+  const neu = JSON.stringify(gueltig);
+  if (neu === gespeichert) return;
   const H = haushaltLesen();
   if (gueltig.length) H.zufluesse = gueltig; else delete H.zufluesse;
   H.ui.edited = true;
   haushaltSchreiben(H);
+  gespeichert = neu;
 }
 function zuZeigen(): void {
   $('naZufluesse').innerHTML = zeilen.length ? zeilen.map((z, i) => `<div class="fm-zeile" data-zeile="${i}">
@@ -86,10 +107,10 @@ function zuZeigen(): void {
       <input type="text" inputmode="decimal" data-zf="betrag" aria-label="Betrag in CHF" placeholder="Betrag" value="${inFeld(z.betrag)}">
       <input type="text" inputmode="numeric" data-frei data-zf="jahr" aria-label="Jahr" placeholder="Jahr" value="${z.jahr > 0 ? z.jahr : ''}">
       <button type="button" class="bbz-button bbz-button--ghost sm" data-zf-weg aria-label="Zufluss entfernen">×</button>
-    </div>`).join('') : '<p class="cap">Noch keine Zuflüsse erfasst.</p>';
+    </div><p class="cap fm-entwurf" data-entwurf="${i}"${voll(z) ? ' hidden' : ''}>Rechnet noch nicht mit: Betrag und Jahr fehlen.</p>`).join('') : '<p class="cap">Noch keine Zuflüsse erfasst.</p>';
   ($('naZuPlus') as HTMLButtonElement).disabled = zeilen.length >= MAX_ZUFLUESSE;
 }
-$('naZuPlus').addEventListener('click', () => { zeilen.push({ name: '', betrag: 0, jahr: 0 }); zuZeigen(); $('naZufluesse').querySelector<HTMLInputElement>('.fm-zeile:last-child input')?.focus(); });
+$('naZuPlus').addEventListener('click', () => { zeilen.push({ name: '', betrag: 0, jahr: 0 }); zuZeigen(); $('naZufluesse').querySelector<HTMLInputElement>('.fm-zeile:last-of-type input')?.focus(); });
 $('naZufluesse').addEventListener('click', (ev) => {
   const b = (ev.target as Element).closest('[data-zf-weg]');
   if (!b) return;
@@ -102,14 +123,16 @@ $('naZufluesse').addEventListener('input', (ev) => {
   if (el.dataset.zf === 'name') z.name = el.value.slice(0, 60);
   else if (el.dataset.zf === 'betrag') { const v = zahlAus(el, 1e9); if (v === null) return; z.betrag = v; }
   else {
-    const t = el.value.trim(), n = Number(t), ok = t === '' || (Number.isInteger(n) && n >= jahr && n <= 2150);
-    // Während des Tippens (z. B. «203») noch nicht als Fehler zeigen
-    el.classList.toggle('bad', !ok && t.length >= 4);
-    z.jahr = ok && t !== '' ? n : 0;
+    // Jahr: leer = bewusst entfernt; ungültig (unvollständig getippt, Vergangenheit, über 2150) lässt den Wert stehen
+    const t = el.value.trim(), n = Number(t), gueltig = /^\d{4}$/.test(t) && n >= jahr && n <= 2150;
+    el.classList.toggle('bad', t !== '' && !gueltig && t.length >= 4);
+    if (t === '') z.jahr = 0; else if (gueltig) z.jahr = n; else return;
   }
+  // Hinweis der Zeile nachführen, ohne die Felder neu aufzubauen
+  const hinweis = $('naZufluesse').querySelector<HTMLElement>(`[data-entwurf="${zeilen.indexOf(z)}"]`);
+  if (hinweis) hinweis.hidden = voll(z);
   zuSichern();
 });
-
 tausender($('main'));
 zeigen();
 zuZeigen();

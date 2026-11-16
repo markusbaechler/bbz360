@@ -51,17 +51,31 @@ describe('Steuern (07d)', () => {
     expect(mit.s3aErsparnis).toBeCloseTo(2 * max * 0.3, 6);
     expect(mit.einkaufErsparnis).toBe(15000);
   });
-  it('Sperrfrist nach einem PK-Einkauf: drei Jahre; ein Kapitalbezug darin wird gemeldet', () => {
+  it('A15: Sperrfrist drei Jahre ab Einkauf, vorsichtig bis und mit dem dritten Folgejahr', () => {
     // Musterfall: PK-Kapital Person 1 bei der Pensionierung mit 58 (2030)
     const pkJahr = R.base.kapListe.find((k) => /^PK-/.test(k.art))!.year;
-    expect(abzugErsparnis(S, E, R, 30, 50000, pkJahr - 1)).toMatchObject({ sperrfristBis: pkJahr + 1, sperrfristVerletzt: true });
-    expect(abzugErsparnis(S, E, R, 30, 50000, pkJahr - 3)).toMatchObject({ sperrfristBis: pkJahr - 1, sperrfristVerletzt: false });
+    // Einkauf drei Kalenderjahre vor dem Bezug: je nach Datum noch in der Frist (vorher: «nicht verletzt»)
+    expect(abzugErsparnis(S, E, R, 30, 50000, pkJahr - 3)).toMatchObject({ sperrfristBis: pkJahr, sperrfristVerletzt: true, sperrfristJahre: [pkJahr] });
+    expect(abzugErsparnis(S, E, R, 30, 50000, pkJahr - 1).sperrfristVerletzt).toBe(true);
+    expect(abzugErsparnis(S, E, R, 30, 50000, pkJahr).sperrfristVerletzt).toBe(true);
+    // vier Jahre davor: sicher ausserhalb
+    expect(abzugErsparnis(S, E, R, 30, 50000, pkJahr - 4)).toMatchObject({ sperrfristBis: pkJahr - 1, sperrfristVerletzt: false, sperrfristJahre: [] });
     expect(abzugErsparnis(S, E, R, 30, 0, 2027).sperrfristBis).toBeNull();
+  });
+  it('B12: ein Einkauf nach dem Bezug löst keine Sperrfrist-Meldung aus', () => {
+    const pkJahr = R.base.kapListe.find((k) => /^PK-/.test(k.art))!.year;
+    expect(abzugErsparnis(S, E, R, 30, 50000, pkJahr + 2).sperrfristVerletzt).toBe(false);
+    expect(abzugErsparnis(S, E, R, 30, 50000, pkJahr + 15).sperrfristVerletzt).toBe(false);
+  });
+  it('B16: keine 3a-Einzahlung für eine Person, die die geplante Pensionierung schon erreicht hat', () => {
+    const P = muster({ personen: [{ ...clone(EXAMPLE).personen[0], jahrgang: 1960, pensAlter: 64 }, clone(EXAMPLE).personen[1]] });
+    expect(abzugErsparnis(P, E, null, 30, 0, '').s3a[0]).toBe(0);
+    expect(abzugErsparnis(P, E, null, 30, 0, '').s3a[1]).toBeGreaterThan(0);
   });
 });
 
 describe('Absicherung (07e)', () => {
-  const eing = (o: Partial<AbsicherungEingaben> = {}): AbsicherungEingaben => ({ kinder: 2, ursache: 'krankheit', bedarfMonat: 0, pk: [{ ...PK_LEER }, { ...PK_LEER }], ...o });
+  const eing = (o: Partial<AbsicherungEingaben> = {}): AbsicherungEingaben => { const e = { kinder: 2, ursache: 'krankheit' as const, bedarfMonat: 0, pk: [{ ...PK_LEER }, { ...PK_LEER }] as [typeof PK_LEER, typeof PK_LEER], ...o }; return { ...e, kinderAbh: o.kinderAbh ?? e.kinder }; };
   const S = muster({ ausgabenHeute: 12000 }); // P1 m 160'000, P2 w 45'000 (Jahrgang 1970), verheiratet
   const rente1 = E.ahvMonat(S.personen[0]) * 12;
   const fall = (r: ReturnType<typeof absicherung>, person: number, ereignis: 'invalid' | 'tod') => r.faelle.find((f) => f.person === person && f.ereignis === ereignis)!;
@@ -124,12 +138,82 @@ describe('Absicherung (07e)', () => {
   it('Alleinstehende ohne Kinder: nur der Fall Invalidität', () => {
     const r = absicherung(muster({ haushalt: 'single' }), E, eing({ kinder: 0 }));
     expect(r.faelle.map((f) => [f.person, f.ereignis])).toEqual([[0, 'invalid']]);
+    expect(r.hinweis).toBe('');
   });
   it('Unfalltod: Ehegatte 40% und 15% je Kind, höchstens 70%, mit AHV zusammen höchstens 90%', () => {
     const r = absicherung(S, E, eing({ ursache: 'unfall', kinder: 1 }));
     const f = fall(r, 0, 'tod');
     const ahv = rente1 * (0.8 + 0.4);
     expect(betrag(f, /UVG-Hinterlassenenrenten/)).toBeCloseTo(Math.max(0, Math.min(0.55 * 148200, 0.9 * 148200 - ahv)), 6);
+  });
+});
+
+describe('Absicherung: Befunde A12, A13, B13', () => {
+  const pk = [{ ...PK_LEER }, { ...PK_LEER }] as [typeof PK_LEER, typeof PK_LEER];
+  // junges Paar: P1 Mann 1988, P2 Frau 1990 (36-jährig), verheiratet
+  const jung = (o: Record<string, unknown> = {}) => muster({ personen: [{ ...clone(EXAMPLE).personen[0], jahrgang: 1988 }, { ...clone(EXAMPLE).personen[1], jahrgang: 1990 }], ausgabenHeute: 9000, ...o });
+  const fall = (r: ReturnType<typeof absicherung>, person: number, ereignis: 'invalid' | 'tod') => r.faelle.find((f) => f.person === person && f.ereignis === ereignis)!;
+  const betrag = (f: ReturnType<typeof fall>, label: RegExp) => f.posten.find((p) => label.test(p.label))?.betrag ?? 0;
+
+  it('A12: Unfalltod ohne Kinder — keine UVG-Rente für die Witwe unter 45 und für den Witwer (vorher 40% des Lohns)', () => {
+    const r = absicherung(jung(), E, { kinder: 0, kinderAbh: 0, ursache: 'unfall', bedarfMonat: 0, pk });
+    expect(betrag(fall(r, 0, 'tod'), /UVG-Hinterlassenenrenten/)).toBe(0);
+    expect(fall(r, 0, 'tod').hinweise.join(' ')).toMatch(/Keine UVG-Rente für die Witwe .*einmalige Abfindung/);
+    expect(betrag(fall(r, 1, 'tod'), /UVG-Hinterlassenenrenten/)).toBe(0);
+    expect(fall(r, 1, 'tod').hinweise.join(' ')).toMatch(/Keine UVG-Rente für den Witwer/);
+  });
+  it('A12: mit rentenberechtigten Kindern erhalten Witwe und Witwer die UVG-Rente; die Witwe auch mit erwachsenen Kindern oder ab 45', () => {
+    const mitKind = absicherung(jung(), E, { kinder: 1, kinderAbh: 1, ursache: 'unfall', bedarfMonat: 0, pk });
+    expect(betrag(fall(mitKind, 0, 'tod'), /UVG-Hinterlassenenrenten/)).toBeGreaterThan(0);
+    expect(betrag(fall(mitKind, 1, 'tod'), /UVG-Hinterlassenenrenten/)).toBeGreaterThan(0);
+    const erwachsen = absicherung(jung(), E, { kinder: 2, kinderAbh: 0, ursache: 'unfall', bedarfMonat: 0, pk });
+    expect(betrag(fall(erwachsen, 0, 'tod'), /UVG-Hinterlassenenrenten/)).toBeGreaterThan(0); // Witwe mit erwachsenen Kindern
+    expect(betrag(fall(erwachsen, 1, 'tod'), /UVG-Hinterlassenenrenten/)).toBe(0);            // Witwer ohne rentenberechtigte Kinder
+    // Musterfall: Witwe 56-jährig, kinderlos
+    const ab45 = absicherung(muster({ ausgabenHeute: 9000 }), E, { kinder: 0, kinderAbh: 0, ursache: 'unfall', bedarfMonat: 0, pk });
+    expect(betrag(fall(ab45, 0, 'tod'), /UVG-Hinterlassenenrenten/)).toBeGreaterThan(0);
+  });
+  it('A13: für die AHV zählen Kinder gleich welchen Alters — Witwe unter 45 und Witwer mit erwachsenen Kindern haben Anspruch', () => {
+    const r = absicherung(jung(), E, { kinder: 2, kinderAbh: 0, ursache: 'krankheit', bedarfMonat: 0, pk });
+    expect(betrag(fall(r, 0, 'tod'), /AHV-Witwenrente/)).toBeGreaterThan(0);
+    expect(betrag(fall(r, 1, 'tod'), /AHV-Witwerrente/)).toBeGreaterThan(0);
+    // erwachsene Kinder lösen keine Waisen- oder Kinderrenten aus
+    expect(fall(r, 0, 'tod').posten.some((p) => /Waisenrenten/.test(p.label))).toBe(false);
+    expect(fall(r, 0, 'invalid').posten.some((p) => /Kinderrenten/.test(p.label))).toBe(false);
+    // ohne Kinder: Witwe unter 45 und Witwer ohne Anspruch
+    const ohne = absicherung(jung(), E, { kinder: 0, kinderAbh: 0, ursache: 'krankheit', bedarfMonat: 0, pk });
+    expect(betrag(fall(ohne, 0, 'tod'), /AHV-Witwenrente/)).toBe(0);
+    expect(betrag(fall(ohne, 1, 'tod'), /AHV-Witwerrente/)).toBe(0);
+  });
+  it('«davon unter 18 oder in Ausbildung» kann nicht grösser sein als die Zahl der Kinder', () => {
+    const r = absicherung(jung(), E, { kinder: 1, kinderAbh: 5, ursache: 'krankheit', bedarfMonat: 0, pk });
+    expect(fall(r, 0, 'tod').posten.find((p) => /Waisenrenten/.test(p.label))!.label).toBe('AHV-Waisenrenten (1)');
+  });
+  it('B13: Pensionierte und Personen ohne Lohn werden nicht als «wird invalid» gerechnet; leerer Stand ergibt einen Hinweis', () => {
+    const rentner = muster({ personen: [{ ...clone(EXAMPLE).personen[0], jahrgang: 1955, brutto: 0 }, { ...clone(EXAMPLE).personen[1], jahrgang: 1956, brutto: 0 }] });
+    const r = absicherung(rentner, E, { kinder: 0, kinderAbh: 0, ursache: 'krankheit', bedarfMonat: 0, pk });
+    expect(r.faelle).toEqual([]);
+    expect(r.hinweis).toMatch(/Keine Person des Haushalts ist heute erwerbstätig/);
+    // 66-jährig mit Lohn: über dem Referenzalter → kein Fall
+    const alt = muster({ personen: [{ ...clone(EXAMPLE).personen[0], jahrgang: 1960 }, { ...clone(EXAMPLE).personen[1], brutto: 0 }] });
+    expect(absicherung(alt, E, { kinder: 0, kinderAbh: 0, ursache: 'krankheit', bedarfMonat: 0, pk }).faelle).toEqual([]);
+    // nur Person 1 erwerbstätig: nur ihre Fälle
+    const eine = muster({ personen: [clone(EXAMPLE).personen[0], { ...clone(EXAMPLE).personen[1], brutto: 0 }] });
+    expect(absicherung(eine, E, { kinder: 0, kinderAbh: 0, ursache: 'krankheit', bedarfMonat: 0, pk }).faelle.map((f) => f.person)).toEqual([0, 0]);
+  });
+  it('B13: hat die hinterbliebene Person das Referenzalter erreicht, wird keine Witwenrente dazugezählt', () => {
+    const S = muster({ personen: [clone(EXAMPLE).personen[0], { ...clone(EXAMPLE).personen[1], jahrgang: 1958, brutto: 0 }] });
+    const r = absicherung(S, E, { kinder: 0, kinderAbh: 0, ursache: 'krankheit', bedarfMonat: 0, pk });
+    expect(betrag(fall(r, 0, 'tod'), /AHV-Witwenrente/)).toBe(0);
+    expect(fall(r, 0, 'tod').hinweise.join(' ')).toMatch(/Referenzalter erreicht/);
+  });
+  it('Konkubinat: keine Zeile «Witwenrente», Hinweis nennt AHV und UVG', () => {
+    const K = absicherung(jung({ haushalt: 'konkubinat' }), E, { kinder: 1, kinderAbh: 1, ursache: 'unfall', bedarfMonat: 0, pk });
+    const f = fall(K, 0, 'tod');
+    expect(f.posten.some((p) => /Witwe/.test(p.label))).toBe(false);
+    expect(betrag(f, /AHV-Waisenrenten/)).toBeGreaterThan(0);
+    // UVG: nur das Kind (15%), kein Ehegattenanteil
+    expect(f.hinweise.join(' ')).toMatch(/weder eine AHV- noch eine UVG-Rente/);
   });
 });
 

@@ -7,7 +7,7 @@ export const STEUER_THEMEN: ThemaDef[] = [
   { id: 'rentekapital', titel: 'Rente oder Kapital', text: 'Die Rente wird als Einkommen besteuert, das Kapital einmalig zum Sondertarif.' },
   { id: 'einkauf', titel: 'Einkauf in die Pensionskasse', text: 'Einkaufspotenzial laut Vorsorgeausweis; Sperrfrist von drei Jahren für Kapitalbezüge beachten.' },
   { id: 's3a', titel: 'Säule 3a ausschöpfen', text: 'Jährlicher Höchstbetrag; Beitragslücken ab 2025 lassen sich unter Bedingungen nachträglich schliessen.' },
-  { id: 'unterhalt', titel: 'Liegenschaftsunterhalt planen', text: 'Grössere Arbeiten auf Jahre mit hohem Einkommen legen. Der Abzug gilt, solange der Eigenmietwert besteuert wird.' },
+  { id: 'unterhalt', titel: 'Liegenschaftsunterhalt planen', text: 'Grössere Arbeiten auf Jahre mit hohem Einkommen legen. Der Abzug gilt, solange der Eigenmietwert besteuert wird; die Abschaffung ist auf 2029 angesetzt.' },
   { id: 'wohnsitz', titel: 'Wohnsitz bei der Pensionierung', text: 'Die Steuer auf Kapitalbezügen unterscheidet sich je Kanton und Gemeinde deutlich.' },
   { id: 'schenkung', titel: 'Schenkung oder Erbvorbezug', text: 'Erbschafts- und Schenkungssteuer je nach Kanton und Verwandtschaftsgrad.' },
 ];
