@@ -27,7 +27,6 @@
     </section>
 
     <aside class="leisten" aria-label="Hinweise">
-      <div class="example" id="exampleBar"><span><b>Musterfall geladen.</b> Angenommen: Ehepaar, Ausgaben CHF 10’000 pro Monat, Kanton Zürich. Ersetzen Sie die Werte durch Ihre eigenen.</span><button class="bbz-button bbz-button--secondary sm" id="btnReset" type="button">Musterfall wiederherstellen</button></div>
 
       <!-- Über dem Inhalt, damit der Hinweis im Tutor, im Formular und in der mobilen Ansicht «Eingaben» sichtbar ist -->
       <p class="rfehler" id="rechenFehler" role="alert" hidden><b>Die Rechnung ist fehlgeschlagen.</b> <span id="rechenFehlerText"></span> Bitte prüfen Sie die letzte Eingabe.</p>
@@ -37,10 +36,7 @@
       <section class="tutor" id="tutor" aria-label="Geführte Erfassung"></section>
       <div class="formwrap" id="formwrap">
         <div class="newbar">
-          <button class="bbz-button bbz-button--secondary sm" id="btnNeu" type="button">Neu beginnen</button>
-          <button class="bbz-button bbz-button--ghost sm" id="btnMuster" type="button">Musterfall laden</button>
           <button class="bbz-button bbz-button--ghost sm" id="btnImport" type="button">PensCheck-Stand einlesen</button>
-          <div class="confirm" id="neuConfirm" hidden><span>Alle Eingaben löschen?</span><button class="bbz-button bbz-button--primary sm" id="btnNeuJa" type="button">Ja, alles löschen</button><button class="bbz-button bbz-button--ghost sm" id="btnNeuNein" type="button">Abbrechen</button></div>
         </div>
         <!-- Kundenname und Gesprächsdatum aus den Berichtsangaben (leer, wenn nicht erfasst) -->
         <p class="gespraech" id="gespraech" hidden></p>

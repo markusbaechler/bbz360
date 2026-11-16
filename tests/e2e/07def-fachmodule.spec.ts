@@ -1,16 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { musterEinlesen, stand } from './helfer';
 
 // 07d Steuern, 07e Absicherung, 07f Nachlass (Phasen 6–8). Die Rechenregeln
 // sichern tests/unit/fachmodule.test.ts; hier die Kette Seite → Stand → Abschluss.
 
-async function musterfall(page: import('@playwright/test').Page): Promise<void> {
-  await page.goto('modules/07c-pension.html');
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-  await page.locator('#btnMuster').click();
-  await expect(page.locator('#verdictText')).toContainText(/Reicht|Knapp/);
-}
-const stand = (page: import('@playwright/test').Page) => page.evaluate(() => JSON.parse(localStorage.getItem('bbzData') || '{}'));
+const musterfall = (page: import('@playwright/test').Page): Promise<void> => musterEinlesen(page);
 
 test('07d Steuern: Kapitalbezüge, Abzüge, Sperrfrist, Themen', async ({ page }) => {
   const fehler: string[] = [];

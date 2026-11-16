@@ -216,9 +216,9 @@ function calc(): void {
 
   // Prefills (v1 Z.731–737, unverändert)
   const mult = S.ausgaben.freq === 'mtl' ? 12 : 1;
-  // ADR-17: Bruttoeinkommen p.a. fuer 07a kommt aus den Bruttoloehnen; ohne sie bleibt der bisherige Wert (Netto).
-  const bruttoPa = S.ausgaben.brutto1 + S.ausgaben.brutto2;
-  BBZ.set('cockpit_einkommen', bruttoPa > 0 ? bruttoPa : (S.ausgaben.eMann + S.ausgaben.eFrau) * mult);
+  // ADR-17/22: Einkommen pro Jahr fuer 07a — je Person der Bruttolohn; fehlt er, ihr Nettoeinkommen (wie bisher).
+  // Dieselbe Regel wie lib/haushalt.ts: prefills().
+  BBZ.set('cockpit_einkommen', (S.ausgaben.brutto1 > 0 ? S.ausgaben.brutto1 : S.ausgaben.eMann * mult) + (S.ausgaben.brutto2 > 0 ? S.ausgaben.brutto2 : S.ausgaben.eFrau * mult));
   BBZ.set('cockpit_verpflichtungen', (S.ausgaben.leasing + S.ausgaben.unterhalt) * mult);
   BBZ.set('cockpit_pk_saldo', S.vorsorgen.pkSaldo || 0);
   BBZ.set('cockpit_anlage_f', anlageF);
@@ -381,7 +381,7 @@ function buildForm(t: SKey): string {
       ${cfNum('eFrau', `Nettoeinkommen ${pName(1)} (CHF)`, S.ausgaben.eFrau)}
       ${num('brutto1', `Bruttolohn ${pName(0)} (CHF / Jahr)`, S.ausgaben.brutto1, 'Für AHV, Tragbarkeit und Pensionierung')}
       <div class="ck-ig"><label>Geschlecht ${pName(0)}</label><div class="ck-rbg">${rbL('ausgaben__geschlecht1', 'm', 'Mann', S.ausgaben.geschlecht1)}${rbL('ausgaben__geschlecht1', 'w', 'Frau', S.ausgaben.geschlecht1)}</div><span class="ck-hint">AHV-Referenzalter</span></div>
-      ${num('brutto2', `Bruttolohn ${pName(1)} (CHF / Jahr)`, S.ausgaben.brutto2)}
+      ${num('brutto2', `Bruttolohn ${pName(1)} (CHF / Jahr)`, S.ausgaben.brutto2, 'Mit einem Einkommen für Person 2 rechnet die App mit zwei Personen')}
       <div class="ck-ig"><label>Geschlecht ${pName(1)}</label><div class="ck-rbg">${rbL('ausgaben__geschlecht2', 'm', 'Mann', S.ausgaben.geschlecht2)}${rbL('ausgaben__geschlecht2', 'w', 'Frau', S.ausgaben.geschlecht2)}</div></div>
       ${sec(2, 'Ausgaben (alle Kategorien)')}
       ${cfNum('haushalt', 'Haushalt &amp; Lebenshaltung (CHF / mtl.)', S.ausgaben.haushalt)}
@@ -509,7 +509,7 @@ function save(t: SKey): void {
     S.finanzieren.laufzeit = $v('f-laufzeit'); S.finanzieren.kommentar = $v('f-kommentar');
   }
   snapSaved = true;
-  renderControls(); calc(); inHaushalt(); closeModal();
+  renderControls(); calc(); inHaushalt(t); closeModal();
 }
 
 // ── Load / Init ──────────────────────────────────────────────────────────────
@@ -534,6 +534,7 @@ function ausHaushalt(): void {
     if (!S.ausgaben.brutto1 && !S.ausgaben.brutto2) { S.ausgaben.brutto1 = S.ausgaben.eMann * mult; S.ausgaben.brutto2 = S.ausgaben.eFrau * mult; }
     S.ausgaben.eMann = 0; S.ausgaben.eFrau = 0; S.ausgaben.typ = 'netto';
   }
+  // Ohne gespeicherten Haushalts-Stand gilt, was das Cockpit haelt (der erste Stand entsteht daraus).
   if (!BBZ.get('haushalt')) return;
   const g = gemeinsamAusHaushalt(haushaltLesen());
   // Liquiditaet: Die Aufteilung Zahlungsverkehr/Sparen kennt nur das Cockpit; eine Differenz geht ins Sparen.
@@ -544,24 +545,43 @@ function ausHaushalt(): void {
   S.anlegen.volumen = g.wertschriften;
   S.vorsorgen.s3Saldo = g.s3a;
   S.vorsorgen.pkSaldo = g.pk;
-  S.ausgaben.brutto1 = g.brutto[0]; S.ausgaben.brutto2 = g.brutto[1];
+  S.ausgaben.brutto1 = g.brutto[0];
   S.ausgaben.geschlecht1 = g.geschlecht[0]; S.ausgaben.geschlecht2 = g.geschlecht[1];
-  // Ausgaben heute (z. B. im Budget geaendert): die Differenz traegt «Haushalt & Lebenshaltung».
-  if (g.ausgabenHeute > 0 && g.ausgabenHeute !== ausgSumme()) {
-    S.ausgaben.haushalt = Math.max(0, g.ausgabenHeute - (ausgSumme() - S.ausgaben.haushalt));
-  }
+  // Zweite Person: Rechnet der Haushalt als Einzelperson (in der Pensionierung so gewaehlt oder zweite Person aus
+  // den Stammdaten entfernt), gibt es kein Einkommen von Person 2.
+  if (g.paar) S.ausgaben.brutto2 = g.brutto[1];
+  else { S.ausgaben.brutto2 = 0; S.ausgaben.eFrau = 0; }
+  // Ausgaben heute: Der Betrag steht im Haushalts-Stand, die Gliederung kennt nur das Cockpit.
+  ausgabenAngleichen(g.ausgabenHeute);
 }
-function inHaushalt(): void {
+/** Gleicht die vier Ausgaben-Kategorien an den Betrag des Haushalts-Stands an (Budget oder Pensionierung haben ihn geaendert). */
+function ausgabenAngleichen(soll: number): void {
+  const a = S.ausgaben, ist = ausgSumme();
+  if (Math.round(soll) === Math.round(ist)) return;
+  const rest = a.leasing + a.unterhalt + a.uebrige;
+  if (soll >= rest) { a.haushalt = soll - rest; return; }          // Differenz traegt «Haushalt & Lebenshaltung»
+  // Der Betrag liegt unter Leasing + Unterhalt + Uebrige: alle Kategorien im selben Verhaeltnis kuerzen
+  const f = rest > 0 ? soll / rest : 0;
+  a.haushalt = 0;
+  a.leasing = Math.round(a.leasing * f);
+  a.unterhalt = Math.round(a.unterhalt * f);
+  a.uebrige = Math.max(0, Math.round(soll) - a.leasing - a.unterhalt);
+}
+/** Schreibt die geteilten Groessen in den Haushalts-Stand. t: das Modal, das gerade uebernommen wurde. */
+function inHaushalt(t: SKey): void {
   const H = haushaltLesen();
   const alt = gemeinsamAusHaushalt(H);
   haushaltSchreiben(gemeinsamInHaushalt(H, {
+    // Ein Einkommen fuer Person 2 heisst: Der Haushalt rechnet mit zwei Personen.
+    paar: alt.paar || S.ausgaben.brutto2 > 0 || S.ausgaben.eFrau > 0,
     liquiditaet: S.zahlen.saldo + S.sparen.saldo,
     wertschriften: S.anlegen.volumen,
     s3a: S.vorsorgen.s3Saldo,
     pk: S.vorsorgen.pkSaldo,
     brutto: [S.ausgaben.brutto1, S.ausgaben.brutto2],
     geschlecht: [S.ausgaben.geschlecht1 === 'w' ? 'w' : 'm', S.ausgaben.geschlecht2 === 'w' ? 'w' : 'm'],
-    ausgabenHeute: ausgSumme() > 0 ? ausgSumme() : alt.ausgabenHeute,
+    // Die Ausgaben aendert nur das Modal «Ausgaben & Einkommen» (dort auch auf 0 = nicht erfasst)
+    ausgabenHeute: t === 'ausgaben' ? ausgSumme() : alt.ausgabenHeute,
   }));
 }
 

@@ -90,7 +90,9 @@ export function createTutor(app: App) {
   const cpl = () => S().haushalt !== 'single';
   const persons = () => (cpl() ? [0, 1] : [0]);
   const pname = (i: number) => (cpl() ? (i === 0 ? 'Person 1 (Sie)' : 'Person 2') : 'Sie');
-  const step = () => (IDX[S().ui.tutorStep] != null ? S().ui.tutorStep : 'start');
+  // bbz360 (ADR-22): Mit app.einFall gibt es den Startschritt nicht (dort liesse sich der Stand ersetzen:
+  // «Neu beginnen», «mit einem Beispiel üben»). Der Tutor beginnt beim ersten Erfassungsschritt.
+  const step = () => { const t = IDX[S().ui.tutorStep] != null ? S().ui.tutorStep : 'start'; return app.einFall && t === 'start' ? STEPS[1].id : t; };
   // Budget-Assistent: Unteransicht im Schritt «Ausgaben» (kein eigener Schritt)
   let budgetOffen = false, entwurfNeu = false;
   // Miete der Fixkosten vor einem neuen Budget-Entwurf: Wird der Entwurf verworfen, gilt sie wieder
@@ -507,7 +509,7 @@ export function createTutor(app: App) {
     render(true);
   }
   const next = () => go(STEPS[Math.min(STEPS.length - 1, IDX[step()] + 1)].id);
-  const back = () => go(STEPS[Math.max(0, IDX[step()] - 1)].id);
+  const back = () => go(STEPS[Math.max(app.einFall ? 1 : 0, IDX[step()] - 1)].id);
 
   // ---------- Aktionen ----------
   async function act(a: string, btn: HTMLElement) {

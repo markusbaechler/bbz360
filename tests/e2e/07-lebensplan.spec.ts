@@ -1,14 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { musterEinlesen, stand } from './helfer';
 
 // 07 Lebensplan (Phase 5): Ziel, Kauf, Anlage und Pensionierung in einem Bild
 // und einer Rechnung. Die Zusammenfuehrung selbst sichert tests/unit/lebensplan.
 
 async function musterMitZielen(page: import('@playwright/test').Page): Promise<void> {
-  await page.goto('modules/07c-pension.html');
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-  await page.locator('#btnMuster').click();
-  await expect(page.locator('#verdictText')).toContainText(/Reicht|Knapp/);
+  await musterEinlesen(page);
+  // Ziele und Finanzierung wie von 06 und 07a geschrieben (deren Oberfläche prüfen die eigenen Specs);
+  // die Anlage entsteht unten über die Oberfläche von 07b (A7).
   await page.evaluate(() => {
     const d = JSON.parse(localStorage.getItem('bbzData') || '{}');
     d.ziele = [
@@ -17,11 +16,14 @@ async function musterMitZielen(page: import('@playwright/test').Page): Promise<v
       { id: 'z3', katId: 'zufluss', typ: 'zufluss', name: 'Erbschaft', jahr: 2040, betrag: 300000 },
       { id: 'z4', katId: 'familie', typ: 'ziel', name: 'Irgendwann', jahr: null, betrag: 5000 },
     ];
-    d.finanzierung_data = { inputs: { price: "600'000", cashEquity: "150'000" } };
-    d.anlage_betrag = 60000;
+    d.finanzierung_data = { inputs: { price: "600'000", cashEquity: "150'000" }, zielId: 'z1' };
     d.anlage_konklusion = { finaleStrategie: 'Ausgewogen' };
     localStorage.setItem('bbzData', JSON.stringify(d));
   });
+  // 07b: den Anlagebetrag im Modul erfassen — er muss von dort im Lebensplan ankommen
+  await page.goto('modules/07b-anlegen.html');
+  await page.locator('#amtInput').fill('60000');
+  expect((await stand(page)).anlage_betrag).toBe(60000);
 }
 
 test('Ziel, Kauf und Anlage erscheinen in derselben Zeitachse und Rechnung', async ({ page }) => {
@@ -57,7 +59,7 @@ test('Ziel, Kauf und Anlage erscheinen in derselben Zeitachse und Rechnung', asy
   await expect(bild).toContainText('Erbschaft');
 
   // gespeichert wird nichts: der Haushalts-Stand traegt die Ziele nicht
-  const h = await page.evaluate(() => JSON.parse(localStorage.getItem('bbzData') || '{}').haushalt);
+  const h = (await stand(page)).haushalt;
   expect(h.wuensche.map((w: { name: string }) => w.name)).toEqual(['Griechenland']);
   expect(h.liquiditaet).toBe(100000);
   expect(fehler).toEqual([]);

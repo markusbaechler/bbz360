@@ -1,18 +1,31 @@
 // ============================================================================
-// haushalt.ts — gemeinsamer Haushalts-Stand (Zielbild Fusion, Phase 1).
-// Ein einziger Stand `haushalt` in bbzData speist Pensionierung, Budget und
-// den Lebensplan. Struktur und Pruefung stammen aus dem PensCheck
-// (lib/pension/state.ts): Alles Fremde laeuft durch sanitize().
-// KEIN DOM-Zugriff ausser ueber BBZ (localStorage).
+// haushalt.ts — gemeinsamer Haushalts-Stand (ADR-16, ADR-17, ADR-22).
+// EIN Kundenfall pro Sitzung: Der Stand `haushalt` in bbzData speist Cockpit,
+// Budget, Pensionierung, Lebensplan und die Fachmodule. Struktur und Pruefung
+// stammen aus dem PensCheck (lib/pension/state.ts): Alles Fremde laeuft durch
+// sanitize(). KEIN DOM-Zugriff ausser ueber BBZ (localStorage).
+//
+// Regeln (ADR-22):
+// - Haushalt fuehrt: geteilte Groessen stehen nur hier; Module lesen und
+//   schreiben sie, sie halten keine eigene Kopie als Quelle.
+// - Stammdaten (Namen, Geburtsdaten) kommen aus dem Beratercockpit und werden
+//   nachgefuehrt, sobald sie sich aendern.
+// - Zwei Personen gibt es, wenn die Stammdaten eine zweite Person nennen ODER
+//   im Cockpit ein Einkommen fuer Person 2 erfasst ist.
 // ============================================================================
 import { BBZ } from './data';
 import type { SessionData } from './schema';
 import { sanitize, decodeCode } from './pension/state';
-import type { PensState } from './pension/typen';
+import type { Haushalt, PensState } from './pension/typen';
 
 const obj = (v: unknown): Record<string, unknown> =>
   v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
-const zahl = (v: unknown): number => (typeof v === 'number' && isFinite(v) && v > 0 ? v : 0);
+/** Positiver Betrag; Zahlen und Zeichenketten wie «145'000» (aeltere Staende), sonst 0. */
+const zahl = (v: unknown): number => {
+  const n = typeof v === 'number' ? v : typeof v === 'string' ? parseFloat(v.replace(/['’\s]/g, '').replace(',', '.')) : NaN;
+  return isFinite(n) && n > 0 ? n : 0;
+};
+const text = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 
 /** Jahrgang und Geburtsmonat aus einem ISO-Datum (Stammdaten p1geb/p2geb); null, wenn nicht lesbar. */
 function geburt(v: unknown): { jahrgang: number; geburtsmonat: number } | null {
@@ -22,67 +35,111 @@ function geburt(v: unknown): { jahrgang: number; geburtsmonat: number } | null {
   return monat >= 1 && monat <= 12 ? { jahrgang: Number(m[1]), geburtsmonat: monat } : null;
 }
 
+// ---------- Was das Cockpit ueber Einkommen und Ausgaben haelt ----------
+export interface CockpitEinkommen {
+  /** Bruttolohn pro Jahr je Person (0 = nicht erfasst). */
+  brutto: [number, number];
+  /** Nettoeinkommen pro Jahr je Person (0 = nicht erfasst). */
+  netto: [number, number];
+  geschlecht: [unknown, unknown];
+  /** Ausgaben pro Monat: Haushalt + Leasing + Unterhalt + Uebrige. */
+  ausgabenMonat: number;
+}
+/**
+ * Liest Einkommen und Ausgaben aus `cockpit_data`. Aeltere Staende trugen den Lohn in eMann/eFrau mit dem
+ * Einkommens-Typ «brutto»: Dann gelten diese Betraege als Bruttolohn und nicht als Netto.
+ */
+export function cockpitEinkommen(d: SessionData): CockpitEinkommen {
+  const a = obj(obj(d.cockpit_data).ausgaben);
+  const mult = a.freq === 'pa' ? 1 : 12;
+  const alt = a.typ === 'brutto';
+  const e = [zahl(a.eMann) * mult, zahl(a.eFrau) * mult];
+  return {
+    brutto: [zahl(a.brutto1) || (alt ? e[0] : 0), zahl(a.brutto2) || (alt ? e[1] : 0)],
+    netto: [alt ? 0 : e[0], alt ? 0 : e[1]],
+    geschlecht: [a.geschlecht1, a.geschlecht2],
+    ausgabenMonat: zahl(a.haushalt) + zahl(a.leasing) + zahl(a.unterhalt) + zahl(a.uebrige),
+  };
+}
+
+/** Nennen die Stammdaten eine zweite Person? */
+const stammPaar = (d: SessionData): boolean => text(d.p2name) !== '';
+
 /**
  * Erster Haushalts-Stand aus dem, was im Gespraech schon erfasst ist (Stammdaten, Finanz-Cockpit 05).
  * Uebernommen wird nur, was eindeutig ist; alles andere bleibt leer und wird im Modul erfasst:
- * - Zwei Namen → Paar. Der Zivilstand ist in den Stammdaten nicht erfasst; Annahme «verheiratet».
+ * - Zweite Person: laut Stammdaten oder weil das Cockpit ein Einkommen fuer Person 2 traegt.
+ *   Der Zivilstand ist nicht erfasst; Annahme «verheiratet» (in der Pensionierung aenderbar).
  * - Geburtsdaten → Jahrgang und Geburtsmonat.
  * - Bruttolohn und Geschlecht je Person aus dem Cockpit (aus Netto laesst sich der Bruttolohn nicht ableiten).
- * - Zahlungsverkehr + Sparen → Liquiditaet, Anlagevolumen → Wertschriften.
+ * - Zahlungsverkehr + Sparen → Liquiditaet, Anlagevolumen → Wertschriften, Ausgaben → Ausgaben heute.
  * - Saeule 3a und PK-Guthaben stehen im Cockpit als Summe des Haushalts; sie gehen an Person 1.
  */
 export function haushaltAusSession(d: SessionData): PensState {
   const cd = obj(d.cockpit_data);
-  const ausgaben = obj(cd.ausgaben), vorsorgen = obj(cd.vorsorgen);
-  const paar = typeof d.p2name === 'string' && d.p2name.trim() !== '';
-  const mult = ausgaben.freq === 'pa' ? 1 : 12;
-  // Seit Phase 4 erfasst das Cockpit den Bruttolohn pro Jahr eigens (brutto1/brutto2); aeltere Staende
-  // trugen ihn in eMann/eFrau, sofern der Einkommens-Typ «brutto» gewaehlt war.
-  const altBrutto = ausgaben.typ === 'brutto';
-  const lohn = [
-    zahl(ausgaben.brutto1) || (altBrutto ? zahl(ausgaben.eMann) * mult : 0),
-    zahl(ausgaben.brutto2) || (altBrutto ? zahl(ausgaben.eFrau) * mult : 0),
-  ];
-  const geschlecht = [ausgaben.geschlecht1, ausgaben.geschlecht2];
+  const vorsorgen = obj(cd.vorsorgen);
+  const ek = cockpitEinkommen(d);
+  const paar = stammPaar(d) || ek.brutto[1] > 0 || ek.netto[1] > 0;
   const geb = [geburt(d.p1geb), geburt(d.p2geb)];
   const pk = zahl(d.cockpit_pk_saldo) || zahl(vorsorgen.pkSaldo);
 
   const personen = [0, 1].map((i) => ({
     ...(geb[i] ?? {}),
-    ...(lohn[i] ? { brutto: lohn[i] } : {}),
-    ...(geschlecht[i] === 'm' || geschlecht[i] === 'w' ? { geschlecht: geschlecht[i] } : {}),
+    ...(ek.brutto[i] ? { brutto: ek.brutto[i] } : {}),
+    ...(ek.geschlecht[i] === 'm' || ek.geschlecht[i] === 'w' ? { geschlecht: ek.geschlecht[i] } : {}),
     ...(i === 0 && zahl(vorsorgen.s3Saldo) ? { s3a: zahl(vorsorgen.s3Saldo) } : {}),
     ...(i === 0 && pk ? { pkGuthabenHeute: pk } : {}),
   }));
 
   const liquiditaet = zahl(obj(cd.zahlen).saldo) + zahl(obj(cd.sparen).saldo);
   const wertschriften = zahl(obj(cd.anlegen).volumen);
-  const kunde = [d.p1name, d.p2name].filter((n) => typeof n === 'string' && n.trim()).join(' & ');
-  // «Eigene Angaben» (Rueckfrage vor dem Ersetzen) nur, wenn aus der Session etwas uebernommen wurde
+  const kunde = [d.p1name, d.p2name].map(text).filter(Boolean).join(' & ');
+  // «Eigene Angaben» nur, wenn aus der Session etwas uebernommen wurde
   // (das Geschlecht allein zaehlt nicht: Das Cockpit traegt dafuer immer eine Vorgabe)
-  const edited = !!kunde || liquiditaet > 0 || wertschriften > 0 || personen.some((p) => Object.keys(p).some((k) => k !== 'geschlecht'));
+  const edited = !!kunde || liquiditaet > 0 || wertschriften > 0 || ek.ausgabenMonat > 0 || personen.some((p) => Object.keys(p).some((k) => k !== 'geschlecht'));
 
   return sanitize({
     haushalt: paar ? 'verheiratet' : 'single',
     personen,
     liquiditaet,
     wertschriften,
+    ...(ek.ausgabenMonat > 0 ? { ausgabenHeute: ek.ausgabenMonat } : {}),
     bericht: { kunde },
     ui: { edited, mode: 'form' },
   });
 }
 
-/** Aktueller Haushalts-Stand: der gespeicherte, sonst ein erster Stand aus Stammdaten und Cockpit (nicht gespeichert). */
+/**
+ * Aktueller Haushalts-Stand: der gespeicherte (mit nachgefuehrten Stammdaten), sonst ein erster Stand aus
+ * Stammdaten und Cockpit (nicht gespeichert). Es gibt keinen Uebungsfall: Der Stand ist immer der Kundenfall.
+ */
 export function haushaltLesen(): PensState {
   const d = BBZ.all();
-  if (!d.haushalt) return haushaltAusSession(d);
-  return stammdatenNachfuehren(sanitize(d.haushalt), d).H;
+  const H = d.haushalt ? stammdatenNachfuehren(sanitize(d.haushalt), d).H : haushaltAusSession(d);
+  H.ui.practice = false;
+  return H;
 }
 
-/** Speichert den Haushalts-Stand; false, wenn der Speicher voll ist (ADR-14). */
+/**
+ * Speichert den Haushalts-Stand; false, wenn der Speicher voll ist (ADR-14).
+ * Mitgeschrieben werden der Merker der uebernommenen Stammdaten und die Prefills fuer 07a und 10
+ * (`cockpit_einkommen`, `cockpit_pk_saldo`), damit sie nach einer Aenderung in einem anderen Modul nicht veralten.
+ */
 export function haushaltSchreiben(S: PensState): boolean {
-  // Mit dem Stand wird festgehalten, welche Stammdaten er schon kennt (stammdatenNachfuehren).
-  return BBZ.merge({ haushalt: sanitize(S), haushalt_stamm: stammVon(BBZ.all()) });
+  const d = BBZ.all();
+  const H = sanitize(S);
+  H.ui.practice = false;
+  const alt = obj(d.haushalt_stamm) as Partial<StammStand>;
+  const stamm: StammStand = { ...stammVon(d), paarArt: H.haushalt !== 'single' ? H.haushalt : alt.paarArt };
+  return BBZ.merge({ haushalt: H, haushalt_stamm: stamm, ...prefills(d, H) });
+}
+
+/** Bruttoeinkommen des Haushalts pro Jahr und PK-Guthaben, wie 07a und 10 sie vorbelegen. */
+export function prefills(d: SessionData, H: PensState): { cockpit_einkommen: number; cockpit_pk_saldo: number } {
+  const ek = cockpitEinkommen(d), n = anzahl(H);
+  // Je Person der Bruttolohn; fehlt er, das im Cockpit erfasste Nettoeinkommen (wie bisher, bis der Bruttolohn erfasst ist)
+  const einkommen = [0, 1].slice(0, n).reduce((x, i) => x + (H.personen[i].brutto > 0 ? H.personen[i].brutto : ek.netto[i]), 0);
+  return { cockpit_einkommen: Math.round(einkommen), cockpit_pk_saldo: gemeinsamAusHaushalt(H).pk };
 }
 
 /**
@@ -101,13 +158,15 @@ export function haushaltImport(eingabe: string): PensState {
   return decodeCode(t);
 }
 
-// ---------- Cockpit 05 ↔ Haushalt: «Haushalt fuehrt» (Phase 4) ----------
+// ---------- Cockpit 05 ↔ Haushalt: «Haushalt fuehrt» ----------
 // Das Cockpit haelt Details, die der Haushalts-Stand nicht kennt (Bank, Anzahl Konten, Kommentare, Aufteilung
-// Zahlungsverkehr/Sparen). Die gemeinsamen Groessen stehen nur im Haushalts-Stand; das Cockpit liest sie beim
-// Oeffnen und schreibt sie beim Uebernehmen eines Modals zurueck.
+// Zahlungsverkehr/Sparen, Gliederung der Ausgaben). Die gemeinsamen Groessen stehen nur im Haushalts-Stand;
+// das Cockpit liest sie beim Oeffnen und schreibt sie beim Uebernehmen eines Modals zurueck.
 
 /** Die Groessen, die Cockpit und Haushalts-Stand teilen (Summen ueber den Haushalt). */
 export interface Gemeinsam {
+  /** Rechnet der Haushalt mit zwei Personen? */
+  paar: boolean;
   /** Zahlungsverkehr + Sparen. */
   liquiditaet: number;
   /** Anlagevolumen. */
@@ -116,7 +175,7 @@ export interface Gemeinsam {
   s3a: number;
   /** Pensionskassen-Guthaben heute, Summe der Personen (0 = nicht erfasst). */
   pk: number;
-  /** Bruttolohn pro Jahr je Person. */
+  /** Bruttolohn pro Jahr je Person (Person 2: 0 bei einer Einzelperson). */
   brutto: [number, number];
   geschlecht: ['m' | 'w', 'm' | 'w'];
   /** Heutige Ausgaben pro Monat (0 = nicht erfasst). */
@@ -130,6 +189,7 @@ const zahlLeer = (v: number | ''): number => (typeof v === 'number' ? v : 0);
 export function gemeinsamAusHaushalt(H: PensState): Gemeinsam {
   const ps = H.personen.slice(0, anzahl(H));
   return {
+    paar: anzahl(H) === 2,
     liquiditaet: H.liquiditaet,
     wertschriften: H.wertschriften,
     s3a: ps.reduce((x, p) => x + p.s3a, 0),
@@ -141,22 +201,26 @@ export function gemeinsamAusHaushalt(H: PensState): Gemeinsam {
 }
 
 /**
- * Schreibt die gemeinsamen Groessen in den Haushalts-Stand (neuer, gepruefter Stand).
- * Summen ueber zwei Personen (3a, PK): Die Aufteilung aus dem Modul Pensionierung bleibt, solange die Summe
- * stimmt. Aendert das Cockpit die Summe, geht die Differenz an Person 1; reicht das nicht, sinkt Person 2.
+ * Schreibt die gemeinsamen Groessen in den Haushalts-Stand (neuer, geprüfter Stand).
+ * - `g.paar`: Traegt das Cockpit ein Einkommen fuer Person 2, wird aus einer Einzelperson ein Paar
+ *   (Annahme «verheiratet»). Umgekehrt macht das Cockpit aus einem Paar nie eine Einzelperson.
+ * - Summen ueber zwei Personen (3a, PK): Die Aufteilung aus der Pensionierung bleibt, solange die Summe auf den
+ *   Franken stimmt. Aendert das Cockpit die Summe, geht die Differenz an Person 1; reicht das nicht, sinkt Person 2.
  */
-export function gemeinsamInHaushalt(H: PensState, g: Gemeinsam): PensState {
+export function gemeinsamInHaushalt(H0: PensState, g: Gemeinsam): PensState {
+  const H: PensState = g.paar && H0.haushalt === 'single' ? { ...H0, haushalt: 'verheiratet' } : H0;
   const n = anzahl(H);
   const alt = gemeinsamAusHaushalt(H);
   const personen = H.personen.map((p) => ({ ...p }));
   const teile = (summe: number, p2: number): [number, number] => (n === 1 ? [summe, p2] : summe >= p2 ? [summe - p2, p2] : [0, summe]);
-  if (g.s3a !== alt.s3a) {
-    const [a, b] = teile(Math.max(0, g.s3a), personen[1].s3a);
+  const gleich = (a: number, b: number): boolean => Math.round(a) === Math.round(b);
+  if (!gleich(g.s3a, alt.s3a)) {
+    const [a, b] = teile(Math.max(0, g.s3a), n === 2 ? personen[1].s3a : 0);
     personen[0].s3a = a;
     if (n === 2) personen[1].s3a = b;
   }
-  if (g.pk !== alt.pk) {
-    const [a, b] = teile(Math.max(0, g.pk), zahlLeer(personen[1].pkGuthabenHeute));
+  if (!gleich(g.pk, alt.pk)) {
+    const [a, b] = teile(Math.max(0, g.pk), n === 2 ? zahlLeer(personen[1].pkGuthabenHeute) : 0);
     personen[0].pkGuthabenHeute = a > 0 ? a : '';
     if (n === 2) personen[1].pkGuthabenHeute = b > 0 ? b : '';
   }
@@ -175,12 +239,16 @@ export function gemeinsamInHaushalt(H: PensState, g: Gemeinsam): PensState {
 
 // ---------- Stammdaten → Haushalt ----------
 /** Was aus den Stammdaten zuletzt in den Haushalts-Stand uebernommen wurde (Schluessel `haushalt_stamm`). */
-interface StammStand { p1geb: string; p2geb: string; paar: boolean; kunde: string }
+interface StammStand {
+  p1geb: string; p2geb: string; paar: boolean; kunde: string;
+  /** Letzter Paar-Zivilstand des Stands: Faellt die zweite Person weg und kommt wieder, gilt er erneut. */
+  paarArt?: Haushalt;
+}
 const stammVon = (d: SessionData): StammStand => ({
-  p1geb: typeof d.p1geb === 'string' ? d.p1geb : '',
-  p2geb: typeof d.p2geb === 'string' ? d.p2geb : '',
-  paar: typeof d.p2name === 'string' && d.p2name.trim() !== '',
-  kunde: [d.p1name, d.p2name].filter((x) => typeof x === 'string' && x.trim()).join(' & '),
+  p1geb: text(d.p1geb),
+  p2geb: text(d.p2geb),
+  paar: stammPaar(d),
+  kunde: [d.p1name, d.p2name].map(text).filter(Boolean).join(' & '),
 });
 
 /**
@@ -188,10 +256,23 @@ const stammVon = (d: SessionData): StammStand => ({
  * Uebernommen wird nur, was sich in den Stammdaten seit der letzten Uebernahme geaendert hat — eine Anpassung im
  * Modul Pensionierung (z. B. Jahrgang) bleibt sonst stehen. Liefert den Stand und ob er sich geaendert hat.
  */
-export function stammdatenNachfuehren(H: PensState, d: SessionData): { H: PensState; geaendert: boolean; stamm: StammStand } {
+export function stammdatenNachfuehren(H: PensState, d: SessionData): { H: PensState; geaendert: boolean } {
+  return anwenden(H, d, obj(d.haushalt_stamm) as Partial<StammStand>);
+}
+
+/**
+ * Wendet die Stammdaten auf einen fremden Stand an (PensCheck-Import): Was das Beratercockpit kennt, gilt.
+ * Geburtsdaten und Kundenname werden uebernommen; nennen die Stammdaten eine zweite Person, wird aus einer
+ * Einzelperson ein Paar. Bringt der Import eine zweite Person mit, die den Stammdaten fehlt, bleibt sie.
+ */
+export function stammdatenAnwenden(H: PensState, d: SessionData): PensState {
+  // Ohne zweite Person in den Stammdaten bleibt der Haushalt des Imports, wie er ist
+  return anwenden(H, d, { paar: stammPaar(d) ? H.haushalt !== 'single' : false }).H;
+}
+
+function anwenden(H: PensState, d: SessionData, alt: Partial<StammStand>): { H: PensState; geaendert: boolean } {
   const neu = stammVon(d);
-  const alt = obj(d.haushalt_stamm) as Partial<StammStand>;
-  const roh: { personen: Record<string, unknown>[]; haushalt: string; bericht: { kunde: string; datum: string; berater: string } } = {
+  const roh: { personen: Record<string, unknown>[]; haushalt: Haushalt; bericht: { kunde: string; datum: string; berater: string } } = {
     personen: H.personen.map((p) => ({ ...p })), haushalt: H.haushalt, bericht: { ...H.bericht },
   };
   let geaendert = false;
@@ -202,10 +283,13 @@ export function stammdatenNachfuehren(H: PensState, d: SessionData): { H: PensSt
       geaendert = true;
     }
   });
-  if (neu.paar !== alt.paar && alt.paar !== undefined) {
-    const soll = neu.paar ? (H.haushalt === 'single' ? 'verheiratet' : H.haushalt) : 'single';
+  if (alt.paar !== undefined && neu.paar !== alt.paar) {
+    // Zweite Person kommt dazu: der fruehere Paar-Zivilstand gilt wieder, sonst die Annahme «verheiratet».
+    // Zweite Person faellt weg: Einzelperson.
+    const soll: Haushalt = neu.paar ? (H.haushalt !== 'single' ? H.haushalt : alt.paarArt && alt.paarArt !== 'single' ? alt.paarArt : 'verheiratet') : 'single';
     if (soll !== roh.haushalt) { roh.haushalt = soll; geaendert = true; }
   }
-  if (neu.kunde !== alt.kunde && neu.kunde && roh.bericht.kunde !== neu.kunde) { roh.bericht.kunde = neu.kunde; geaendert = true; }
-  return { H: geaendert ? sanitize({ ...H, ...roh }) : H, geaendert, stamm: neu };
+  // Der Kundenname folgt den Stammdaten, auch wenn sie geleert werden
+  if (neu.kunde !== alt.kunde && roh.bericht.kunde !== neu.kunde) { roh.bericht.kunde = neu.kunde; geaendert = true; }
+  return { H: geaendert ? sanitize({ ...H, ...roh }) : H, geaendert };
 }

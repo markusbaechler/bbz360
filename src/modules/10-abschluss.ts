@@ -26,6 +26,7 @@ import { fmt, parseNum, fmtDate } from '../lib/format';
 import { imageUrl, setImageOverride } from '../lib/images';
 import grundlagen from '../../public/data/params.json';
 import { sanitize } from '../lib/pension/state';
+import { horizon } from '../lib/pension/analyse';
 import { kurzAus } from '../lib/pension/kurz';
 import type { PensionKurz } from '../lib/pension/kurz';
 import { createEngine, monthOf } from '../lib/pension/engine';
@@ -38,7 +39,7 @@ import { rechenEingaben } from '../lib/pension/themen';
 import type { Gesamtauswertung } from '../lib/pension/auswertung';
 import { lebensplan } from '../lib/lebensplan';
 import type { PlanEintrag } from '../lib/lebensplan';
-import { stammdatenNachfuehren } from '../lib/haushalt';
+import { gemeinsamAusHaushalt, haushaltLesen } from '../lib/haushalt';
 import type { SessionData } from '../lib/schema';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
@@ -93,14 +94,20 @@ function gather(): {
   const traktandenErledigt = Array.isArray(D.agenda_erledigt) ? (D.agenda_erledigt as unknown[]) : [];
   const erwartungen = Array.isArray(D.agenda_erwartungen) ? (D.agenda_erwartungen as string[]) : [];
   const cd = (D.cockpit_data ?? {}) as CockpitData;
-  const liq = (cd.zahlen?.saldo ?? 0) + (cd.sparen?.saldo ?? 0);
+  // Haushalt fuehrt (ADR-22): Gibt es einen Haushalts-Stand, kommen die geteilten Groessen von dort — die Kopie in
+  // cockpit_data ist nur bis zum naechsten Cockpit-Besuch aktuell.
+  const gH = D.haushalt ? gemeinsamAusHaushalt(haushaltLesen()) : null;
+  const liq = gH ? gH.liquiditaet : (cd.zahlen?.saldo ?? 0) + (cd.sparen?.saldo ?? 0);
+  const s3 = gH ? gH.s3a : cd.vorsorgen?.s3Saldo ?? 0;
+  const pkSaldo = gH ? gH.pk : Number(D.cockpit_pk_saldo ?? cd.vorsorgen?.pkSaldo) || 0;
+  const anlage = gH ? gH.wertschriften : cd.anlegen?.volumen ?? 0;
   const kpis = [
     { label: 'Bruttoeinkommen p.a.', val: CHF(D.cockpit_einkommen), sub: 'annualisiert' },
     { label: 'Verpflichtungen p.a.', val: CHF(D.cockpit_verpflichtungen), sub: 'laufend' },
     { label: 'Liquide Mittel', val: liq > 0 ? CHF(liq) : '–', sub: 'Zahlungs- & Sparkonten' },
-    { label: '3. Säule (Säule 3a)', val: (cd.vorsorgen?.s3Saldo ?? 0) > 0 ? CHF(cd.vorsorgen!.s3Saldo) : '–', sub: 'Vorsorge' },
-    { label: '2. Säule (PK)', val: CHF(D.cockpit_pk_saldo ?? cd.vorsorgen?.pkSaldo), sub: 'Pensionskasse' },
-    { label: 'Anlagevermögen', val: (cd.anlegen?.volumen ?? 0) > 0 ? CHF(cd.anlegen!.volumen) : '–', sub: 'Depots & Fonds' },
+    { label: '3. Säule (Säule 3a)', val: s3 > 0 ? CHF(s3) : '–', sub: 'Vorsorge' },
+    { label: '2. Säule (PK)', val: CHF(pkSaldo), sub: 'Pensionskasse' },
+    { label: 'Anlagevermögen', val: anlage > 0 ? CHF(anlage) : '–', sub: 'Depots & Fonds' },
   ];
   const ziele = Array.isArray(D.ziele) ? (D.ziele as Array<Record<string, unknown>>) : [];
   const wuensche = Array.isArray(D.wuensche) ? (D.wuensche as Array<Record<string, unknown>>) : [];
@@ -139,23 +146,33 @@ function gather(): {
 // fehlt der Abschnitt, danach wird die Zusammenfassung neu gezeichnet.
 interface PlanKurz { plan: PensionKurz; nur: PensionKurz | null; eintraege: PlanEintrag[] }
 let pensStand: PlanKurz | null = null;
+/** Stand der Rechnung für den Druckbericht: läuft, fertig oder fehlgeschlagen. */
+let planStatus: 'laeuft' | 'fertig' | 'fehler' | 'leer' = 'leer';
+let planFertig: Promise<void> = Promise.resolve();
 function rechnePlan(): void {
-  if (!D.haushalt) return;
+  // Wie Modul 07: derselbe Haushalts-Stand (gespeichert oder aus Stammdaten und Cockpit abgeleitet), derselbe
+  // Umwandlungssatz aus den Grundlagen.
   const session = D as unknown as SessionData;
-  const H = stammdatenNachfuehren(sanitize(D.haushalt), session).H;
-  const A0 = monthOf();
-  const plan = lebensplan(session, H, Math.floor(A0 / 12));
-  const worker = new Worker(new URL('../pension-ui/worker.ts', import.meta.url), { type: 'module' });
-  worker.onmessage = (ev: MessageEvent<{ R?: Gesamtauswertung; error?: string }>) => {
-    worker.terminate();
-    if (ev.data.error || !ev.data.R) { console.error(ev.data.error); return; }
-    const k = kurzAus(ev.data.R, plan.S);
-    if (!k) return;
-    pensStand = { plan: k, nur: kurzAus(ev.data.R.varianten[0], H), eintraege: plan.eintraege };
-    renderSummary();
-  };
-  worker.onerror = (e) => console.error(e);
-  worker.postMessage({ id: 1, S: rechenEingaben(plan.S), params: grundlagen, A0, stopA: undefined, varianten: [rechenEingaben(H)] });
+  const H = haushaltLesen();
+  if (!(H.ausgabenRuhestand > 0)) { planStatus = 'leer'; return; }
+  const A0 = monthOf(), jahr = Math.floor(A0 / 12), daten = grundlagen as unknown as ParamDatei;
+  const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
+  const hz = horizon(H, E);
+  const plan = lebensplan(session, H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: H.personen[0].jahrgang + hz.horizont });
+  planStatus = 'laeuft';
+  planFertig = new Promise<void>((fertig) => {
+    const worker = new Worker(new URL('../pension-ui/worker.ts', import.meta.url), { type: 'module' });
+    const ende = (ok: boolean): void => { worker.terminate(); if (!ok) planStatus = 'fehler'; renderSummary(); fertig(); };
+    worker.onmessage = (ev: MessageEvent<{ R?: Gesamtauswertung; error?: string }>) => {
+      const k = ev.data.R ? kurzAus(ev.data.R, plan.S) : null;
+      if (ev.data.error || !ev.data.R || !k) { if (ev.data.error) console.error(ev.data.error); ende(false); return; }
+      pensStand = { plan: k, nur: kurzAus(ev.data.R.varianten[0], H), eintraege: plan.eintraege };
+      planStatus = 'fertig';
+      ende(true);
+    };
+    worker.onerror = (e) => { console.error(e); ende(false); };
+    worker.postMessage({ id: 1, S: rechenEingaben(plan.S), params: daten, A0, stopA: undefined, varianten: [rechenEingaben(H)] });
+  });
 }
 const pensAlterTxt = (p: PensionKurz): string => p.pensAlter.join(' / ');
 
@@ -323,7 +340,7 @@ function buildReport(): string {
           <p class="rp-reason">${p.plan.aufgebraucht != null ? `Mit allen Zielen ist das freie Vermögen mit ${p.plan.aufgebraucht} aufgebraucht (Planungshorizont ${p.plan.horizont}).` : `Mit allen Zielen reicht das freie Vermögen bis zum Planungshorizont ${p.plan.horizont}.`} Pensionierung mit ${esc(pensAlterTxt(p.plan))}. Erste Einschätzung nach PensCheck; sie ersetzt keine Finanzplanung.</p>
           ${p.eintraege.filter((e) => e.quelle !== '07c').map((e) => `<div class="rp-vrow"><span class="rp-vcheck">${e.rechnet ? '✓' : '?'}</span><div><b>${esc(e.name)}${e.jahr ? ` · ${e.jahr}` : ''}${e.betrag ? ` · ${CHF(e.betrag)}` : ''}</b><div class="rp-vwho">${e.rechnet ? 'In der Rechnung' : 'Vorgemerkt, nicht gerechnet'}</div></div></div>`).join('')}
           ${(p.nur ?? p.plan).schritte.map((a) => `<div class="rp-vrow"><span class="rp-vcheck">→</span><div><b>${esc(a.titel)}</b><div class="rp-vwho">${esc([a.when, a.stelle].filter(Boolean).join(' · '))}</div></div></div>`).join('')}`
-        : '<div class="rp-empty">Keine Angaben zur Pensionierung erfasst.</div>');
+        : `<div class="rp-empty">${planStatus === 'fehler' ? 'Die Rechnung zur Pensionierung ist fehlgeschlagen; bitte die Angaben im Modul Pensionierung prüfen.' : 'Keine Angaben zur Pensionierung erfasst (Ausgaben im Ruhestand fehlen).'}</div>`);
   }
 
   if (printBranches.includes('07d')) {
@@ -365,7 +382,8 @@ function buildReport(): string {
 }
 
 // v1 printBericht (Modi)
-function printBericht(mode: string): void {
+async function printBericht(mode: string): Promise<void> {
+  await planFertig; // die Rechnung zu Lebensplan und Pensionierung läuft im Worker: erst drucken, wenn sie da ist
   D = BBZ.all() as Record<string, unknown>; // frisch lesen (z.B. Schlussnotiz)
   if (mode === 'total') printBranches = ['07a', '07b', '07c', '07d', '07e', '07f'].filter((b) => b === '07a' || b === '07b' || activeBranches.includes(b));
   else if (mode === 'finanzieren') printBranches = ['07a'];
@@ -393,7 +411,7 @@ function init(): void {
     };
     reader.readAsDataURL(file);
   });
-  el('btnPrint').addEventListener('click', () => printBericht((document.getElementById('printScope') as HTMLSelectElement).value));
+  el('btnPrint').addEventListener('click', () => void printBericht((document.getElementById('printScope') as HTMLSelectElement).value));
   // Nur aktive Vertiefungen anbieten (index: "im Abschluss wählbar welche gedruckt wird")
   load();
   const scope = document.getElementById('printScope') as HTMLSelectElement;

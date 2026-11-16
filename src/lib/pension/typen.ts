@@ -43,9 +43,9 @@ export interface Liegenschaft {
   mietertrag: number;
   verkaufAlter: number;
   // --- bbz360 (ADR-19): Kauf in der Zukunft. Fehlen die Felder, ist die Liegenschaft heute im Besitz. ---
-  /** Alter von Person 1 beim Kauf; vorher gibt es die Liegenschaft in der Rechnung nicht. */
-  kaufAlter?: number;
-  /** Teil der Eigenmittel aus einem PK-Vorbezug (CHF): wird als Kapitalbezug besteuert und fliesst dem Kauf zu. */
+  /** Kalenderjahr des Kaufs (im Januar). Liegt es in der Zukunft, gibt es die Liegenschaft bis dahin in der Rechnung nicht. */
+  kaufJahr?: number;
+  /** Teil der Eigenmittel aus einem PK-Vorbezug (CHF, heutige Kaufkraft): wird als Kapitalbezug besteuert und fliesst dem Kauf zu. */
   kaufFremd?: number;
   /** Miete pro Monat (heutige Kaufkraft), die mit dem Kauf eines Eigenheims wegfällt. */
   kaufMieteWeg?: number;
@@ -88,6 +88,8 @@ export interface Wunsch {
   tkey?: 'reisen' | 'auto' | 'ausland' | 'erbe';
   karte?: string;
   wohnform?: 'miete' | 'kauf';
+  /** bbz360 (ADR-19): Kalenderjahr einer einmaligen Ausgabe (im Januar; laufendes Jahr: sofort). Geht `alter` vor. */
+  jahr?: number;
   betrag?: number;
   von?: number;
   bis?: number;

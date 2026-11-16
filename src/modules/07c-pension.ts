@@ -14,12 +14,13 @@ import '../styles/modules/07c-pension.css';
 import bundledParams from '../../public/data/params.json';
 import bundledVerification from '../../public/data/verification.json';
 import { mountNav } from '../lib/nav';
-import { haushaltImport, haushaltLesen, haushaltSchreiben } from '../lib/haushalt';
+import { BBZ } from '../lib/data';
+import { haushaltImport, haushaltLesen, haushaltSchreiben, stammdatenAnwenden } from '../lib/haushalt';
 import { createEngine, monthOf } from '../lib/pension/engine';
 import { applyBudget } from '../lib/pension/analyse';
 import { resolveParams, nextParams, pruefZahl } from '../lib/pension/params';
 import type { PruefDatei, PruefStand } from '../lib/pension/params';
-import { migrate, clone, EXAMPLE, emptyState, hatEigenes, markEdited } from '../lib/pension/state';
+import { hatEigenes, markEdited } from '../lib/pension/state';
 import { variantenZustaende, vergleichSig, rechenEingaben } from '../lib/pension/themen';
 import { HINWEIS, GRENZEN } from '../lib/pension/config';
 import type { ParamDatei, PensState } from '../lib/pension/typen';
@@ -58,6 +59,9 @@ const app = {
   R: null,
   A0: monthOf(),
   bestaetigt,
+  // Ein Kundenfall pro Sitzung (ADR-22): kein Musterfall, kein «Neu beginnen», kein Übungsmodus. Zurückgesetzt
+  // wird nur im Beratercockpit («Neue Beratung»); der Stand gehört allen Modulen, nicht der Pensionierung allein.
+  einFall: true,
 } as unknown as App;
 // Rechenvarianten A und B des laufenden Vergleichs «So oder so» (leer ohne Vergleich), gerechnet wie der Plan
 app.varianten = () => variantenZustaende(app.S, app.E);
@@ -150,7 +154,6 @@ app.changed = (o: ChangedOptionen = {}) => {
   app.persist();
   // Im Tutor ist das Formular verborgen: erst beim Wechsel neu aufbauen
   if (app.S.ui.mode === 'form') { form.reflect(o.except || document.activeElement); if (o.rerender) o.rerender(); } else formDirty = true;
-  $('exampleBar').hidden = true;
   schedule(o.soft ? 350 : 150);
   // Eine laufende Vorschau passt nicht mehr zum geänderten Plan: sofort als unterwegs zeigen, «übernehmen» gesperrt
   vergleich.pruefen();
@@ -190,7 +193,6 @@ function applyMode(): void {
   document.body.dataset.schritt = app.S.ui.schritt;
   if (m !== 'tutor') delete document.body.dataset.tstep;
   document.querySelectorAll<HTMLElement>('.mode').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-  $('exampleBar').hidden = m === 'tutor' || !!app.S.ui.edited;
   // Reihenfolge der Blöcke im Ergebnis je Modus (Bühne bzw. eine Seite im Tutor), auch ohne Ergebnis
   buehne.ordne();
 }
@@ -210,7 +212,7 @@ app.setMode = (m) => {
 };
 document.querySelectorAll<HTMLElement>('.mode').forEach((b) => b.addEventListener('click', () => app.setMode(b.dataset.mode as 'tutor' | 'form')));
 
-/** Zustand ersetzen (Tutor-Start, Musterfall, neu beginnen); der gewählte Modus bleibt. */
+/** Zustand ersetzen (nur beim Einlesen eines PensCheck-Stands); der gewählte Modus bleibt. */
 app.replaceState = (ns: PensState, keepMode = false) => {
   if (keepMode) ns.ui.mode = app.S.ui.mode;
   applyBudget(ns, app.E);
@@ -305,17 +307,6 @@ function fullRender(): void {
   compute();
 }
 
-// ---------- Werkzeugleiste ----------
-const ladeMuster = (): boolean => app.replaceState(migrate(clone(EXAMPLE)), true);
-$('btnReset').onclick = ladeMuster;
-$('btnMuster').onclick = async () => {
-  if (app.hatEigenes() && !(await app.confirm('Musterfall laden?', 'Die erfassten Angaben zur Pensionierung werden durch den Musterfall ersetzt.'))) return;
-  ladeMuster();
-};
-$('btnNeu').onclick = () => { $('neuConfirm').hidden = false; };
-$('btnNeuNein').onclick = () => { $('neuConfirm').hidden = true; };
-$('btnNeuJa').onclick = () => { $('neuConfirm').hidden = true; app.replaceState(emptyState(), true); toast('Alle Eingaben gelöscht.'); };
-
 // ---------- Stand aus dem öffentlichen PensCheck einlesen (Link, Code oder JSON) ----------
 // Der Inhalt ist fremd: haushaltImport prüft jedes Feld, bevor etwas in den Zustand gelangt.
 const idlg = $('importDlg') as HTMLDialogElement;
@@ -331,7 +322,10 @@ $('btnImportJa').onclick = async () => {
   let ns: PensState;
   try { ns = haushaltImport(($('importText') as HTMLTextAreaElement).value); } catch { $('importFehler').hidden = false; return; }
   idlg.close();
-  if (app.hatEigenes() && !(await app.confirm('Angaben ersetzen?', 'Die erfassten Angaben zur Pensionierung werden durch den eingelesenen Stand ersetzt.'))) return;
+  // Der Stand gehört allen Modulen: Die Rückfrage nennt, was ersetzt wird.
+  if (app.hatEigenes() && !(await app.confirm('Angaben ersetzen?', 'Der eingelesene Stand ersetzt die bisherigen Angaben zum Haushalt: Personen, Lohn, Vermögen, Vorsorge, Liegenschaften, Ausgaben und Wünsche. Sie gelten danach auch im Finanz-Cockpit, im Budget und im Lebensplan.'))) return;
+  // Was das Beratercockpit kennt, gilt: Namen und Geburtsdaten der Stammdaten gehen dem eingelesenen Stand vor.
+  ns = stammdatenAnwenden(ns, BBZ.all());
   // Wie beim Link im PensCheck: eigene Angaben, direkt im Ergebnis
   Object.assign(ns.ui, { edited: true, practice: false, tutorStep: 'ergebnis', tutorMax: 99 });
   if (app.replaceState(ns, true)) toast('Angaben aus dem PensCheck übernommen.');
@@ -379,8 +373,8 @@ window.addEventListener('afterprint', () => { zuVorDruck.forEach((d) => { d.open
 // Ein gespeicherter Stand mit aktivem Budget folgt dessen Summe
 applyBudget(app.S, app.E);
 try { fullRender(); } catch (e) {
+  // Kein stiller Ersatz durch einen anderen Stand: Der Kundenfall bleibt, der Fehler wird gezeigt.
   console.error(e);
-  app.S = migrate(clone(EXAMPLE));
-  fullRender();
-  toast('Die gespeicherten Angaben liessen sich nicht darstellen. Das Modul startet mit dem Musterfall.');
+  $('rechenFehlerText').textContent = 'Die gespeicherten Angaben liessen sich nicht darstellen.';
+  $('rechenFehler').hidden = false;
 }

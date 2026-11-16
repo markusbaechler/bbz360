@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { migrate, SCHEMA_VERSION } from '../../src/lib/schema';
-import { gemeinsamAusHaushalt, gemeinsamInHaushalt, haushaltAusSession, haushaltImport, stammdatenNachfuehren } from '../../src/lib/haushalt';
+import { cockpitEinkommen, gemeinsamAusHaushalt, gemeinsamInHaushalt, haushaltAusSession, haushaltImport, prefills, stammdatenAnwenden, stammdatenNachfuehren } from '../../src/lib/haushalt';
 import { EXAMPLE, clone, encodeCode, sanitize } from '../../src/lib/pension/state';
 
 describe('Schema v3: gemeinsamer Haushalts-Stand', () => {
@@ -95,7 +95,7 @@ describe('Cockpit ↔ Haushalt: Haushalt führt', () => {
   const basis = () => sanitize(clone(EXAMPLE)); // P1 3a 49'000, P2 3a 49'000, keine PK-Guthaben heute
   it('liest Summen über beide Personen', () => {
     const g = gemeinsamAusHaushalt(basis());
-    expect(g).toMatchObject({ liquiditaet: 100000, wertschriften: 300000, s3a: 98000, pk: 0, brutto: [160000, 45000], geschlecht: ['m', 'w'], ausgabenHeute: 0 });
+    expect(g).toMatchObject({ paar: true, liquiditaet: 100000, wertschriften: 300000, s3a: 98000, pk: 0, brutto: [160000, 45000], geschlecht: ['m', 'w'], ausgabenHeute: 0 });
   });
   it('unveränderte Summen lassen die Aufteilung aus der Pensionierung stehen', () => {
     const H = basis();
@@ -113,7 +113,7 @@ describe('Cockpit ↔ Haushalt: Haushalt führt', () => {
     expect(gemeinsamAusHaushalt(weniger).s3a).toBe(30000);
   });
   it('schreibt Lohn, Geschlecht, Vermögen und Ausgaben heute; hin und zurück ist stabil', () => {
-    const g = { liquiditaet: 80000, wertschriften: 150000, s3a: 98000, pk: 0, brutto: [120000, 60000] as [number, number], geschlecht: ['w', 'm'] as ['m' | 'w', 'm' | 'w'], ausgabenHeute: 8500 };
+    const g = { paar: true, liquiditaet: 80000, wertschriften: 150000, s3a: 98000, pk: 0, brutto: [120000, 60000] as [number, number], geschlecht: ['w', 'm'] as ['m' | 'w', 'm' | 'w'], ausgabenHeute: 8500 };
     const out = gemeinsamInHaushalt(basis(), g);
     expect(gemeinsamAusHaushalt(out)).toEqual(g);
     expect(out.ui.edited).toBe(true);
@@ -153,5 +153,98 @@ describe('Stammdaten nachführen', () => {
     const single = sanitize({ ...clone(EXAMPLE), haushalt: 'single' });
     const dazu = stammdatenNachfuehren(single, migrate({ p1name: 'Anna', p2name: 'Beat', haushalt_stamm: { p1geb: '', p2geb: '', paar: false, kunde: 'Anna' } }));
     expect(dazu.H.haushalt).toBe('verheiratet');
+  });
+});
+
+// ---------- Befunde des Assessments 2026-11 (docs/assessment-2026-11-fusion.md) ----------
+
+describe('A3: zweite Person — Einkommen im Cockpit heisst zwei Personen', () => {
+  it('ohne Namen für Person 2, aber mit ihrem Einkommen im Cockpit: der erste Stand ist ein Paar', () => {
+    const mitBrutto = haushaltAusSession(migrate({ p1name: 'Anna', cockpit_data: { ausgaben: { brutto1: 100000, brutto2: 60000 } } }));
+    expect(mitBrutto.haushalt).toBe('verheiratet');
+    expect(mitBrutto.personen.map((p) => p.brutto)).toEqual([100000, 60000]);
+    const mitNetto = haushaltAusSession(migrate({ p1name: 'Anna', cockpit_data: { ausgaben: { eMann: 7000, eFrau: 4000, freq: 'mtl' } } }));
+    expect(mitNetto.haushalt).toBe('verheiratet');
+    expect(haushaltAusSession(migrate({ p1name: 'Anna', cockpit_data: { ausgaben: { brutto1: 100000 } } })).haushalt).toBe('single');
+  });
+  it('ältere Session mit Einkommens-Typ «brutto» und ohne Namen für Person 2: beide Löhne bleiben', () => {
+    const d = migrate({ p1name: 'Anna', cockpit_data: { ausgaben: { eMann: 8000, eFrau: 5000, typ: 'brutto', freq: 'mtl' } } });
+    const H = haushaltAusSession(d);
+    expect(H.haushalt).toBe('verheiratet');
+    expect(H.personen.map((p) => p.brutto)).toEqual([96000, 60000]);
+    expect(prefills(d, H).cockpit_einkommen).toBe(156000);
+  });
+  it('das Cockpit macht aus einer Einzelperson ein Paar, sobald es ein Einkommen für Person 2 trägt — und nie umgekehrt', () => {
+    const single = sanitize({ ...clone(EXAMPLE), haushalt: 'single' });
+    const g = gemeinsamAusHaushalt(single);
+    expect(g.paar).toBe(false);
+    const paar = gemeinsamInHaushalt(single, { ...g, paar: true, brutto: [100000, 60000] });
+    expect(paar.haushalt).toBe('verheiratet');
+    expect(paar.personen[1].brutto).toBe(60000);
+    const bleibt = gemeinsamInHaushalt(sanitize(clone(EXAMPLE)), { ...gemeinsamAusHaushalt(sanitize(clone(EXAMPLE))), paar: false });
+    expect(bleibt.haushalt).toBe('verheiratet');
+  });
+});
+
+describe('A5/A6: Einkommen und Ausgaben aus dem Cockpit', () => {
+  it('cockpitEinkommen trennt Brutto und Netto; ältere Brutto-Stände tragen kein Netto', () => {
+    const neu = cockpitEinkommen(migrate({ cockpit_data: { ausgaben: { eMann: 7000, eFrau: 5000, freq: 'mtl', brutto1: 100000, haushalt: 4000, leasing: 800 } } }));
+    expect(neu).toMatchObject({ brutto: [100000, 0], netto: [84000, 60000], ausgabenMonat: 4800 });
+    const alt = cockpitEinkommen(migrate({ cockpit_data: { ausgaben: { eMann: 8000, eFrau: 5000, typ: 'brutto', freq: 'mtl' } } }));
+    expect(alt).toMatchObject({ brutto: [96000, 60000], netto: [0, 0] });
+    expect(cockpitEinkommen(migrate({ cockpit_data: { ausgaben: { eMann: 120000, freq: 'pa' } } })).netto[0]).toBe(120000);
+  });
+  it('Prefill Einkommen: je Person der Bruttolohn, sonst ihr Netto — niemand fällt heraus', () => {
+    const d = migrate({ p1name: 'A', p2name: 'B', cockpit_data: { ausgaben: { eMann: 7000, eFrau: 5000, freq: 'mtl', brutto1: 100000 } } });
+    const H = haushaltAusSession(d);
+    // Person 1 brutto 100'000, Person 2 netto 5'000 × 12 (vorher: nur 100'000)
+    expect(prefills(d, H).cockpit_einkommen).toBe(160000);
+    expect(prefills(migrate({ p1name: 'A', p2name: 'B', cockpit_data: { ausgaben: { eMann: 7000, eFrau: 5000, freq: 'mtl' } } }), haushaltAusSession(migrate({ p1name: 'A', p2name: 'B' }))).cockpit_einkommen).toBe(144000);
+  });
+  it('der erste Stand übernimmt die Ausgaben des Cockpits als «Ausgaben heute»', () => {
+    const H = haushaltAusSession(migrate({ p1name: 'A', cockpit_data: { ausgaben: { haushalt: 4000, leasing: 800, unterhalt: 0, uebrige: 200 } } }));
+    expect(H.ausgabenHeute).toBe(5000);
+    expect(haushaltAusSession(migrate({ p1name: 'A' })).ausgabenHeute).toBe('');
+  });
+  it('Beträge als Zeichenketten aus älteren Ständen werden gelesen', () => {
+    const H = haushaltAusSession(migrate({ p1name: 'A', cockpit_data: { zahlen: { saldo: "30'000" }, anlegen: { volumen: '250000' }, ausgaben: { brutto1: "145'000" } } }));
+    expect(H).toMatchObject({ liquiditaet: 30000, wertschriften: 250000 });
+    expect(H.personen[0].brutto).toBe(145000);
+  });
+  it('Rappen in der Pensionierung verschieben die Aufteilung nicht, wenn das Cockpit die gerundete Summe zurückschreibt', () => {
+    const H = sanitize({ ...clone(EXAMPLE), personen: [{ ...clone(EXAMPLE).personen[0], s3a: 40000.6 }, { ...clone(EXAMPLE).personen[1], s3a: 20000.7 }] });
+    const out = gemeinsamInHaushalt(H, { ...gemeinsamAusHaushalt(H), s3a: 60001 });
+    expect(out.personen.map((p) => p.s3a)).toEqual([40000.6, 20000.7]);
+  });
+});
+
+describe('A2/B1/C6: Stammdaten', () => {
+  it('ein eingelesener Stand übernimmt Namen und Geburtsdaten der Stammdaten', () => {
+    const d = migrate({ p1name: 'Anna', p1geb: '1980-03-15' });
+    const fremd = sanitize(clone(EXAMPLE)); // Ehepaar 1972/1970
+    const H = stammdatenAnwenden(fremd, d);
+    expect(H.personen[0]).toMatchObject({ jahrgang: 1980, geburtsmonat: 3 });
+    expect(H.bericht.kunde).toBe('Anna');
+    // die zweite Person des eingelesenen Stands bleibt, auch wenn die Stammdaten sie nicht nennen
+    expect(H.haushalt).toBe('verheiratet');
+    expect(H.personen[1].jahrgang).toBe(1970);
+  });
+  it('nennen die Stammdaten eine zweite Person, wird aus einer eingelesenen Einzelperson ein Paar', () => {
+    const H = stammdatenAnwenden(sanitize({ ...clone(EXAMPLE), haushalt: 'single' }), migrate({ p1name: 'Anna', p2name: 'Beat', p2geb: '1979-12-01' }));
+    expect(H.haushalt).toBe('verheiratet');
+    expect(H.personen[1]).toMatchObject({ jahrgang: 1979, geburtsmonat: 12 });
+    expect(H.bericht.kunde).toBe('Anna & Beat');
+  });
+  it('Paar → Einzelperson → Paar: der frühere Zivilstand «Konkubinat» gilt wieder', () => {
+    const konk = sanitize({ ...clone(EXAMPLE), haushalt: 'konkubinat' });
+    const weg = stammdatenNachfuehren(konk, migrate({ p1name: 'Anna', haushalt_stamm: { p1geb: '', p2geb: '', paar: true, kunde: 'Anna & Beat', paarArt: 'konkubinat' } }));
+    expect(weg.H.haushalt).toBe('single');
+    const wieder = stammdatenNachfuehren(weg.H, migrate({ p1name: 'Anna', p2name: 'Beat', haushalt_stamm: { p1geb: '', p2geb: '', paar: false, kunde: 'Anna', paarArt: 'konkubinat' } }));
+    expect(wieder.H.haushalt).toBe('konkubinat');
+  });
+  it('geleerte Namen leeren auch den Kundennamen im Bericht', () => {
+    const H = sanitize({ ...clone(EXAMPLE), bericht: { kunde: 'Anna & Beat', datum: '', berater: '' } });
+    const r = stammdatenNachfuehren(H, migrate({ haushalt_stamm: { p1geb: '', p2geb: '', paar: true, kunde: 'Anna & Beat' } }));
+    expect(r.H.bericht.kunde).toBe('');
   });
 });

@@ -14,7 +14,7 @@ import '../styles/modules/05b-budget.css';
 import grundlagen from '../../public/data/params.json';
 import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
-import { haushaltLesen, haushaltSchreiben } from '../lib/haushalt';
+import { cockpitEinkommen, haushaltLesen, haushaltSchreiben } from '../lib/haushalt';
 import { budgetKennzahlen, musterUebernehmen } from '../lib/budget';
 import { applyBudget } from '../lib/pension/analyse';
 import { STUFEN, musterHtml } from '../lib/pension/budget';
@@ -34,12 +34,13 @@ const daten = grundlagen as unknown as ParamDatei;
 const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
 const S = haushaltLesen();
 
-/** Nettoeinkommen pro Monat aus dem Cockpit 05 (0 = dort nicht erfasst). */
+/**
+ * Nettoeinkommen pro Monat aus dem Cockpit 05 (0 = dort nicht erfasst). Aeltere Staende mit Einkommens-Typ
+ * «brutto» tragen kein Netto (lib/haushalt.ts: cockpitEinkommen); gezaehlt werden die Personen des Haushalts.
+ */
 function nettoCockpit(): number {
-  const a = ((BBZ.get('cockpit_data') as { ausgaben?: { eMann?: number; eFrau?: number; freq?: string } } | null) ?? {}).ausgaben;
-  if (!a) return 0;
-  const summe = (Number(a.eMann) || 0) + (Number(a.eFrau) || 0);
-  return a.freq === 'pa' ? summe / 12 : summe;
+  const netto = cockpitEinkommen(BBZ.all()).netto;
+  return (netto[0] + (S.haushalt === 'single' ? 0 : netto[1])) / 12;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;

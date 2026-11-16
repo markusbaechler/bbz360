@@ -45,6 +45,8 @@ export interface App {
   share: () => void | Promise<void>;
   setView: (v: string) => void;
   checkForUpdate: (manual?: boolean) => void | Promise<void>;
+  /** bbz360 (ADR-22): ein Kundenfall pro Sitzung — der Tutor bietet weder «Neu beginnen» noch einen Übungsfall an. */
+  einFall?: boolean;
   /** Bühne (buehne.ts hängt sich selbst an): Urteil und Kennzahlen wandern im Tutor-Ergebnis in die Karte des Tutors. */
   buehne?: { render(): void; renderBody(): void; ordne(): void; springe(id: string): void; kopfHeim(): void; kopfIn(platz: Element | null): void };
   /** Reichweite für Bericht und Vergleich (results.ts setzt sie aus reach.ts: reachData); null ohne Ergebnis. */

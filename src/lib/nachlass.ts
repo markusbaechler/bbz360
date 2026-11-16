@@ -73,9 +73,12 @@ export function erbteilung(f: ErbFall): Erbteilung {
   };
 }
 
-/** Reinvermögen des Haushalts heute: freies Vermögen plus Liegenschaften abzüglich Hypotheken (ohne Vorsorge, ohne künftige Käufe). */
-export function reinvermoegen(S: PensState): number {
-  return Math.max(0, S.liquiditaet + S.wertschriften + S.liegenschaften.reduce((x, l) => x + ((l.kaufAlter ?? 0) > 0 ? 0 : l.verkehrswert - l.hypothek), 0));
+/**
+ * Reinvermögen des Haushalts heute: freies Vermögen plus Liegenschaften abzüglich Hypotheken (ohne Vorsorge).
+ * Eine Liegenschaft mit Kaufjahr nach `heute` zählt noch nicht.
+ */
+export function reinvermoegen(S: PensState, heute: number = new Date().getFullYear()): number {
+  return Math.max(0, S.liquiditaet + S.wertschriften + S.liegenschaften.reduce((x, l) => x + ((l.kaufJahr ?? 0) > heute ? 0 : l.verkehrswert - l.hypothek), 0));
 }
 
 /**

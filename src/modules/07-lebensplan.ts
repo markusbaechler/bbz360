@@ -17,6 +17,7 @@ import { mountNav } from '../lib/nav';
 import { haushaltLesen } from '../lib/haushalt';
 import { lebensplan } from '../lib/lebensplan';
 import type { PlanEintrag } from '../lib/lebensplan';
+import { horizon } from '../lib/pension/analyse';
 import type { AnalyseErgebnis, Auswertung } from '../lib/pension/analyse';
 import type { Gesamtauswertung } from '../lib/pension/auswertung';
 import { createEngine, monthOf } from '../lib/pension/engine';
@@ -34,7 +35,8 @@ const A0 = monthOf(), jahr = Math.floor(A0 / 12);
 const daten = grundlagen as unknown as ParamDatei;
 const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
 const H = haushaltLesen();
-const plan = lebensplan(BBZ.all(), H, jahr, E.P.annahmen.uws65);
+// Planungshorizont wie im Rechenkern: Einträge danach können nicht gerechnet werden
+const plan = lebensplan(BBZ.all(), H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: H.personen[0].jahrgang + horizon(H, E).horizont });
 
 const WORT = { gruen: 'Reicht', gelb: 'Knapp', rot: 'Reicht nicht' } as const;
 type Ampel = keyof typeof WORT;
@@ -84,10 +86,14 @@ function zeigen(R: Gesamtauswertung): void {
   // Bild: Marken für alles, was aus 06/07a/07b mitrechnet; Fragezeichen für Vorgemerktes mit Jahr
   const d = bildDaten(plan.S, R, E);
   const kurz = (t: string): string => (t.length > 22 ? `${t.slice(0, 21)}…` : t);
+  // Lage auf der Altersachse von Person 1: Januar des Jahres (laufendes Jahr: heute)
+  const p1 = plan.S.personen[0];
   for (const e of plan.eintraege) {
-    if (e.quelle === '07c' || e.alter == null || e.alter + 0.5 < d.a0 || e.alter + 0.5 > d.xEnd) continue;
-    if (e.rechnet) d.marken.push({ alter: e.alter + 0.5, text: kurz(e.name), art: 'ziel' });
-    else d.pins.push({ alter: e.alter + 0.5, text: kurz(e.name) });
+    if (e.quelle === '07c' || e.jahr == null) continue;
+    const x = Math.max(d.a0, e.jahr - p1.jahrgang - (p1.geburtsmonat - 1) / 12);
+    if (x > d.xEnd) continue;
+    if (e.rechnet) d.marken.push({ alter: x, text: kurz(e.name), art: 'ziel' });
+    else if (e.jahr >= jahr) d.pins.push({ alter: x, text: kurz(e.name) });
   }
   $('lpBildKopf').innerHTML = bildLegende(d);
   $('lpBildText').textContent = bildText(d);

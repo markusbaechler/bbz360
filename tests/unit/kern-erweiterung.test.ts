@@ -21,9 +21,11 @@ describe('Stand: neue Felder nur, wenn gesetzt', () => {
   });
   it('Zuflüsse und Kauf-Felder werden geprüft und begrenzt', () => {
     const S = sanitize({ ...clone(EXAMPLE), zufluesse: [{ name: 'Erbschaft', betrag: 300000, jahr: 2035 }, { name: 'leer', betrag: 0, jahr: 2030 }, { name: 'ohne Jahr', betrag: 5 }, 'kaputt'],
-      liegenschaften: [{ name: 'Neu', typ: 'eigen', verkehrswert: 900000, hypothek: 600000, zins: 2, kaufAlter: 60, kaufFremd: 50000, kaufMieteWeg: 2000, boese: 1 }] });
+      liegenschaften: [{ name: 'Neu', typ: 'eigen', verkehrswert: 900000, hypothek: 600000, zins: 2, kaufJahr: 2032, kaufFremd: 50000, kaufMieteWeg: 2000, boese: 1 }],
+      wuensche: [{ typ: 'einmal', aktiv: true, name: 'Auto', betrag: 50000, jahr: 2030, alter: 58 }] });
     expect(S.zufluesse).toEqual([{ name: 'Erbschaft', betrag: 300000, jahr: 2035 }]);
-    expect(S.liegenschaften[0]).toMatchObject({ kaufAlter: 60, kaufFremd: 50000, kaufMieteWeg: 2000 });
+    expect(S.liegenschaften[0]).toMatchObject({ kaufJahr: 2032, kaufFremd: 50000, kaufMieteWeg: 2000 });
+    expect(S.wuensche[0]).toMatchObject({ typ: 'einmal', jahr: 2030, alter: 58 });
     expect('boese' in S.liegenschaften[0]).toBe(false);
   });
 });
@@ -59,17 +61,38 @@ describe('Zufluss', () => {
   });
 });
 
+describe('Einmalige Ausgabe mit Kalenderjahr (Befunde A8, B4)', () => {
+  const mit = (jahr: number, extra: Record<string, unknown> = {}): PensState => sanitize({ ...clone(EXAMPLE), ...extra, wuensche: [{ typ: 'einmal', aktiv: true, name: 'Auto', betrag: 200000, jahr, alter: jahr - 1972 }] });
+  const ohne = (extra: Record<string, unknown> = {}): PensState => sanitize({ ...clone(EXAMPLE), ...extra, wuensche: [] });
+  it('im laufenden Jahr wird sofort abgezogen (vorher: nie, wenn der Geburtstag schon vorbei war)', () => {
+    const a = sim(mit(2026)), b = sim(ohne());
+    expect(zeile(a, 2026).wAus).toBeGreaterThan(199000);
+    expect(b.endV - a.endV).toBeGreaterThan(200000);
+    expect(a.events.some((e) => e.text === 'Wunsch: Auto' && e.A === A0)).toBe(true);
+  });
+  it('in einem künftigen Jahr im Januar dieses Jahres, auch bei Geburtsmonat Dezember (vorher: Januar des Folgejahrs)', () => {
+    const dez = { personen: [{ ...clone(EXAMPLE).personen[0], geburtsmonat: 12 }, clone(EXAMPLE).personen[1]] };
+    const a = sim(mit(2030, dez));
+    expect(zeile(a, 2030).wAus).toBeGreaterThan(200000);
+    expect(zeile(a, 2031).wAus).toBe(0);
+    expect(a.events.find((e) => e.text === 'Wunsch: Auto')!.A).toBe(2030 * 12);
+  });
+  it('ohne Kalenderjahr gilt weiterhin das Alter von Person 1 (wie im PensCheck)', () => {
+    const S = sanitize({ ...clone(EXAMPLE), wuensche: [{ typ: 'einmal', aktiv: true, name: 'Auto', betrag: 200000, alter: 60 }] });
+    // Juni 1972 + 60 Jahre → Monat nach dem Geburtstag: Juli 2032
+    expect(sim(S).events.find((e) => e.text === 'Wunsch: Auto')!.A).toBe(2032 * 12 + 6);
+  });
+});
+
 describe('Liegenschaftskauf in der Zukunft', () => {
-  const mitKauf = (extra: Record<string, number> = {}): PensState => {
-    const S = basis();
+  const mitKauf = (extra: Record<string, number> = {}, basisExtra: Record<string, unknown> = {}): PensState => {
+    const S = sanitize({ ...clone(EXAMPLE), ...basisExtra });
     S.liegenschaften = []; // ohne heutiges Eigenheim: der Kauf steht für sich
-    const ohneHeim = clone(S);
-    void ohneHeim;
-    S.liegenschaften.push({ name: 'Eigenheim', typ: 'eigen', verkehrswert: 1000000, hypothek: 650000, zins: 2, unterhalt: 0.5, nebenkosten: 400, mietertrag: 0, verkaufAlter: 0, kaufAlter: 57, ...extra });
+    S.liegenschaften.push({ name: 'Eigenheim', typ: 'eigen', verkehrswert: 1000000, hypothek: 650000, zins: 2, unterhalt: 0.5, nebenkosten: 400, mietertrag: 0, verkaufAlter: 0, kaufJahr: 2029, ...extra });
     return S;
   };
   const ohneKauf = (): PensState => { const S = basis(); S.liegenschaften = []; return S; };
-  // Kauf im Monat nach dem 57. Geburtstag von Person 1: Juli 2029
+  // Kauf im Januar 2029
 
   it('vor dem Kauf gibt es weder Wert noch Hypothek; der Verlauf ist bis dahin identisch', () => {
     const a = sim(mitKauf()), b = sim(ohneKauf());
@@ -80,14 +103,14 @@ describe('Liegenschaftskauf in der Zukunft', () => {
   it('beim Kauf fliessen die Eigenmittel ab; Wert und Hypothek entstehen', () => {
     const a = sim(mitKauf()), b = sim(ohneKauf());
     const z = zeile(a, 2029);
-    // Eigenmittel = Preis − Hypothek, beide in Franken des Kaufmonats
-    expect(z.lgKauf! / z.I).toBeGreaterThan(350000 * 0.98);
-    expect(z.lgKauf! / z.I).toBeLessThan(350000 * 1.02);
-    expect(z.hyp / z.I).toBeGreaterThan(650000 * 0.98);
-    expect(z.hyp / z.I).toBeLessThan(650000 * 1.02);
+    // Eigenmittel = Preis − Hypothek, beide in Franken des Kaufmonats (Januar; z.I ist der Stand Ende Jahr)
+    expect(z.lgKauf! / z.I).toBeGreaterThan(350000 / 1.011);
+    expect(z.lgKauf! / z.I).toBeLessThanOrEqual(350000);
+    expect(z.hyp / z.I).toBeGreaterThan(650000 / 1.011);
+    expect(z.hyp / z.I).toBeLessThanOrEqual(650000);
     expect(z.lgWerte[0]).toBeGreaterThan(1000000);
     expect(zeile(b, 2029).V - z.V).toBeGreaterThan(z.lgKauf! * 0.95);
-    expect(a.events.some((e) => /^Kauf Eigenheim/.test(e.text))).toBe(true);
+    expect(a.events.find((e) => /^Kauf Eigenheim/.test(e.text))!.A).toBe(2029 * 12);
   });
   it('nach dem Kauf kommen Zins, Unterhalt und Nebenkosten dazu; die wegfallende Miete senkt die Ausgaben', () => {
     const ohneMiete = sim(mitKauf()), mitMiete = sim(mitKauf({ kaufMieteWeg: 2000 })), ohne = sim(ohneKauf());
@@ -100,25 +123,59 @@ describe('Liegenschaftskauf in der Zukunft', () => {
     expect(weg).toBeGreaterThan(24000 * 0.99);
     expect(weg).toBeLessThan(24000 * 1.01);
   });
-  it('PK-Vorbezug: fliesst als besteuerter Kapitalbezug zu', () => {
-    const ohne = sim(mitKauf()), mit = sim(mitKauf({ kaufFremd: 100000 }));
-    const bezug = mit.kapListe.find((k) => /PK-Vorbezug für Eigenheim/.test(k.art))!;
-    expect(bezug.betrag).toBe(100000);
-    expect(bezug.steuer).toBeGreaterThan(0);
-    expect(bezug.steuer).toBeLessThan(15000);
-    // Vermögen Ende Kaufjahr: um Vorbezug abzüglich Steuer höher (plus etwas Ertrag)
-    const diff = zeile(mit, 2029).V - zeile(ohne, 2029).V;
-    expect(diff).toBeGreaterThan((100000 - bezug.steuer) * 0.99);
-    expect(diff).toBeLessThan((100000 - bezug.steuer) * 1.03);
+  it('B7: ab 75 sinkt die wegfallende Miete mit den Ausgaben um denselben Satz; die Ausgaben werden nie negativ', () => {
+    // Musterfall: Reduktion ab 75 auf 90%; jüngere Person Jahrgang 1972 → ab 2048 voll wirksam
+    const ohneMiete = sim(mitKauf()), mitMiete = sim(mitKauf({ kaufMieteWeg: 2000 }));
+    const j = 2050, I = zeile(ohneMiete, j).I;
+    const weg = (zeile(ohneMiete, j).ausgaben - zeile(mitMiete, j).ausgaben) / I;
+    expect(weg).toBeGreaterThan(24000 * 0.9 * 0.99);
+    expect(weg).toBeLessThan(24000 * 0.9 * 1.01);
+    const absurd = sim(mitKauf({ kaufMieteWeg: 50000 }));
+    expect(Math.min(...absurd.rows.map((r) => r.ausgaben))).toBeGreaterThanOrEqual(0);
   });
-  it('das Eigenkapital von heute zählt einen künftigen Kauf nicht', () => {
+  it('A11: der PK-Vorbezug steht wie der Kaufpreis in heutiger Kaufkraft und fliesst als besteuerter Kapitalbezug zu', () => {
+    const spaet = (extra: Record<string, number>): PensState => { const S = mitKauf(extra); S.liegenschaften[0].kaufJahr = 2040; return S; };
+    const mit = sim(spaet({ kaufFremd: 200000 }));
+    const bezug = mit.kapListe.find((k) => /PK-Vorbezug für Eigenheim/.test(k.art))!;
+    // 14 Jahre Teuerung von 1%: der Vorbezug bleibt real 200'000 (vorher nominal 200'000 = real rund 174'000)
+    expect(bezug.betrag / bezug.I).toBeGreaterThan(199000);
+    expect(bezug.betrag / bezug.I).toBeLessThan(201000);
+    expect(bezug.steuer).toBeGreaterThan(0);
+    const ohne = sim(spaet({}));
+    const diff = zeile(mit, 2040).V - zeile(ohne, 2040).V;
+    expect(diff).toBeGreaterThan((bezug.betrag - bezug.steuer) * 0.99);
+    expect(diff).toBeLessThan((bezug.betrag - bezug.steuer) * 1.04);
+  });
+  it('ein Vorbezug über den Eigenmitteln wird auf die Eigenmittel begrenzt', () => {
+    const r = sim(mitKauf({ kaufFremd: 900000 }));
+    const bezug = r.kapListe.find((k) => /PK-Vorbezug/.test(k.art))!;
+    expect(bezug.betrag / bezug.I).toBeLessThanOrEqual(350000 * 1.001);
+  });
+  it('B8/B10: ein künftiger Kauf zählt heute weder zum Eigenkapital noch zur Vermögenssteuer; ein erreichtes Kaufjahr heisst «im Besitz»', () => {
     expect(E.eigenkapitalReal(mitKauf())).toBe(0);
     expect(E.eigenkapitalReal(basis())).toBe(700000);
+    expect(E.vermSteuerHeute(mitKauf()).rein).toBe(E.vermSteuerHeute(ohneKauf()).rein);
+    // Kaufjahr 2026 (laufendes Jahr, Januar vorbei) oder früher: im Besitz, in allen drei Sichten gleich
+    for (const kaufJahr of [2026, 2010]) {
+      const S = mitKauf({ kaufJahr });
+      const z = zeile(sim(S), 2026);
+      expect(z.lgWerte[0]).toBeGreaterThan(0);
+      expect(z.lgKauf).toBeUndefined();
+      expect(E.eigenkapitalReal(S)).toBe(350000);
+      expect(E.vermSteuerHeute(S).rein).toBeGreaterThan(E.vermSteuerHeute(ohneKauf()).rein);
+    }
   });
-  it('ein Kaufalter in der Vergangenheit bedeutet: heute im Besitz', () => {
-    const S = mitKauf({ kaufAlter: 40 });
-    const z = zeile(sim(S), 2026);
-    expect(z.lgWerte[0]).toBeGreaterThan(0);
-    expect(z.lgKauf).toBeUndefined();
+  it('B6: eine erst nach der Pensionierung gekaufte Liegenschaft zählt nicht ungeprüft als Reserve', () => {
+    // Knapper Plan: im Stresstest reicht es bis 97, am Ende bleibt genug Eigenkapital der Liegenschaft. Für eine
+    // heute gehaltene Liegenschaft gäbe das (nach Tragbarkeitsprüfung) «grün»; für eine erst 2042 gekaufte gibt es
+    // zum Zeitpunkt der Pensionierung keine Prüfung, also keine Freigabe.
+    const S = basis();
+    S.wuensche = []; S.ausgabenRuhestand = 7500; S.liquiditaet = 100000;
+    S.liegenschaften = [{ name: 'X', typ: 'eigen', verkehrswert: 900000, hypothek: 100000, zins: 2, unterhalt: 0.5, nebenkosten: 400, mietertrag: 0, verkaufAlter: 0, kaufJahr: 2042 }];
+    const amp = E.ampel({ ...S, horizont: 91 });
+    expect(amp.base.depleted).toBeNull();
+    expect(amp.stress.depleted).toBeGreaterThanOrEqual(85);
+    expect(amp.reserveLg).toBeNull();
+    expect(amp.st).toBe('gelb');
   });
 });

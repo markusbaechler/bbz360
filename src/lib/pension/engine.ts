@@ -298,7 +298,7 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
   /** Reinvermögen für die Vermögenssteuer heute: freies Vermögen plus Liegenschaften zum Steuerwert abzüglich Hypotheken. */
   function vermSteuerHeute(inp: Pick<EngineInput, 'steuerVerm' | 'haushalt' | 'kanton' | 'liquiditaet' | 'wertschriften' | 'liegenschaften'>) {
     const q = A.steuerwertLg ?? 0.7;
-    const rein = Math.max(0, num(inp.liquiditaet) + num(inp.wertschriften) + getLgs(inp).reduce((x, l) => x + l.verkehrswert * q - num(l.hypothek), 0));
+    const rein = Math.max(0, num(inp.liquiditaet) + num(inp.wertschriften) + getLgs(inp).reduce((x, l) => x + (kuenftig(l) ? 0 : l.verkehrswert * q - num(l.hypothek)), 0));
     const steuer = vermSteuerJahr(inp, rein, 1);
     return { rein, steuer, promille: rein > 0 ? (steuer / rein) * 1000 : 0, eigen: vermEigen(inp), ort: (P.vermSteuer?.kantone?.[inp.kanton] || P.vermSteuer?.kantone?.ZH)?.ort, steuerjahr: P.vermSteuer?.steuerjahr };
   }
@@ -364,6 +364,10 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
 
   // ---------- Liegenschaften, Amortisationen ----------
   const getLgs = (inp: Pick<EngineInput, 'liegenschaften'>) => (Array.isArray(inp.liegenschaften) ? inp.liegenschaften.filter((l) => l && l.verkehrswert > 0) : []);
+  /** bbz360 (ADR-19): Kaufmonat einer Liegenschaft mit Kaufjahr (Januar), sonst «schon immer im Besitz». */
+  const kaufA = (l: Pick<Liegenschaft, 'kaufJahr'>) => ((l.kaufJahr ?? 0) > 0 ? l.kaufJahr! * 12 : -Infinity);
+  /** bbz360 (ADR-19): Liegt der Kauf noch vor uns? Ein Kaufjahr, das erreicht oder vergangen ist, heisst: im Besitz. */
+  const kuenftig = (l: Pick<Liegenschaft, 'kaufJahr'>) => kaufA(l) > A0;
   const getAmort = (inp: Pick<EngineInput, 'amortisationen'>) => (Array.isArray(inp.amortisationen) ? inp.amortisationen : []);
   const amortMonat = (inp: Pick<EngineInput, 'personen'>, x: Pick<AmortEingabe, 'jahr' | 'monat' | 'alter'>) => Math.max(A0, x.jahr > 0 ? x.jahr * 12 + ((x.monat || 1) - 1) : abAlter(inp.personen[0], x.alter || 0));
 
@@ -408,10 +412,9 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
     const ausgRuhe = ov.ausgaben != null ? ov.ausgaben : num(inp.ausgabenRuhestand);
     const ausgHeute = (inp.ausgabenHeute as number) > 0 ? +inp.ausgabenHeute : ausgRuhe / 0.9;
     const lgs = getLgs(inp);
-    // bbz360 (ADR-19): Eine Liegenschaft mit Kaufalter in der Zukunft gibt es bis zum Kauf nicht. Bis dahin gilt sie
-    // wie «verkauft» (kein Wert, keine Hypothek, keine Kosten); beim Kauf entstehen Wert und Hypothek.
-    const kaufA = (l: (typeof lgs)[number]) => ((l.kaufAlter ?? 0) > 0 ? abAlter(ps0[0], l.kaufAlter!) : -Infinity);
-    const lgSt = lgs.map((l) => { const kommt = kaufA(l) > A0; return { hyp: kommt ? 0 : num(l.hypothek), hyp0: kommt ? 0 : num(l.hypothek), verkauft: kommt, kommt }; });
+    // bbz360 (ADR-19): Eine Liegenschaft mit Kaufjahr in der Zukunft gibt es bis zum Kauf (Januar des Jahres) nicht.
+    // Bis dahin gilt sie wie «verkauft» (kein Wert, keine Hypothek, keine Kosten); beim Kauf entstehen Wert und Hypothek.
+    const lgSt = lgs.map((l) => { const kommt = kuenftig(l); return { hyp: kommt ? 0 : num(l.hypothek), hyp0: kommt ? 0 : num(l.hypothek), verkauft: kommt, kommt }; });
     // bbz360 (ADR-19): Zuflüsse im Januar des Jahres (ein laufendes oder vergangenes Jahr: sofort)
     const zufluesse = (inp.zufluesse || []).filter((z) => z.betrag > 0 && z.jahr > 0).map((z) => ({ ...z, A: Math.max(A0, z.jahr * 12) }));
     const ps = ps0.map((p, idx) => {
@@ -477,6 +480,9 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
     const wuensche = (inp.wuensche || []).filter((w, k) => w.aktiv !== false && k !== ov.ohneWunsch);
     const zielReal = Math.max(0, ...wuensche.filter((w) => w.typ === 'ziel').map((w) => num(w.betrag)));
     const wState = wuensche.map(() => ({ gekauft: false, verkauft: false }));
+    // bbz360 (ADR-19): Monat einer einmaligen Ausgabe — mit Kalenderjahr im Januar (laufendes oder vergangenes Jahr:
+    // sofort), sonst wie im PensCheck im Monat nach dem Geburtstag von Person 1.
+    const einmalA = (w: Wunsch) => ((w.jahr ?? 0) > 0 ? Math.max(A0, w.jahr! * 12) : abAlter(p1, w.alter || 0));
     let V = num(inp.liquiditaet) + num(inp.wertschriften);
     const hypSum = () => lgSt.reduce((x, s) => x + (s.verkauft ? 0 : s.hyp), 0);
     const rows: SimRow[] = [], events: SimEvent[] = [], kapListe: KapBezug[] = [], kapSumJahr: Record<string, number> = {};
@@ -498,7 +504,7 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
     });
     wuensche.forEach((w) => {
       const nm = w.name || '';
-      if (w.typ === 'einmal' && w.betrag! > 0) ev(abAlter(p1, w.alter || 0), 0, `Wunsch: ${nm || 'einmalige Ausgabe'}`, w.betrag, { wunsch: true });
+      if (w.typ === 'einmal' && w.betrag! > 0) ev(einmalA(w), 0, `Wunsch: ${nm || 'einmalige Ausgabe'}`, w.betrag, { wunsch: true });
       if (w.typ === 'jahr' && w.betrag! > 0) ev(abAlter(p1, w.von || 0), 0, `Wunsch beginnt: ${nm || 'wiederkehrend'} (bis ${w.bis})`, w.betrag, { proJahr: true, wunsch: true });
       if (w.typ === 'ausland') ev(abAlter(p1, w.von || 0), 0, `Wunsch beginnt: ${w.monate || 0} Monate pro Jahr ${nm || 'im Ausland'} (${w.wohnform === 'kauf' ? 'Kauf' : 'Miete'}, bis ${w.bis})`, null, { wunsch: true });
     });
@@ -669,14 +675,16 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
         // bbz360 (ADR-19): Kauf. Der Preis steht in heutiger Kaufkraft, die Hypothek im selben Verhältnis dazu. Die
         // Eigenmittel fliessen aus dem freien Vermögen ab; ein PK-Vorbezug fliesst als besteuerter Kapitalbezug zu.
         if (s.kommt && Am === kaufA(l)) {
+          // Der PK-Vorbezug steht wie der Kaufpreis in heutiger Kaufkraft
           s.kommt = false;
           s.verkauft = false;
           s.hyp = num(l.hypothek) * I;
           s.hyp0 = s.hyp;
           const eigen = Math.max(0, l.verkehrswert * I - s.hyp);
           lgKauf += eigen;
-          const tx = (l.kaufFremd ?? 0) > 0 ? addKap(0, l.kaufFremd!, `PK-Vorbezug für ${l.name || 'Liegenschaft'}`, true) : 0;
-          ev(Am, null, `Kauf ${l.name || 'Liegenschaft'} (Eigenmittel${(l.kaufFremd ?? 0) > 0 ? `, davon PK-Vorbezug ${Math.round(l.kaufFremd!).toLocaleString('de-CH')}` : ''}; Hypothek ${Math.round(s.hyp).toLocaleString('de-CH')})`, eigen, tx > 0 ? { steuer: tx } : undefined);
+          const fremd = Math.min(num(l.kaufFremd) * I, eigen);
+          const tx = fremd > 0 ? addKap(0, fremd, `PK-Vorbezug für ${l.name || 'Liegenschaft'}`, true) : 0;
+          ev(Am, null, `Kauf ${l.name || 'Liegenschaft'} (Eigenmittel${fremd > 0 ? `, davon PK-Vorbezug ${Math.round(fremd).toLocaleString('de-CH')}` : ''}; Hypothek ${Math.round(s.hyp).toLocaleString('de-CH')})`, eigen, tx > 0 ? { steuer: tx } : undefined);
         }
         if (s.verkauft) return;
         if (l.verkaufAlter > 0 && Am === abAlter(ps0[0], l.verkaufAlter)) {
@@ -691,7 +699,12 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
           ausg -= (Math.max(0, s.hyp0 - s.hyp) * num(l.zins)) / 100 / 12;
           // bbz360 (ADR-19): Bei einem heute bewohnten Eigenheim stecken die Wohnkosten in den erfassten Ausgaben.
           // Nach einem Kauf in der Zukunft kommen Zins, Unterhalt und Nebenkosten dazu, die bisherige Miete fällt weg.
-          if ((l.kaufAlter ?? 0) > 0 && kaufA(l) > A0) ausg += (s.hyp0 * num(l.zins)) / 100 / 12 + (l.verkehrswert * I * (l.unterhalt ?? 0.5)) / 100 / 12 + num(l.nebenkosten) * I - num(l.kaufMieteWeg) * I;
+          // Die bisherige Miete steckt in den Ausgaben und sinkt mit ihnen ab 75 um denselben Satz; die Ausgaben
+          // werden nicht negativ.
+          if (kuenftig(l)) {
+            const red75 = anyRet && Am >= youngestA + 75 * 12 + 1 ? inp.reduktion75 : 1;
+            ausg = Math.max(0, ausg + (s.hyp0 * num(l.zins)) / 100 / 12 + (l.verkehrswert * I * (l.unterhalt ?? 0.5)) / 100 / 12 + num(l.nebenkosten) * I - num(l.kaufMieteWeg) * I * red75);
+          }
         } else {
           const kost = (s.hyp * num(l.zins)) / 100 / 12 + (l.verkehrswert * I * (l.unterhalt ?? 1)) / 100 / 12;
           const miete = (num(l.mietertrag) * I) / 12;
@@ -706,7 +719,7 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
       const a1 = alterBei(p1, Am);
       wuensche.forEach((w, k) => {
         const s = wState[k];
-        if (w.typ === 'einmal' && Am === abAlter(p1, w.alter || 0)) wAus += num(w.betrag) * I;
+        if (w.typ === 'einmal' && Am === einmalA(w)) wAus += num(w.betrag) * I;
         if (w.typ === 'jahr' && a1 >= (w.von || 0) && a1 < (w.bis || 0)) wAus += (num(w.betrag) / 12) * I;
         if (w.typ === 'ausland') {
           const g = { ...W_DEF, ...w }, aktiv = a1 >= (w.von || 0) && a1 < (w.bis || 0);
@@ -784,7 +797,7 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
     if (!lgs.length) return 0;
     if (row && row.lgWerte) return Math.max(0, row.lgWerte.reduce((x, v, k) => x + v / row.I - row.lgHyp[k] / row.I, 0));
     // bbz360 (ADR-19): Ohne Jahreszeile ist der Stand von heute gemeint; ein Kauf in der Zukunft zählt noch nicht.
-    return Math.max(0, lgs.reduce((x, l) => x + ((l.kaufAlter ?? 0) > 0 ? 0 : l.verkehrswert - num(l.hypothek)), 0));
+    return Math.max(0, lgs.reduce((x, l) => x + (kuenftig(l) ? 0 : l.verkehrswert - num(l.hypothek)), 0));
   }
   /** Ampel: Basisszenario und Stresstest (Rendite -1 Prozentpunkt, Horizont 100). */
   function ampel(inp: EngineInput, ov: SimOptionen = {}) {
@@ -804,6 +817,9 @@ export function createEngine(P: Params, A0: number, Pn: Params | null = null) {
         // beurteilt: Sonst wäre eine höhere Belehnung nicht möglich, und es bliebe nur der Verkauf.
         const tr = tragbarkeit(base, inp);
         if (tr && tr.worst.st === 'rot') reserveGesperrt = { bedarf, ek, quote: tr.worst.quote };
+        // bbz360 (ADR-19): Für eine erst später gekaufte Liegenschaft gibt es keine Tragbarkeitsprüfung zum
+        // Zeitpunkt der Pensionierung; ohne Prüfung zählt sie nicht als Reserve (die Ampel bleibt gelb).
+        else if (!tr && getLgs(inp).some(kuenftig)) reserveLg = null;
         else {
           st = 'gruen';
           reserveLg = { bedarf, ek, ab: stress.depleted };

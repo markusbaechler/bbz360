@@ -26,6 +26,7 @@ import { BBZ } from '../lib/data';
 import { mountNav } from '../lib/nav';
 import { tragbarkeit, type TragbarkeitResult } from '../lib/finance';
 import { fmt, parseNum as pN, age as calcAge } from '../lib/format';
+import { kaufZiel } from '../lib/lebensplan';
 
 interface Tranche { p: string; a: number }
 interface Variant { id: number; tranches: Tranche[]; mtlTotal?: number }
@@ -57,13 +58,28 @@ function preload(): void {
     e.textContent = 'Vorhandenes PK-Guthaben (Cockpit): CHF ' + fmt(Math.round(d.cockpit_pk_saldo));
     e.hidden = false;
   }
-  const ziele = Array.isArray(d.ziele) ? (d.ziele as Array<{ katId: string; betrag: number }>) : [];
-  const wohnZiel = ziele.find((z) => z.katId === 'wohnen' && z.betrag > 0);
-  if (wohnZiel) setIfEmpty('price', wohnZiel.betrag);
+  // ADR-22: Der Kauf gehört zu einem Ziel aus Modul 06 — dem hier gewählten, sonst dem ersten Ziel «Wohnen» mit
+  // Betrag (lib/lebensplan.ts: kaufZiel). Sein Betrag belegt den Kaufpreis vor, sein Jahr gilt im Lebensplan.
+  zielWahlFuellen(d);
+  const wohnZiel = kaufZiel(d);
+  if (wohnZiel && Number(wohnZiel.betrag) > 0) setIfEmpty('price', Number(wohnZiel.betrag));
   if (typeof d.p1geb === 'string' && d.p1geb) {
     const alter = calcAge(d.p1geb);
     if (alter && !pN($i('age').value)) $i('age').value = String(alter);
   }
+}
+
+/** Auswahl «Kauf gehört zum Ziel»: alle Ziele aus 06 (ohne Geldzuflüsse), Wohnen zuerst; «kein Ziel» möglich. */
+function zielWahlFuellen(d: ReturnType<typeof BBZ.all>): void {
+  const sel = document.getElementById('zielWahl') as HTMLSelectElement;
+  const ziele = (Array.isArray(d.ziele) ? (d.ziele as Array<Record<string, unknown>>) : []).filter((z) => z && z.typ !== 'zufluss' && typeof z.id === 'string');
+  ziele.sort((a, b) => Number(b.katId === 'wohnen') - Number(a.katId === 'wohnen'));
+  const gewaehlt = kaufZiel(d);
+  const opt = (wert: string, label: string, an: boolean): HTMLOptionElement => { const o = document.createElement('option'); o.value = wert; o.textContent = label; o.selected = an; return o; };
+  sel.replaceChildren(
+    opt('-', ziele.length ? '— keinem Ziel zugeordnet —' : '— kein Ziel in 06 erfasst —', !gewaehlt),
+    ...ziele.map((z) => opt(String(z.id), `${String(z.name || z.insp || 'Ziel')} · ${z.jahr ? String(z.jahr) : 'Jahr offen'}${Number(z.betrag) > 0 ? ` · CHF ${fmt(Number(z.betrag))}` : ''}`, z === gewaehlt)),
+  );
 }
 
 // ── Persistenz (v1, debounced) ───────────────────────────────────────────────
@@ -80,6 +96,8 @@ function persist(): void {
     inputs,
     variants: S.variants.map((v) => ({ id: v.id, tranches: v.tranches.map((t) => ({ p: t.p, a: t.a })) })),
     rates: { ...S.rates },
+    // ADR-22: Ziel aus 06, zu dem der Kauf gehört ('-' = ausdrücklich keines)
+    zielId: (document.getElementById('zielWahl') as HTMLSelectElement).value,
   });
 }
 function hydrate(): void {
@@ -453,6 +471,13 @@ function init(): void {
     });
   });
   ['calcRate', 'sideRate', 'age'].forEach((id) => $i(id).addEventListener('input', calculate));
+  // Ziel gewechselt: speichern; ein leerer Kaufpreis wird aus dem Ziel vorbelegt
+  document.getElementById('zielWahl')!.addEventListener('change', () => {
+    const id = (document.getElementById('zielWahl') as HTMLSelectElement).value;
+    const z = (Array.isArray(BBZ.all().ziele) ? (BBZ.all().ziele as Array<Record<string, unknown>>) : []).find((x) => x.id === id);
+    if (z && Number(z.betrag) > 0 && !pN($i('price').value)) $i('price').value = fmt(Number(z.betrag));
+    calculate();
+  });
 
   $('tabAnalysis').addEventListener('click', () => switchTab('analysis'));
   $('tabComparison').addEventListener('click', () => switchTab('comparison'));

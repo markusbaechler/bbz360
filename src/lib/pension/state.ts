@@ -191,7 +191,7 @@ function cleanLg(l: Roh): Liegenschaft {
     unterhalt: num(l.unterhalt, 'unterhalt', typ === 'eigen' ? 0.5 : 1), nebenkosten: num(l.nebenkosten, 'nebenkosten', 400),
     mietertrag: num(l.mietertrag, 'mietertrag', 0), verkaufAlter: num(l.verkaufAlter, 'verkaufAlter', 0),
     // bbz360 (ADR-19): Kauf in der Zukunft; die Felder gibt es nur, wenn sie gesetzt sind (sonst bleibt der Stand wie im PensCheck)
-    ...(num(l.kaufAlter, 'verkaufAlter', 0) > 0 ? { kaufAlter: num(l.kaufAlter, 'verkaufAlter', 0) } : {}),
+    ...(num(l.kaufJahr, 'jahr', 0) > 0 ? { kaufJahr: num(l.kaufJahr, 'jahr', 0) } : {}),
     ...(num(l.kaufFremd, 'betrag', 0) > 0 ? { kaufFremd: num(l.kaufFremd, 'betrag', 0) } : {}),
     ...(num(l.kaufMieteWeg, 'nebenkosten', 0) > 0 ? { kaufMieteWeg: num(l.kaufMieteWeg, 'nebenkosten', 0) } : {}),
   };
@@ -204,7 +204,7 @@ function cleanWunsch(w: Roh): Wunsch | null {
   if (WUNSCH_KARTEN.includes(w.karte)) out.karte = w.karte;
   if (typ === 'ausland') out.wohnform = oneOf(w.wohnform, ['miete', 'kauf'], 'miete');
   // nur erfasste Zahlen übernehmen; für fehlende gelten die Richtwerte des Rechenkerns (W_DEF)
-  for (const k of ['betrag', 'von', 'bis', 'alter', 'monate', 'preisniveau', 'anteilVariabel', 'reise', 'miete', 'kaufpreis', 'nebenkosten', 'laufend', 'wochen', 'preisWoche', 'verwaltung', 'mietSteuer', 'verkaufAlter'] as const) {
+  for (const k of ['betrag', 'von', 'bis', 'alter', 'jahr', 'monate', 'preisniveau', 'anteilVariabel', 'reise', 'miete', 'kaufpreis', 'nebenkosten', 'laufend', 'wochen', 'preisWoche', 'verwaltung', 'mietSteuer', 'verkaufAlter'] as const) {
     if (w[k] != null && w[k] !== '') { const v = num(w[k], k, null, 'w'); if (v != null) out[k] = v; }
   }
   return out;

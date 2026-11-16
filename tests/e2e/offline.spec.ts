@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { musterEinlesen } from './helfer';
 
 // PWA / offline (ADR-21): Nach dem ersten Laden laeuft das Beratungsgespraech
 // ohne Netz — alle Seiten, der Rechen-Worker, Grundlagen und Schriften kommen
@@ -25,9 +26,7 @@ test('ohne Netz: Module laden, die Pensionierung rechnet, der Stand bleibt', asy
   await page.goto('modules/05-cockpit.html');
   await expect(page.locator('.rail-title')).toHaveText('Finanz-Cockpit');
 
-  await page.goto('modules/07c-pension.html');
-  await page.locator('#btnMuster').click();
-  await expect(page.locator('#verdictText')).toContainText(/Reicht|Knapp/); // Worker und Grundlagen aus dem Cache
+  await musterEinlesen(page, { leeren: false }); // Seite, Worker und Grundlagen aus dem Cache
 
   await page.goto('modules/07-lebensplan.html');
   await expect(page.locator('#lpKpis .kpi')).toHaveCount(4);

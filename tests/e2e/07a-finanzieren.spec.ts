@@ -148,3 +148,41 @@ test('07a Amortisationsverlauf — keine Amortisation, keine Achsen', async ({ p
   await expect(page.locator('.fz-gridline')).toHaveCount(0);
   await expect(page.locator('#amortLegend')).toBeEmpty();
 });
+
+test('A9: der Kauf gehört zu einem Ziel — Auswahl, Vorbelegung und Speicherung', async ({ page }) => {
+  await page.goto('modules/07a-finanzieren.html');
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem('bbzData', JSON.stringify({
+      __schemaVersion: 3,
+      ziele: [
+        { id: 'r', katId: 'wohnen', typ: 'ziel', name: 'Renovation', jahr: 2028, betrag: null },
+        { id: 'e', katId: 'wohnen', typ: 'ziel', name: 'Erstwohnung', jahr: 2032, betrag: 900000 },
+        { id: 'w', katId: 'familie', typ: 'ziel', name: 'Weltreise', jahr: 2030, betrag: 40000 },
+        { id: 'x', katId: 'zufluss', typ: 'zufluss', name: 'Erbschaft', jahr: 2035, betrag: 300000 },
+      ],
+    }));
+  });
+  await page.reload();
+  const wahl = page.locator('#zielWahl');
+  // Vorgabe: das erste Wohnen-Ziel mit Betrag (wie die Vorbelegung des Kaufpreises); Zuflüsse stehen nicht zur Wahl
+  await expect(wahl).toHaveValue('e');
+  await expect(page.locator('#price')).toHaveValue("900'000");
+  await expect(wahl.locator('option')).toHaveCount(4); // «keines» + 3 Ziele
+  await expect(wahl.locator('option[value="x"]')).toHaveCount(0);
+  // Wahl ändern und Eigenmittel erfassen → gespeichert
+  await wahl.selectOption('r');
+  await page.locator('#cashEquity').fill('200000');
+  await page.waitForTimeout(350);
+  let d = await page.evaluate(() => JSON.parse(localStorage.getItem('bbzData') || '{}'));
+  expect(d.finanzierung_data.zielId).toBe('r');
+  await page.reload();
+  await expect(wahl).toHaveValue('r');
+  // Lebensplan: der Kauf trägt Name und Jahr des gewählten Ziels; die Erstwohnung zählt als gewöhnliches Ziel
+  await page.goto('modules/07-lebensplan.html');
+  await expect(page.locator('#lpListe tr', { hasText: 'Renovation' })).toContainText('07a Finanzieren');
+  await expect(page.locator('#lpListe tr', { hasText: 'Renovation' })).toContainText('2028');
+  await expect(page.locator('#lpListe tr', { hasText: 'Erstwohnung' })).toContainText('06 Ziele');
+  d = await page.evaluate(() => JSON.parse(localStorage.getItem('bbzData') || '{}'));
+  expect('haushalt' in d).toBe(false); // der Lebensplan speichert nichts
+});
