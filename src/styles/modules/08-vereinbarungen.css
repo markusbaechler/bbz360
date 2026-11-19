@@ -7,18 +7,18 @@
 /* ── SÄULE ───────────────────────────────────────────────────────────────── */
 .wz-phaselist { display: flex; flex-direction: column; gap: 5px; }
 .rail-phase.done .pc { background: rgba(255, 255, 255, 0.22); color: #fff; }
-.rail-phase.done span:last-child { color: rgba(255, 255, 255, 0.6); }
+.rail-phase.done span:last-child { color: rgba(255, 255, 255, 0.7); }
 .rail-phase.next { cursor: default; }
 .rail-phase.done { cursor: pointer; }
 
 .wz-status { margin-top: auto; border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; }
-.wz-plt { color: rgba(255, 255, 255, 0.45); font-size: var(--fs-2xs); letter-spacing: 0.08em; font-weight: var(--w-bold); margin-bottom: 12px; }
+.wz-plt { color: rgba(255, 255, 255, 0.7); font-size: var(--fs-2xs); letter-spacing: 0.08em; font-weight: var(--w-bold); margin-bottom: 12px; }
 .wz-pli { display: flex; align-items: center; gap: 10px; padding: 7px 0; color: rgba(255, 255, 255, 0.75); font-size: var(--fs-nav); }
-.wz-pli.dim { color: rgba(255, 255, 255, 0.4); }
+.wz-pli.dim { color: rgba(255, 255, 255, 0.7); }
 .wz-dot { width: 18px; height: 18px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .wz-dot.ok { background: rgba(255, 255, 255, 0.25); color: #fff; }
 .wz-dot.cur { background: #fff; color: var(--blue); font-weight: var(--w-bold); }
-.wz-dot.later { border: 1.5px solid rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.5); }
+.wz-dot.later { border: 1.5px solid rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.7); }
 
 /* ── BÜHNE gemeinsam ─────────────────────────────────────────────────────── */
 .wz-chips { display: flex; gap: 7px; flex-wrap: wrap; }
@@ -33,17 +33,17 @@
 .wz-step { padding: 16px 24px; display: flex; align-items: flex-start; gap: 16px; }
 .wz-step + .wz-step { border-top: 1px solid var(--line-soft); }
 .wz-step.active { background: var(--blue-soft); }
-.wz-sn { width: 26px; height: 26px; border-radius: 50%; font-size: var(--fs-sm); font-weight: var(--w-bold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; background: var(--bg); color: var(--mut-3); }
+.wz-sn { width: 26px; height: 26px; border-radius: 50%; font-size: var(--fs-sm); font-weight: var(--w-bold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; background: var(--bg); color: var(--mut); }
 .wz-step.done .wz-sn { background: var(--green-soft); color: var(--green); }
 .wz-step.active .wz-sn { background: var(--blue); color: #fff; }
 .wz-sb { flex: 1; min-width: 0; }
-.wz-sl { font-size: var(--fs-nav); font-weight: var(--w-bold); color: var(--mut-3); margin-bottom: 3px; }
+.wz-sl { font-size: var(--fs-nav); font-weight: var(--w-bold); color: var(--mut); margin-bottom: 3px; }
 .wz-step.done .wz-sl { font-size: var(--fs-2xs); letter-spacing: 0.08em; color: var(--mut-2); text-transform: uppercase; }
 .wz-step.done .wz-sl::after { content: ' · GEWÄHLT'; }
 .wz-sl.act { font-size: var(--fs-base); color: var(--blue); }
 .wz-sv { font-size: var(--fs-lg); font-weight: var(--w-black); color: var(--ink); letter-spacing: -0.01em; }
 .wz-hint { font-size: var(--fs-sm); color: var(--ink-4); margin-bottom: 12px; }
-.wz-lockv { font-size: var(--fs-sm); color: var(--mut-3); }
+.wz-lockv { font-size: var(--fs-sm); color: var(--mut); }
 .wz-chg { font-size: var(--fs-sm); color: var(--ink-4); flex-shrink: 0; margin-top: 4px; cursor: pointer; }
 .wz-chg:hover { color: var(--blue); }
 .wz-ta { display: block; width: 100%; border: 1px solid var(--blue-line); border-radius: var(--r-md); background: var(--surface); resize: vertical; min-height: 3rem; padding: 10px 12px; }
@@ -52,7 +52,7 @@
 
 .wz-listrow { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 12px 20px; margin-top: 8px; }
 .wz-lc { display: flex; gap: 4px; }
-.wz-icon { border: none; background: none; cursor: pointer; color: var(--mut-3); font-size: var(--fs-md); min-width: 40px; min-height: 40px; }
+.wz-icon { border: none; background: none; cursor: pointer; color: var(--mut); font-size: var(--fs-md); min-width: 40px; min-height: 40px; }
 .wz-icon:hover { color: var(--red); }
 
 /* ── PHASE 2: Priorisieren (Einordnen in Gruppen) ────────────────────────── */
@@ -68,7 +68,7 @@
 .wz-qrow + .wz-qrow { border-top: 1px solid var(--line-soft); }
 .wz-qrow .wz-lt { font-size: var(--fs-sm); }
 .wz-qrow .wz-lc { color: var(--mut-2); font-size: var(--fs-sm); }
-.wz-gempty { color: var(--mut-3); font-size: var(--fs-sm); padding: 6px 2px; }
+.wz-gempty { color: var(--mut); font-size: var(--fs-sm); padding: 6px 2px; }
 .wz-prow.reopen { flex-direction: column; align-items: stretch; gap: 8px; }
 
 /* ── PHASE 3: Planen (Fokus-Karte + Warteschlange) ───────────────────────── */
@@ -91,7 +91,7 @@
 .wz-wchip { font-size: var(--fs-sm); color: var(--ink-4); border: 1px solid var(--line); background: var(--surface); padding: 8px 12px; border-radius: 11px; cursor: pointer; }
 .wz-wchip.on { background: var(--blue); color: #fff; font-weight: var(--w-bold); border-color: var(--blue); }
 .wz-date { font-size: var(--fs-sm); border: 1px solid var(--line); border-radius: 9px; padding: 7px 8px; font-family: var(--font); color: var(--ink-3); }
-.wz-rm { border: none; background: none; cursor: pointer; color: var(--mut-3); font-size: var(--fs-md); min-width: 36px; min-height: 36px; }
+.wz-rm { border: none; background: none; cursor: pointer; color: var(--mut); font-size: var(--fs-md); min-width: 36px; min-height: 36px; }
 .wz-rm:hover { color: var(--red); }
 .wz-add { color: var(--ink-4); font-size: var(--fs-nav); padding: 12px 0 4px 78px; cursor: pointer; }
 .wz-add:hover { color: var(--blue); }

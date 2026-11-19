@@ -13,7 +13,7 @@
 .zl-stv { color: #fff; font-size: var(--fs-kpi); font-weight: var(--w-black); }
 .zl-stv.zl-g { color: #9fd4b4; }
 .zl-stv.zl-r { color: #f2b8bb; }
-.zl-stl { color: rgba(255, 255, 255, 0.55); font-size: var(--fs-2xs); }
+.zl-stl { color: rgba(255, 255, 255, 0.7); font-size: var(--fs-2xs); }
 .zl-recapbtn { margin-top: 16px; width: 100%; text-align: left; font-family: var(--font); font-size: var(--fs-sm); font-weight: var(--w-med); color: rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--r-md); padding: 9px 12px; cursor: pointer; min-height: 40px; }
 .zl-recapbtn:hover { background: rgba(255, 255, 255, 0.15); }
 
@@ -69,7 +69,7 @@
 .zl-tickdot.maj { background: var(--blue); width: 7px; height: 7px; }
 .zl-tickyr { font-size: var(--fs-2xs); color: var(--mut-2); font-variant-numeric: tabular-nums; }
 .zl-tickyr.maj { color: var(--ink-3); font-weight: var(--w-bold); }
-.zl-tickage { font-size: 10px; color: var(--mut-3); font-variant-numeric: tabular-nums; }
+.zl-tickage { font-size: 10px; color: var(--mut); font-variant-numeric: tabular-nums; }
 .zl-ms { font-size: 9.5px; font-weight: var(--w-black); color: #fff; background: var(--blue); border-radius: 4px; padding: 1px 5px; margin-bottom: 2px; white-space: nowrap; }
 .zl-ms2 { background: var(--blue-md); }
 .zl-zoom { position: absolute; right: 0; top: -34px; display: flex; gap: 5px; }
@@ -85,7 +85,7 @@
 .zl-rchint { font-size: var(--fs-2xs); color: var(--mut-2); }
 .zl-rcbody { display: flex; flex-direction: column; gap: 6px; }
 .zl-rcempty { font-size: var(--fs-xs); color: var(--mut-2); font-style: italic; }
-.zl-rcempty-r { color: var(--red-kicker); opacity: 0.7; }
+.zl-rcempty-r { color: var(--red-kicker); }
 .zl-ndchip { display: flex; align-items: center; gap: 8px; background: var(--blue-soft); border: 1px solid var(--blue-line); border-radius: var(--r-sm); padding: 6px 9px; cursor: pointer; font-family: var(--font); text-align: left; min-height: 34px; }
 .zl-ndchip.nd-g { background: var(--green-soft); border-color: #cfe0d5; }
 .zl-ndchip.nd-r { background: var(--red-soft); border-color: #e8d5d6; }
@@ -93,6 +93,7 @@
 .zl-ndchip.nd-g .zl-ndicon { color: var(--green); }
 .zl-ndicon svg { width: 100%; height: 100%; }
 .zl-ndname { font-size: var(--fs-xs); font-weight: var(--w-med); color: var(--ink-3); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zl-ndjahr { font-weight: var(--w-med); }
 .zl-ndamt { font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--ink-4); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .zl-wadd { font-family: var(--font); font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--red); background: none; border: 1px dashed var(--red-kicker); border-radius: var(--r-sm); padding: 3px 8px; cursor: pointer; }
 .zl-wadd:hover { background: var(--red-soft); }

@@ -186,3 +186,422 @@ als vorher. Regel 1 bleibt im Übrigen unangetastet: die Seite scrollt nicht.
   Das ist der Grund, warum die Obergrenze gemessen und nicht geschätzt wird.
 - Wer die Grenze verschieben will, misst neu: `typografie.spec.ts` nagelt
   Lesegrösse und Navigations-Überlauf fest.
+
+---
+
+## ADR-16 — Gemeinsamer Haushalts-Stand und Pensionierungs-Rechenkern (Fusion PensCheck)
+
+**Kontext.** bbz360 soll zur Gesamtberatungs-App werden (`docs/ZIELBILD-FUSION.md`).
+Der PensCheck (`bbzsg/PensCheck`, Stand `4830eff`) rechnet monatsgenau mit AHV,
+Pensionskasse, Säule 3a, Freizügigkeit, Liegenschaften, Steuern und Wünschen und
+bringt geprüfte Grundlagen mit Quellen mit. bbz360 hält dieselben Kundenangaben
+bisher verteilt (`cockpit_*`, `finanzierung_data`, Stammdaten).
+
+**Entscheid.**
+- Der Rechenkern des PensCheck liegt als TypeScript-Port unter `src/lib/pension/`
+  (`engine`, `analyse`, `aktion`, `params`, `state`, `themen`, `budget`,
+  `auswertung`, `format`, `config`). Die Portierung ändert **keine** Rechenlogik:
+  nur Typen kamen dazu. `finance.ts` (07a/07b) bleibt daneben unverändert.
+- Die Grundlagen liegen unter `public/data/params.json` und `verification.json`,
+  die Prüf- und Nachführskripte unter `scripts/`.
+- `SessionData` erhält den Schlüssel `haushalt` (Typ `PensState`);
+  `SCHEMA_VERSION` steigt auf 3. `migrate()` lässt Sessions ohne `haushalt`
+  unverändert und schickt einen vorhandenen Stand durch `sanitize()`.
+- `src/lib/haushalt.ts` ist der einzige Zugang: `haushaltLesen()` liefert den
+  gespeicherten Stand oder leitet einen ersten Stand aus Stammdaten und Cockpit
+  ab; `haushaltImport()` liest einen PensCheck-Link, -Code oder JSON-Stand.
+
+**Abnahme.** Die PensCheck-Tests zum Rechenkern laufen unverändert als
+Referenz unter `tests/unit/pension/` (Kopfzeile `@ts-nocheck`, da wörtlich
+übernommen). Tests, die die PensCheck-Oberfläche oder dessen Datenschutztext
+prüfen, wandern mit dem jeweiligen UI-Teil in späteren Phasen nach.
+
+**Konsequenzen.**
+- Der öffentliche PensCheck bleibt unabhängig; Grundlagen werden künftig in
+  beiden Repos nachgeführt (bewusst in Kauf genommen, siehe Zielbild §7).
+- `haushalt` ist Session-Scope und fällt bei `clearSession` weg.
+- Die bisherigen `cockpit_*`-Schlüssel bleiben vorerst Quelle für 05/07a/07b;
+  ihre Ablösung durch `haushalt` ist Phase 4.
+
+**Nachtrag Phase 2 — Modul 07c.**
+- Die Oberfläche des PensCheck liegt typisiert unter `src/pension-ui/`, die
+  Seite ist `modules/07c-pension.html`, der Einstieg `src/modules/07c-pension.ts`
+  (entspricht `main.js` des PensCheck). Für das Beratungsgespräch entfallen
+  Service Worker, Installation, Link-Teilen, Kontakt-Fusszeile und der
+  Datenschutztext der öffentlichen App; der Stand liegt als `haushalt` in bbzData.
+- **Gestaltung:** 07c bringt das bbz Brand System mit (`src/styles/pension/`)
+  und lädt `theme.css` bewusst **nicht** — gleichnamige Tokens (`--bg`,
+  `--ink-2` …) und Klassen (`.panel`) würden sich überschreiben. Die Topbar ist
+  in `07c-pension.css` nachgebaut. Die Seite scrollt (Regel 1 der DESIGN-SPEC
+  gilt hier nicht); die Angleichung der übrigen Module ist Phase 9.
+- **Build-Falle:** 07c darf `lib/speicher-hinweis` nicht statisch importieren,
+  sonst lagert der Build `theme.css` aus und bindet es nach den Modul-Stilen
+  ein (`tests/e2e/css-reihenfolge.spec.ts` hält das fest). Ein voller Speicher
+  wird in 07c als Meldung gezeigt.
+- **Navigation:** 12 Reiter; Abstände in der Topbar sind enger (ADR-15 bleibt:
+  14px fix, kein Überlauf — `typografie.spec.ts`, `enge-schirme.spec.ts`).
+- **Beratercockpit und Abschluss:** Pensionierung ist dritte Vertiefung
+  (`b07c`); Modul 10 zeigt Urteil, tragbare Ausgaben und nächste Schritte
+  (`src/lib/pension/kurz.ts`) und bietet «Bericht Pensionierung» an.
+- **Tests:** Die Oberflächentests des PensCheck laufen unter
+  `tests/unit/pension/` (happy-dom). Angepasst bzw. weggelassen sind nur
+  Prüfungen, die die öffentliche App betreffen (Datenschutztext, Link-Teilen,
+  README, Prüf-Workflow); jede Stelle ist mit «bbz360:» kommentiert.
+
+---
+
+## ADR-17 — Haushalt führt: Cockpit 05 und Budget 05b auf dem gemeinsamen Stand
+
+**Kontext.** Nach ADR-16 übernahm die Pensionierung Lohn, Vermögen und Vorsorge
+nur einmalig aus dem Cockpit; danach konnten zwei Stände auseinanderlaufen.
+Entscheid des Auftraggebers (Interview, Phase 4): **Haushalt führt**, das
+Cockpit erfasst **Bruttolohn**, das Budget wird ein **eigenes Modul 05b**.
+
+**Entscheid.**
+- Die geteilten Grössen stehen nur im Haushalts-Stand: Liquidität,
+  Wertschriften, Säule 3a, PK-Guthaben, Bruttolohn und Geschlecht je Person,
+  Ausgaben heute. Das Cockpit liest sie beim Öffnen (`ausHaushalt`) und
+  schreibt sie beim Übernehmen eines Modals (`inHaushalt`,
+  `lib/haushalt.ts: gemeinsamAusHaushalt / gemeinsamInHaushalt`).
+- Details ohne Gegenstück bleiben in `cockpit_data` (Bank, Anzahl Konten,
+  Kanäle, Kommentare, Aufteilung Zahlungsverkehr/Sparen). Ändert die
+  Pensionierung die Liquidität, trägt das Sparen die Differenz; ändert das
+  Cockpit die Summe von 3a oder PK, geht die Differenz an Person 1.
+- **Abweichung vom v1-Feldinventar (ADR-12):** Im Modal «Ausgaben & Einkommen»
+  ersetzt je Person ein Feld Bruttolohn pro Jahr plus Geschlecht den
+  Umschalter netto/brutto. `f-eMann`/`f-eFrau` bleiben als Nettoeinkommen für
+  den Cashflow. Ältere Stände mit Typ «brutto» werden beim Öffnen in die
+  Bruttofelder verschoben. `cockpit_einkommen` (Prefill 07a) ist neu die Summe
+  der Bruttolöhne.
+- **Stammdaten:** Geänderte Namen und Geburtsdaten werden im Haushalts-Stand
+  nachgeführt (`stammdatenNachfuehren`, Merker `haushalt_stamm`); eine
+  Anpassung in der Pensionierung bleibt stehen, solange die Stammdaten
+  unverändert sind.
+- **05b Budget & Liquidität** (`modules/05b-budget.html`, `lib/budget.ts`):
+  Budget im Ruhestand mit den acht Positionen und Musterbudgets des PensCheck,
+  Ausgaben heute, Sparbetrag, Reserve. Im bbz Brand System wie 07c.
+- **Navigation:** 13 Reiter. Unter-Module (05b, 07a–07c) zeigen inaktiv nur
+  ihre Nummer; die Bezeichnung steht im Tooltip und im `aria-label`.
+
+**Annahmen (sichtbar im Modul 05b unter «So ist gerechnet»).**
+- Nettoeinkommen ohne Cockpit-Angabe: Bruttolohn abzüglich Sozialabgaben und
+  pauschaler Einkommenssteuer (wie im Rechenkern).
+- Reserve: Faustregel drei bis sechs Monatsausgaben — Richtwert, keine Quelle.
+
+**Nicht abgeglichen.** Die Finanzierung im Cockpit (Betrag, Kreditform) und die
+Liegenschaften der Pensionierung (Verkehrswert, Hypothek) sind noch getrennt;
+das gehört zum Lebensplan (Phase 5) bzw. zu 07a.
+
+---
+
+## ADR-18 — Lebensplan: ein abgeleiteter Stand über 06, 07a, 07b und 07c
+
+**Kontext.** Zielbild Phase 5: Ziele, Eigenheim, Anlegen und Pensionierung
+sollen in einer Zeitachse und einer Rechnung zusammenkommen.
+
+**Entscheid.**
+- `lib/lebensplan.ts` leitet aus Session und Haushalts-Stand **einen** Stand
+  ab, den der Pensionierungs-Rechenkern unverändert rechnet. Der Stand wird
+  nicht gespeichert; Quelle bleiben die Module.
+- Modul **07 Lebensplan** (`modules/07-lebensplan.html`) zeigt das Bild des
+  PensCheck mit Marken für alles, was mitrechnet, das Urteil mit und ohne
+  Ziele sowie die Liste aller Einträge mit Quelle und Status.
+- Der Rechenkern bleibt unangetastet. Was er nicht abbilden kann, wird als
+  «vorgemerkt» mit Begründung ausgewiesen, nie stillschweigend weggelassen.
+
+**Was mitrechnet.**
+- 06: Ziele und Wünsche mit Jahr und Betrag als einmalige Ausgabe.
+- 07a: die eigenen Barmittel im Kaufjahr (Jahr des ersten Ziels «Wohnen»,
+  wie beim Kaufpreis-Prefill); dieses Ziel wird nicht zusätzlich gezählt.
+- 07b: der Anlagebetrag wechselt von der Liquidität in die Wertschriften;
+  ohne eigene Rendite in der Pensionierung gilt die erwartete Rendite der
+  finalen Strategie (`finance.ts: STRATS`) für alle Wertschriften.
+
+**Bekannte Grenzen (im Modul unter «So ist gerechnet» genannt).**
+- Eigenheimkauf und Zuflüsse rechnet seit ADR-19 der erweiterte Kern.
+- 07b und der PensCheck führen eigene Renditeannahmen (z. B. «Ausgewogen»
+  2.75% gegenüber Profil «ausgewogen» 3%). Der Lebensplan nimmt die Annahme
+  aus 07b, weil sie dem Kunden dort gezeigt wurde.
+- Der Abschluss (10) zeigt seit ADR-19 das Urteil des Lebensplans und daneben
+  das der Pensionierung allein.
+
+---
+
+## ADR-19 — Additive Erweiterung des Rechenkerns: Zuflüsse und Liegenschaftskauf in der Zukunft
+
+**Kontext.** Der PensCheck-Kern kannte weder einen Zufluss ins Vermögen noch
+einen Kauf in der Zukunft; im Lebensplan waren beide nur vorgemerkt bzw. auf
+den Abfluss der Barmittel verkürzt. Entscheid des Auftraggebers (Review nach
+Phase 5): **Kern additiv erweitern.**
+
+**Entscheid.** Erste fachliche Änderung am Kern gegenüber PensCheck
+(`src/lib/pension/engine.ts`, jede Stelle mit «bbz360 (ADR-19)» markiert):
+- **Zuflüsse** (`PensState.zufluesse`: Name, Betrag, Kalenderjahr): gehen im
+  Januar des Jahres ins freie Vermögen, in heutiger Kaufkraft. Keine
+  Erbschafts- oder Schenkungssteuer.
+- **Kauf in der Zukunft** (optionale Felder an der Liegenschaft):
+  `kaufAlter` (Alter Person 1), `kaufFremd` (PK-Vorbezug), `kaufMieteWeg`.
+  Bis zum Kauf gibt es die Liegenschaft nicht (kein Wert, keine Hypothek,
+  keine Kosten). Beim Kauf fliessen die Eigenmittel (Preis − Hypothek, beide
+  auf den Kaufmonat fortgeschrieben) aus dem freien Vermögen ab; ein
+  PK-Vorbezug fliesst als besteuerter Kapitalbezug zu. Bei einem Eigenheim
+  kommen danach Zins, Unterhalt und Nebenkosten zu den Ausgaben, die
+  bisherige Miete fällt weg.
+- Die Kürzung der Pensionskasse nach einem Vorbezug macht der Lebensplan am
+  Stand (im Verhältnis zum Altersguthaben, sonst über den Umwandlungssatz
+  `annahmen.uws65`), nicht der Kern.
+
+**Gleichheit mit PensCheck.** Die neuen Felder entstehen in `sanitize()` nur,
+wenn sie gesetzt sind. Ohne sie ist die Rechnung unverändert: Die
+Referenztests laufen weiter, und der Vergleich Port ↔ Original (sieben Fälle,
+je mit und ohne früheren Ausstieg) ist nach der Änderung erneut identisch.
+Mit den neuen Feldern rechnet bbz360 mehr als PensCheck.
+
+**Tests.** `tests/unit/kern-erweiterung.test.ts`, `tests/unit/lebensplan.test.ts`.
+
+**Grenzen.**
+- Ohne Jahreszeile («heute») zählt `eigenkapitalReal` eine Liegenschaft mit
+  `kaufAlter` nicht mit.
+- Auswertungen, die Liegenschaften statisch lesen (Fixkosten «Wohnen»,
+  Amortisationsvorschlag), kennen den Kaufzeitpunkt nicht. Sie werden für
+  den Lebensplan-Stand nicht angezeigt; ein künftiger Kauf wird deshalb nur
+  im Lebensplan abgeleitet und nicht im Haushalts-Stand gespeichert.
+- Der PK-Vorbezug wird Person 1 zugerechnet; Verzinsung des vorbezogenen
+  Betrags bis zur Pensionierung ist nicht berücksichtigt.
+- Ein vom Kunden im öffentlichen PensCheck geöffneter Link kennt diese
+  Felder nicht (dort fallen sie weg).
+
+---
+
+## ADR-20 — Fachmodule 07d Steuern, 07e Absicherung, 07f Nachlass
+
+**Kontext.** Zielbild Phasen 6–8, Vorgabe «rechnend, wo belegbar»: gerechnet
+wird nur mit öffentlich prüfbaren Grundlagen; alles Übrige ist
+Gesprächsführung mit Themen zum Vormerken. Freigabe des Auftraggebers: bauen,
+fachliche Abnahme durch die Bank danach. **Diese Abnahme steht aus.**
+
+**07d Steuern** (`lib/steuern.ts`).
+- Gerechnet: Steuer auf Kapitalbezügen je Jahr wie geplant, verglichen mit
+  «alles im selben Jahr» und «jeder Bezug einzeln» (ESTV-Tabelle der
+  Kantonshauptorte aus den geprüften Grundlagen); Vermögenssteuer heute.
+- Abzüge (Säule 3a, PK-Einkauf): Betrag × **erfasster** Grenzsteuersatz. Der
+  Grenzsteuersatz wird nicht geschätzt (kantonale Einkommenssteuertarife sind
+  Nicht-Ziel). Sperrfrist Art. 79b Abs. 3 BVG wird gegen den Plan geprüft.
+
+**07e Absicherung** (`lib/absicherung.ts`).
+- Gerechnet je Person für Invalidität und Tod: AHV/IV-Renten als gesetzliche
+  Anteile der geschätzten Altersrente (Art. 36/37 AHVG, Art. 37/38 IVG), bei
+  Unfall die UVG-Renten samt Komplementärgrenze (Art. 20/31 UVG,
+  Höchstverdienst CHF 148’200), Pensionskasse **laut Vorsorgeausweis**
+  (Eingabe), begrenzt auf 90% des Lohns (Art. 34a BVG, Art. 24 BVV 2).
+- Nicht geschätzt: BVG-Minimalleistungen. Nicht gerechnet: Plafonierung von
+  Kinderrenten, Taggelder, Wartefristen, Teilinvalidität, Steuern.
+- **Nicht automatisch geprüft:** Die Anteile und der UVG-Höchstverdienst
+  stehen als Konstanten im Code (`ANTEILE`, `UVG_MAX_VERDIENST`), nicht in
+  `params.json`. Der Höchstverdienst wurde im November 2026 für 2026
+  nachgeschlagen; für 2027 ist er zu prüfen. Die Reform der
+  Hinterlassenenrenten ist im Parlament hängig; gerechnet ist das geltende
+  Recht mit vereinfachter Anspruchsprüfung.
+
+**07f Nachlass** (`lib/nachlass.ts`).
+- Gerechnet: gesetzliche Erbteile (Art. 457–462 ZGB), Pflichtteile (Art. 471
+  ZGB, Fassung seit 1.1.2023) und frei verfügbare Quote.
+- Der Nachlass ist eine Eingabe; ohne Eingabe gilt als ausgewiesene Annahme
+  die Hälfte (Paare) bzw. das Ganze (Alleinstehende) des Reinvermögens.
+  Güterrecht, Verträge, Vorempfänge und Erbschaftssteuern sind nicht gerechnet.
+- Erwartete Erbschaften werden als **Zuflüsse** im Haushalts-Stand gespeichert
+  und rechnen in Pensionierung und Lebensplan mit (ADR-19).
+
+**Gemeinsam.**
+- Eingaben liegen in bbzData unter `steuern`, `absicherung`, `nachlass` und
+  `familie_kinder` (Session-Scope). Themen zum Vormerken: `lib/fach-themen.ts`.
+- Der Abschluss (10) nennt vorgemerkte Themen und die grösste Lücke der
+  Absicherung; der Druckbericht hat je aktive Vertiefung einen Abschnitt.
+- Beratercockpit: 07d–07f sind Vertiefungen (`b07d`–`b07f`).
+- **Navigation:** 17 Reiter. Unter-Module zeigen inaktiv nur die Nummer;
+  reicht der Platz auch dann nicht, verzichtet das aktive Unter-Modul auf
+  seine Bezeichnung (`nav.ts`, Klasse `eng`). Auf den Brand-Seiten wird die
+  gleichnamige Komponente `.bbz-nav` des Brand System zurückgesetzt.
+- Jedes Modul nennt unter «So ist gerechnet» Grundlagen und Vereinfachungen
+  und hält fest, dass es keine Steuer- bzw. Rechtsberatung ist.
+
+---
+
+## ADR-21 — Look v4 (Brand-Tokens und -Schriften) und PWA/offline
+
+**Kontext.** Zielbild Phase 9: «PensCheck-Look führt» im Umfang Tokens,
+Schriften und Markenzeichen; dazu offline-fähig als PWA.
+
+**Look.**
+- `theme.css` (v4) trägt die Farbwerte des bbz Brand System, die Schriften
+  Selawik/Segoe UI und Space Grotesk (eingebettet) und nur noch die Gewichte
+  400 und 700; Vertikallinie am Säulen-Titel. Layout und Bühnen-Grammatik der
+  Module 01–10 sind unverändert (DESIGN-SPEC §7).
+- Der Abruf von Google Fonts ist aus allen Seiten entfernt: keine fremden
+  Adressen mehr im Seitengerüst (Voraussetzung für offline).
+- Beratercockpit: Die Spalte «Vertiefung» ist breiter und zweispaltig, weil
+  sie sechs Kacheln trägt.
+
+**PWA.**
+- `vite-plugin-pwa`: Manifest (`bbz360`, standalone), Service Worker mit
+  Vorab-Cache aller Seiten, Skripte, Stile, Grundlagen, Schriften und Bilder
+  (rund 4.7 MB). Multi-Page-App: kein Rückfall auf `index.html`.
+- `registerType: 'prompt'` ohne eigene Oberfläche: Eine neue Version wird im
+  Hintergrund geladen und gilt, sobald alle Fenster der App geschlossen
+  waren. Mitten im Gespräch wird nichts neu geladen.
+- Kundendaten bleiben wie bisher im localStorage (ADR-8, ADR-14); der
+  Zwischenspeicher des Service Workers zählt nicht zu dessen 5 MB.
+- `tests/e2e/offline.spec.ts`: Module laden ohne Netz, die Pensionierung
+  rechnet, Lebensplan und Abschluss zeigen das Urteil.
+
+**Konsequenzen.**
+- Nach einem Deploy sehen Geräte die neue Version erst nach dem Schliessen
+  aller Fenster. Wer sofort aktualisieren muss, schliesst die App und öffnet
+  sie neu.
+- Lokal hochgeladene Bilder (Overrides) liegen weiterhin im localStorage und
+  sind nicht Teil des Vorab-Caches.
+- Der PDF-Bericht der Pensionierung lädt jsPDF beim ersten Gebrauch nach;
+  die Dateien sind im Vorab-Cache enthalten.
+
+---
+
+## ADR-22 — Ein Kundenfall pro Sitzung; Regeln für den gemeinsamen Stand (Korrekturen nach dem Assessment)
+
+**Kontext.** Das Assessment vom 2026-11-16 (`docs/assessment-2026-11-fusion.md`)
+fand 15 Fehler der Klasse A. Ihre gemeinsame Ursache: Funktionen und Regeln des
+PensCheck, die dort für einen einzelnen, eigenständigen Stand gedacht waren,
+trafen in bbz360 auf einen Stand, der allen Modulen gehört. Entscheid des
+Auftraggebers: **Die App muss in sich stringent funktionieren; es gibt einen
+Kundenfall, nicht zwei.**
+
+**Regeln.**
+1. **Ein Fall.** Es gibt keinen Musterfall, kein «Neu beginnen» und keinen
+   Übungsmodus in der Pensionierung (`app.einFall`; der Tutor beginnt beim
+   ersten Erfassungsschritt). Zurückgesetzt wird nur im Beratercockpit («Neue
+   Beratung»). Ersetzt wird der Stand nur durch «PensCheck-Stand einlesen»,
+   nach einer Rückfrage, die nennt, was ersetzt wird.
+2. **Haushalt führt.** Geteilte Grössen stehen nur im Haushalts-Stand. Was
+   Module daneben speichern (`cockpit_data`, `cockpit_einkommen`,
+   `cockpit_pk_saldo`), ist Gliederung oder Vorbelegung und wird beim Öffnen
+   bzw. beim Schreiben des Stands nachgeführt (`haushaltSchreiben` schreibt
+   die Vorbelegungen mit).
+3. **Stammdaten gehen vor.** Namen und Geburtsdaten kommen aus dem
+   Beratercockpit; sie werden nachgeführt, sobald sie sich ändern, und auf
+   einen eingelesenen Stand angewendet (`stammdatenAnwenden`).
+4. **Zwei Personen** gibt es, wenn die Stammdaten eine zweite Person nennen
+   oder das Cockpit ein Einkommen für Person 2 trägt (Annahme «verheiratet»).
+   Wählt jemand in der Pensionierung «alleinstehend», entfällt das Einkommen
+   von Person 2 im Cockpit.
+5. **Ausgaben heute** haben einen Betrag (im Haushalts-Stand). Das Cockpit
+   gliedert ihn in vier Kategorien; ändert ihn ein anderes Modul, trägt
+   «Haushalt & Lebenshaltung» die Differenz, darunter werden alle Kategorien
+   im selben Verhältnis gekürzt. Geschrieben wird er vom Cockpit nur im Modal
+   «Ausgaben & Einkommen»; 0 heisst «nicht erfasst».
+6. **Einkommen für 07a:** je Person der Bruttolohn; fehlt er, ihr im Cockpit
+   erfasstes Nettoeinkommen. Ältere Stände mit Einkommens-Typ «brutto» tragen
+   Brutto, kein Netto.
+7. **Kinder** sind zwei Angaben: alle Kinder (`familie_kinder`, für Erbfolge
+   und Anspruch auf Witwen- oder Witwerrente) und davon die unter 18 oder in
+   Ausbildung (`familie_kinder_abh`, für Kinder- und Waisenrenten).
+8. **Der Lebensplan rechnet in Kalenderjahren.** Ausgaben, Zuflüsse und ein
+   Kauf fallen im Januar an, im laufenden Jahr sofort; Einträge nach dem
+   Planungshorizont sind vorgemerkt.
+9. **Der Kauf ist ein Ziel.** 07a ordnet den Kauf einem Ziel aus 06 zu
+   (`finanzierung_data.zielId`; ohne Wahl das erste Ziel «Wohnen» mit Betrag,
+   wie die Vorbelegung des Kaufpreises). Sein Jahr ist das Kaufjahr; es zählt
+   nicht zusätzlich als Ausgabe.
+10. **Nichts doppelt.** Was der Kern schon rechnet (PK-Kapital, 3a,
+    Liegenschaftsverkauf), wird aus gleichnamigen Einträgen in 06 nicht noch
+    einmal dazugezählt.
+11. **Tests erzeugen ihre Daten über die Module.** Der Musterfall der
+    E2E-Tests wird über «PensCheck-Stand einlesen» geladen; Schlüssel, die im
+    Betrieb kein Modul schreibt, dürfen in Tests nicht von Hand gesetzt werden
+    (so blieb unentdeckt, dass `anlage_betrag` nie geschrieben wurde).
+
+**Änderungen an früheren Entscheiden.**
+- **ADR-16:** `haushaltLesen()` liefert nie einen Übungsfall (`ui.practice`
+  ist immer falsch).
+- **ADR-17:** Summen von 3a und PK gelten als unverändert, wenn sie auf den
+  Franken übereinstimmen. Der Zivilstand «Konkubinat» wird gemerkt, wenn die
+  zweite Person aus den Stammdaten fällt und wiederkommt.
+- **ADR-18:** 07b schreibt `anlage_betrag`. Die Eintrittswahrscheinlichkeit
+  eines Ziels wird im Hinweis genannt; gerechnet ist der volle Betrag.
+- **ADR-19:** Die Liegenschaft trägt ein Kaufjahr (`kaufJahr`) statt eines
+  Kaufalters; ein erreichtes Kaufjahr heisst «im Besitz», überall gleich
+  (Simulation, Eigenkapital, Vermögenssteuer). Einmalige Ausgaben können ein
+  Kalenderjahr tragen (`Wunsch.jahr`). Der PK-Vorbezug steht in heutiger
+  Kaufkraft, ist auf die Eigenmittel begrenzt, nur vor der Pensionierung und
+  bis zum Guthaben möglich und kürzt Rente und Kapital im selben Verhältnis.
+  Die wegfallende Miete sinkt ab 75 mit den Ausgaben; Ausgaben werden nicht
+  negativ. Eine erst nach der Pensionierung gekaufte Liegenschaft zählt nicht
+  ungeprüft als Reserve. Die Jahresrechnung (07c, PDF) zeigt Zuflüsse unter
+  «Übr. Eink.» und Eigenmittel eines Kaufs unter «Liegensch.» und geht auf.
+- **ADR-20:** Absicherung nur für Erwerbstätige vor dem Referenzalter;
+  UVG-Ehegattenrente nur mit Anspruch (Art. 29 Abs. 3 UVG); Sperrfrist nach
+  PK-Einkauf vorsichtig vom Einkaufsjahr bis und mit dem dritten Folgejahr;
+  Zuflüsse-Editor mit Entwurf für unvollständige Zeilen.
+- **ADR-21:** Kontrast der inaktiven Navigationsreiter und der abgewählten
+  Kacheln im Beratercockpit angehoben.
+
+**Nachtrag nach dem zweiten Prüflauf (2026-11-16).**
+12. **Vorbelegungen werden gerechnet, nicht gelesen.** 07a, 07b und 10 holen Einkommen, PK-Guthaben und
+    anlagefähiges Kapital über `vorbelegung()` aus dem aktuellen Stand; die gespeicherten Schlüssel
+    (`cockpit_einkommen`, `cockpit_pk_saldo`, `cockpit_anlage_f`) gelten nur noch für Sitzungen ohne
+    Haushalts-Stand. Modul 10 rechnet die Absicherung auf `haushaltLesen()` wie 07e.
+13. **Aus der Einzelperson wird ein Paar:** Die Summen im Cockpit galten der Einzelperson; 3a und PK von Person 1
+    bleiben, die Werte von Person 2 kommen dazu.
+14. **Netto je Person** (05b): im Cockpit erfasst, sonst aus dem Bruttolohn geschätzt. Nach dem Einlesen eines
+    PensCheck-Stands entfällt das Netto des bisherigen Falls.
+15. **Erwerbstätig** heisst in 05b und 07e: Lohn erfasst, vor dem geplanten Pensionierungsalter und vor dem
+    Referenzalter (wie im Rechenkern und in 07d).
+16. **Verpflichtungen** (Leasing, Unterhalt) sind Monatsbeträge, unabhängig von der Eingabe-Frequenz der Einkommen.
+17. **Sparen, Anlegen, Vorsorgen sind keine Ausgaben:** Die Vorschläge «Liquidität aufbauen», «Anlageziel
+    Wertschriften», «Vermögen strukturieren», «Vorsorgelücke schliessen», «BVG-Einkauf», «Säule 3a aufbauen» aus 06
+    bleiben vorgemerkt.
+18. **PK-Vorbezug:** Der Kern zahlt ihn in heutiger Kaufkraft aus; um denselben, teuerungsbereinigten Betrag sinkt
+    das Guthaben. Grenze: Eigenmittel (höchstens der Kaufpreis) und Guthaben.
+19. **Planungshorizont in Kalenderjahren** ist das letzte Jahr, das der Kern rechnet (`planBisJahr`).
+20. **Ungültige Jahre** (0, ausserhalb 1990–2150) in Zufluss, Ausgabe und Kauf werden verworfen, nicht geklemmt.
+21. **Zuflüsse aus 07f** stehen in der Liste des Lebensplans und des Abschlusses.
+22. **Keine Entwarnung ohne Rechnung:** Der Abschluss unterscheidet «gedeckt», «kein Fall gerechnet» und «Rechnung
+    nicht möglich»; 07d sagt ohne Rechnung nichts über Kapitalbezüge in der Sperrfrist. Ein Todesfall wird nur
+    gerechnet, wenn jemand mit Bedarf zurückbleibt (Partner oder abhängige Kinder).
+23. **Kontrast:** Schrift auf dunklem Grund mindestens Weiss 70%; `--mut-3` (neutral 400) ist keine Schriftfarbe.
+    Alle 19 Seiten bestehen die automatische Prüfung (axe, WCAG 2.1 AA), leer und mit gefülltem Fall.
+
+**Nachtrag nach dem dritten Prüflauf (2026-11-16).**
+24. **Kein veralteter Stand auf dem Bildschirm.** Ein Modul liest den Stand beim Laden und schreibt ihn bei der
+    nächsten Eingabe. Holt der Browser eine Seite mit «Zurück» aus seinem Zwischenspeicher, oder hat ein anderer
+    Tab gespeichert, wird die Seite neu geladen (`lib/data.ts`). Das Cockpit liest den Stand nach jedem Speichern
+    neu.
+25. **Vorbelegt ist nicht erfasst** (07a). Felder, die nur vorbelegt und nie geändert wurden, stehen in
+    `finanzierung_data.vorbelegt`; sie werden bei jedem Besuch neu aus dem Stand geholt, und der Abschluss rechnet
+    mit denselben Werten. Ein nur vorbelegter Kaufpreis ist kein Kauf, solange keine Eigenmittel erfasst sind
+    (`kaufErfasst`): Der blosse Besuch von 07a ändert den Lebensplan nicht.
+26. **Lohn als Einnahme** zählt bis zum geplanten Pensionierungsalter, auch über dem Referenzalter (05b, 07e,
+    Rechenkern). Ein eigener Invaliditäts- oder Todesfall wird nur vor dem Referenzalter gerechnet. (Punkt 15 ist
+    damit präzisiert: Für 05b gilt nur das Pensionierungsalter.)
+27. **PK-Vorbezug:** Die Teuerung bis zum Kauf rechnet in Monaten ab heute, wie der Kern auszahlt.
+28. **Anlage ohne Liquidität** ist vorgemerkt und ändert auch die Rendite nicht.
+29. **Nach dem Einlesen eines PensCheck-Stands** entfallen im Cockpit Netto, Gliederung der Ausgaben und
+    Verpflichtungen des bisherigen Falls.
+30. **Betragsfelder im Cockpit** markieren beim Fokus ihren Inhalt: Tippen ersetzt den Betrag.
+
+**Bewusst nicht geändert (bekannte Grenzen).**
+- Eine zweite Person ohne Geburtsdatum rechnet mit dem Vorgabe-Jahrgang, bis
+  er in den Stammdaten oder in der Pensionierung erfasst ist.
+- Verkaufsalter vor dem Kaufjahr und Amortisationen vor dem Kauf sind über
+  die Oberfläche nicht erreichbar und werden nicht eigens abgefangen.
+- Nach dem Verkauf eines in der Zukunft gekauften Eigenheims kommt die frühere
+  Miete nicht automatisch zurück.
+- Im Kaufmonat rechnet die Vermögenssteuer einen Monat lang mit dem alten
+  freien Vermögen und der neuen Liegenschaft.
+- Dieselbe Erbschaft in 06 (als Geldzufluss) und in 07f erfasst zählt doppelt; beide stehen in der Liste.
+- Die Grenze des PK-Vorbezugs ist das Altersguthaben bei der Pensionierung, nicht das Guthaben im Kaufjahr; der
+  Vorbezug gehört immer Person 1. Ein Kauf im Januar des Pensionierungsjahres gilt als «nach der Pensionierung».
+- In der Absicherung sind Renten einer nicht mehr erwerbstätigen zweiten Person und übrige Einkommen nicht
+  gerechnet; der Fall sagt es.
+- Ein automatischer Differenztest gegen den PensCheck-Rechenkern fehlt im Repo (das Original liegt in einem anderen
+  Repository). Die Gleichheit ohne die neuen Felder ist von Hand belegt: 1302 Zufallsläufe, 0 Abweichungen.
+- 07b schreibt beim Abschluss der Konklusion auch einen nur vorbelegten Anlagebetrag fest; sinkt die Liquidität
+  später, begrenzt der Lebensplan ihn auf die Liquidität und sagt es im Hinweis.

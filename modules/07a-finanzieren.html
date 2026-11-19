@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>bbz360 — Eigenheimfinanzierung</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
   <script type="module" src="/src/modules/07a-finanzieren.ts"></script>
 </head>
 <body class="bbz-app">
@@ -115,6 +114,8 @@
             <div class="fz-field"><label for="currentRent">Aktuelle Wohnkosten (mtl.)</label><div class="fz-frow"><input type="text" id="currentRent" data-v1-field="currentRent" class="ni" placeholder="hier erfassen"><span>CHF</span></div></div>
             <div class="fz-field"><label for="age">Alter</label><div class="fz-frow"><input type="text" id="age" data-v1-field="age" placeholder="aus Stammdaten"><span>Jahre</span></div></div>
             <div class="fz-seclbl">OBJEKT &amp; EIGENMITTEL</div>
+            <!-- ADR-22: Der Kauf ist ein Ziel aus Modul 06; Jahr und Bezeichnung kommen von dort (Lebensplan). -->
+            <div class="fz-field"><label for="zielWahl">Kauf gehört zum Ziel</label><div class="fz-frow"><select id="zielWahl"></select></div></div>
             <div class="fz-field"><label for="price">Kaufpreis</label><div class="fz-frow"><input type="text" id="price" data-v1-field="price" class="ni" placeholder="aus Ziele &amp; Wünsche"><span>CHF</span></div></div>
             <div class="fz-field"><label for="cashEquity">Barmittel</label><div class="fz-frow"><input type="text" id="cashEquity" data-v1-field="cashEquity" class="ni" placeholder="hier erfassen"><span>CHF</span></div></div>
             <div class="fz-field"><label for="pensionWithdraw">2. Säule (Vorbezug)</label><div class="fz-frow"><input type="text" id="pensionWithdraw" data-v1-field="pensionWithdraw" class="ni" placeholder="hier erfassen"><span>CHF</span></div></div>

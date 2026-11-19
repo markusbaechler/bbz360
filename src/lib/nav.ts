@@ -19,9 +19,15 @@ export const MODULES: NavModule[] = [
   { id: '03', label: 'Berater:in', file: '03-berater.html' },
   { id: '04', label: 'Philosophie', file: '04-philosophie.html' },
   { id: '05', label: 'Cockpit', file: '05-cockpit.html' },
+  { id: '05b', label: 'Budget', file: '05b-budget.html', sub: true },
   { id: '06', label: 'Ziele', file: '06-ziele.html' },
+  { id: '07', label: 'Lebensplan', file: '07-lebensplan.html' },
   { id: '07a', label: 'Finanzieren', file: '07a-finanzieren.html', sub: true },
   { id: '07b', label: 'Anlegen', file: '07b-anlegen.html', sub: true },
+  { id: '07c', label: 'Pension', file: '07c-pension.html', sub: true },
+  { id: '07d', label: 'Steuern', file: '07d-steuern.html', sub: true },
+  { id: '07e', label: 'Absicherung', file: '07e-absicherung.html', sub: true },
+  { id: '07f', label: 'Nachlass', file: '07f-nachlass.html', sub: true },
   { id: '08', label: 'Vereinbarungen', file: '08-vereinbarungen.html' },
   { id: '09', label: 'Feedback', file: '09-feedback.html' },
   { id: '10', label: 'Abschluss', file: '10-abschluss.html' },
@@ -54,7 +60,14 @@ export function buildNav(opts: NavOptions): HTMLElement {
     num.className = 'bbz-nav-num';
     num.textContent = m.id;
     a.appendChild(num);
-    a.appendChild(document.createTextNode(' ' + m.label));  // Abstand Nummer↔Label
+    // Label als eigenes Element: Unter-Module (sub) zeigen es nur, wenn sie aktiv sind (theme.css) —
+    // seit 05b/07c traegt die Topbar 13 Reiter. Die Bezeichnung bleibt als Tooltip und fuer Screenreader.
+    const lbl = document.createElement('span');
+    lbl.className = 'bbz-nav-lbl';
+    lbl.textContent = '\u00a0' + m.label;  // Abstand Nummer↔Label
+    a.appendChild(lbl);
+    a.title = m.label;
+    a.setAttribute('aria-label', `${m.id} ${m.label}`);
     nav.appendChild(a);
   }
   return nav;
@@ -64,4 +77,14 @@ export function buildNav(opts: NavOptions): HTMLElement {
 export function mountNav(target: Element, opts: NavOptions): void {
   const nav = buildNav(opts);
   target.replaceChildren(...Array.from(nav.childNodes));
+  // 17 Reiter (ADR-20): Reicht der Platz nicht, verzichtet auch das aktive Unter-Modul auf seine Bezeichnung
+  // (Klasse «eng», theme.css); der Titel steht auf der Seite. Neu gemessen bei Groessenwechsel und sobald die
+  // Schrift geladen ist.
+  const anpassen = (): void => {
+    target.classList.remove('eng');
+    if (target.scrollWidth > target.clientWidth + 1) target.classList.add('eng');
+  };
+  anpassen();
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(anpassen).observe(target);
+  void document.fonts?.ready.then(anpassen);
 }

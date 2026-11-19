@@ -23,9 +23,11 @@ import '../styles/theme.css';
 import '../styles/modules/07a-finanzieren.css';
 import '../lib/speicher-hinweis'; // Warnung bei vollem Speicher
 import { BBZ } from '../lib/data';
+import { vorbelegung } from '../lib/haushalt';
 import { mountNav } from '../lib/nav';
 import { tragbarkeit, type TragbarkeitResult } from '../lib/finance';
 import { fmt, parseNum as pN, age as calcAge } from '../lib/format';
+import { kaufZiel } from '../lib/lebensplan';
 
 interface Tranche { p: string; a: number }
 interface Variant { id: number; tranches: Tranche[]; mtlTotal?: number }
@@ -48,22 +50,40 @@ function preload(): void {
   const d = BBZ.all();
   const setIfEmpty = (id: string, val: number | null | undefined): void => {
     const e = $i(id);
-    if (e && val && !pN(e.value)) e.value = fmt(val);
+    // Vorbelegt, bis jemand das Feld ändert: Solche Werte werden bei jedem Besuch neu aus dem Stand geholt (ADR-22)
+    if (e && val && !pN(e.value)) { e.value = fmt(val); e.dataset.vorbelegt = '1'; }
   };
-  if (d.cockpit_einkommen) setIfEmpty('income', d.cockpit_einkommen);
-  if (d.cockpit_verpflichtungen) setIfEmpty('obligations', d.cockpit_verpflichtungen);
-  if (typeof d.cockpit_pk_saldo === 'number' && d.cockpit_pk_saldo > 0) {
+  // Aus dem aktuellen Stand gerechnet, nicht aus dem gespeicherten Schlüssel (ADR-22)
+  const vb = vorbelegung();
+  if (vb.einkommen) setIfEmpty('income', vb.einkommen);
+  if (vb.verpflichtungen) setIfEmpty('obligations', vb.verpflichtungen);
+  if (vb.pkSaldo > 0) {
     const e = $('pk-info-label');
-    e.textContent = 'Vorhandenes PK-Guthaben (Cockpit): CHF ' + fmt(Math.round(d.cockpit_pk_saldo));
+    e.textContent = 'Vorhandenes PK-Guthaben (Cockpit): CHF ' + fmt(Math.round(vb.pkSaldo));
     e.hidden = false;
   }
-  const ziele = Array.isArray(d.ziele) ? (d.ziele as Array<{ katId: string; betrag: number }>) : [];
-  const wohnZiel = ziele.find((z) => z.katId === 'wohnen' && z.betrag > 0);
-  if (wohnZiel) setIfEmpty('price', wohnZiel.betrag);
+  // ADR-22: Der Kauf gehört zu einem Ziel aus Modul 06 — dem hier gewählten, sonst dem ersten Ziel «Wohnen» mit
+  // Betrag (lib/lebensplan.ts: kaufZiel). Sein Betrag belegt den Kaufpreis vor, sein Jahr gilt im Lebensplan.
+  zielWahlFuellen(d);
+  const wohnZiel = kaufZiel(d);
+  if (wohnZiel && Number(wohnZiel.betrag) > 0) setIfEmpty('price', Number(wohnZiel.betrag));
   if (typeof d.p1geb === 'string' && d.p1geb) {
     const alter = calcAge(d.p1geb);
-    if (alter && !pN($i('age').value)) $i('age').value = String(alter);
+    if (alter && !pN($i('age').value)) { $i('age').value = String(alter); $i('age').dataset.vorbelegt = '1'; }
   }
+}
+
+/** Auswahl «Kauf gehört zum Ziel»: alle Ziele aus 06 (ohne Geldzuflüsse), Wohnen zuerst; «kein Ziel» möglich. */
+function zielWahlFuellen(d: ReturnType<typeof BBZ.all>): void {
+  const sel = document.getElementById('zielWahl') as HTMLSelectElement;
+  const ziele = (Array.isArray(d.ziele) ? (d.ziele as Array<Record<string, unknown>>) : []).filter((z) => z && z.typ !== 'zufluss' && typeof z.id === 'string');
+  ziele.sort((a, b) => Number(b.katId === 'wohnen') - Number(a.katId === 'wohnen'));
+  const gewaehlt = kaufZiel(d);
+  const opt = (wert: string, label: string, an: boolean): HTMLOptionElement => { const o = document.createElement('option'); o.value = wert; o.textContent = label; o.selected = an; return o; };
+  sel.replaceChildren(
+    opt('-', ziele.length ? '— keinem Ziel zugeordnet —' : '— kein Ziel in 06 erfasst —', !gewaehlt),
+    ...ziele.map((z) => opt(String(z.id), `${String(z.name || z.insp || 'Ziel')} · ${z.jahr ? String(z.jahr) : 'Jahr offen'}${Number(z.betrag) > 0 ? ` · CHF ${fmt(Number(z.betrag))}` : ''}`, z === gewaehlt)),
+  );
 }
 
 // ── Persistenz (v1, debounced) ───────────────────────────────────────────────
@@ -80,14 +100,21 @@ function persist(): void {
     inputs,
     variants: S.variants.map((v) => ({ id: v.id, tranches: v.tranches.map((t) => ({ p: t.p, a: t.a })) })),
     rates: { ...S.rates },
+    // Felder, die nur vorbelegt und nie geändert wurden: Sie gelten nicht als erfasst
+    vorbelegt: INPUT_IDS.filter((id) => $i(id).dataset.vorbelegt === '1'),
+    // ADR-22: Ziel aus 06, zu dem der Kauf gehört ('-' = ausdrücklich keines)
+    zielId: (document.getElementById('zielWahl') as HTMLSelectElement).value,
   });
 }
 function hydrate(): void {
-  const d = BBZ.get('finanzierung_data') as { inputs?: Record<string, unknown>; variants?: Array<{ tranches: Tranche[] }>; rates?: Record<string, number> } | null;
+  const d = BBZ.get('finanzierung_data') as { inputs?: Record<string, unknown>; vorbelegt?: unknown; variants?: Array<{ tranches: Tranche[] }>; rates?: Record<string, number> } | null;
   if (!d || typeof d !== 'object') return;
+  const nurVorbelegt = Array.isArray(d.vorbelegt) ? (d.vorbelegt as unknown[]).map(String) : [];
   if (d.inputs) Object.entries(d.inputs).forEach(([id, val]) => {
     const e = document.getElementById(id) as HTMLInputElement | null;
     if (!e || val === '' || val == null) return;
+    if (nurVorbelegt.includes(id)) return; // nie geändert: Es gilt die frische Vorbelegung aus preload()
+    delete e.dataset.vorbelegt;
     // migrate() normalisiert Beträge zu number (ADR-4) → Betragsfelder formatieren
     e.value = e.classList.contains('ni') && typeof val === 'number' ? fmt(val) : String(val);
   });
@@ -435,6 +462,8 @@ function init(): void {
     const on = document.body.classList.toggle('edit-mode');
     $('editToggle').setAttribute('aria-pressed', String(on));
   });
+  // Eine Eingabe macht aus der Vorbelegung einen erfassten Wert
+  document.addEventListener('input', (e) => { const t = e.target as HTMLElement; if (t && INPUT_IDS.includes(t.id)) delete t.dataset.vorbelegt; }, true);
   preload();
   hydrate(); // persistierte Werte überschreiben Prefills (v1-Reihenfolge)
   renderVariants();
@@ -453,6 +482,13 @@ function init(): void {
     });
   });
   ['calcRate', 'sideRate', 'age'].forEach((id) => $i(id).addEventListener('input', calculate));
+  // Ziel gewechselt: speichern; ein leerer Kaufpreis wird aus dem Ziel vorbelegt
+  document.getElementById('zielWahl')!.addEventListener('change', () => {
+    const id = (document.getElementById('zielWahl') as HTMLSelectElement).value;
+    const z = (Array.isArray(BBZ.all().ziele) ? (BBZ.all().ziele as Array<Record<string, unknown>>) : []).find((x) => x.id === id);
+    if (z && Number(z.betrag) > 0 && !pN($i('price').value)) $i('price').value = fmt(Number(z.betrag));
+    calculate();
+  });
 
   $('tabAnalysis').addEventListener('click', () => switchTab('analysis'));
   $('tabComparison').addEventListener('click', () => switchTab('comparison'));

@@ -25,9 +25,11 @@ const MODULES: Record<'einstieg' | 'kundenbild' | 'abschluss', Mod[]> = {
   ],
   kundenbild: [
     { id: 'm05', num: '05', name: 'Finanzcockpit', desc: 'Vermögen, Einkommen, Verpflichtungen', file: 'modules/05-cockpit.html', toggleable: false },
+    { id: 'm05b', num: '05b', name: 'Budget & Liquidität', desc: 'Ausgaben, Sparquote, Reserve', file: 'modules/05b-budget.html', toggleable: true },
     { id: 'm06', num: '06', name: 'Ziele & Wünsche', desc: 'Zeitachse & Lebensplanung', file: 'modules/06-ziele.html', toggleable: false },
   ],
   abschluss: [
+    { id: 'm07', num: '07', name: 'Lebensplan', desc: 'Alles in einem Bild', file: 'modules/07-lebensplan.html', toggleable: true },
     { id: 'm08', num: '08', name: 'Vereinbarungen', desc: 'Nächste Schritte', file: 'modules/08-vereinbarungen.html', toggleable: false },
     { id: 'm09', num: '09', name: 'Feedback', desc: 'Zufriedenheitsdialog', file: 'modules/09-feedback.html', toggleable: true },
     { id: 'm10', num: '10', name: 'Abschluss', desc: 'Ausstieg & Gesprächsbericht', file: 'modules/10-abschluss.html', toggleable: false },
@@ -36,6 +38,10 @@ const MODULES: Record<'einstieg' | 'kundenbild' | 'abschluss', Mod[]> = {
 const BRANCHES = [
   { id: 'b07a', num: '07a', name: 'Finanzieren', desc: 'Eigenheim & Tragbarkeit' },
   { id: 'b07b', num: '07b', name: 'Anlegen', desc: 'Anlegerprofil & Risiko' },
+  { id: 'b07c', num: '07c', name: 'Pensionierung', desc: 'Standortbestimmung & Aktionsplan' },
+  { id: 'b07d', num: '07d', name: 'Steuern', desc: 'Kapitalbezüge, Abzüge, Vermögen' },
+  { id: 'b07e', num: '07e', name: 'Absicherung', desc: 'Invalidität & Todesfall' },
+  { id: 'b07f', num: '07f', name: 'Nachlass', desc: 'Erbfolge & Vorsorgedokumente' },
 ];
 
 const COCKPIT_KEY = 'bbzCockpit'; // v1: separater Config-Key, übersteht clearSession
@@ -146,9 +152,9 @@ function renderBranches(): void {
       <span class="ix-mcheck">${on ? '✓' : ''}</span>
     </div>`;
   }).join('');
-  el('branchHint').textContent = state.branches.length === 2
-    ? '⚡ Beide Vertiefungen aktiv – im Abschluss wählbar, welche gedruckt wird.'
-    : 'Mindestens eine Vertiefung muss aktiv sein. Beide gleichzeitig möglich.';
+  el('branchHint').textContent = state.branches.length >= 2
+    ? '⚡ Mehrere Vertiefungen aktiv – im Abschluss wählbar, welche gedruckt wird.'
+    : 'Mindestens eine Vertiefung muss aktiv sein. Mehrere gleichzeitig möglich.';
   el('gridVertiefung').querySelectorAll<HTMLElement>('[data-branch]').forEach((c) => {
     const t = () => toggleBranch(c.dataset.branch!);
     c.addEventListener('click', t);

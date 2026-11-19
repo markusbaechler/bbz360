@@ -52,9 +52,9 @@ export const INDEX_PARITY = {
   counts: {
     '.ix-bopt': { min: 2 },            // MEHRERE Berater (Picker)
     '#gridEinstieg .ix-mod': { eq: 4 },   // 01–04
-    '#gridKundenbild .ix-mod': { eq: 2 }, // 05–06 (= "Kundenbild"-Abschnitt)
-    '#gridVertiefung .ix-mod': { eq: 2 }, // 07a/07b (BRANCHES)
-    '#gridAbschluss .ix-mod': { eq: 3 },  // 08–10
+    '#gridKundenbild .ix-mod': { eq: 3 }, // 05–06 aus v1 + 05b Budget (ADR-17)
+    '#gridVertiefung .ix-mod': { eq: 6 }, // 07a/07b aus v1 + 07c–07f (ADR-16, ADR-20)
+    '#gridAbschluss .ix-mod': { eq: 4 },  // 08–10 aus v1 + 07 Lebensplan (Phase 5)
   },
   // v1 module toggleable-Flags: 02/03/04/09 umschaltbar; 01/05/06/08/10 & Kundenbild-Pflicht
   toggleable: ['m02', 'm03', 'm04'],

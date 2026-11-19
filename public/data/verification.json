@@ -1,0 +1,1903 @@
+{
+ "checkedAt": "2026-11-14T20:26:30.051Z",
+ "params": {
+  "ahv.minRente": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 4,
+   "official": 4,
+   "live": 4,
+   "amtlichLaufend": 4,
+   "total": 4,
+   "sources": [
+    {
+     "id": "sva-zh",
+     "ok": true
+    },
+    {
+     "id": "chch",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    },
+    {
+     "id": "bsv-betraege-2026",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 4,
+     "official": 4,
+     "live": 4,
+     "amtlichLaufend": 4,
+     "total": 4,
+     "sources": [
+      {
+       "id": "sva-zh",
+       "ok": true
+      },
+      {
+       "id": "chch",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      },
+      {
+       "id": "bsv-betraege-2026",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 4,
+     "official": 3,
+     "live": 4,
+     "amtlichLaufend": 3,
+     "total": 4,
+     "sources": [
+      {
+       "id": "br-mm-2027",
+       "ok": true
+      },
+      {
+       "id": "bsv-betraege-2027",
+       "ok": true
+      },
+      {
+       "id": "sva-zh",
+       "ok": true
+      },
+      {
+       "id": "vz-ahv",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.maxRente": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 4,
+   "official": 4,
+   "live": 4,
+   "amtlichLaufend": 4,
+   "total": 4,
+   "sources": [
+    {
+     "id": "sva-zh",
+     "ok": true
+    },
+    {
+     "id": "chch",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    },
+    {
+     "id": "bsv-betraege-2026",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 4,
+     "official": 4,
+     "live": 4,
+     "amtlichLaufend": 4,
+     "total": 4,
+     "sources": [
+      {
+       "id": "sva-zh",
+       "ok": true
+      },
+      {
+       "id": "chch",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      },
+      {
+       "id": "bsv-betraege-2026",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 4,
+     "official": 3,
+     "live": 4,
+     "amtlichLaufend": 3,
+     "total": 4,
+     "sources": [
+      {
+       "id": "br-mm-2027",
+       "ok": true
+      },
+      {
+       "id": "bsv-betraege-2027",
+       "ok": true
+      },
+      {
+       "id": "sva-zh",
+       "ok": true
+      },
+      {
+       "id": "vz-ahv",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.plafondEhepaar": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 3,
+   "official": 3,
+   "live": 3,
+   "amtlichLaufend": 3,
+   "total": 3,
+   "sources": [
+    {
+     "id": "sva-zh",
+     "ok": true
+    },
+    {
+     "id": "chch",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 3,
+     "official": 3,
+     "live": 3,
+     "amtlichLaufend": 3,
+     "total": 3,
+     "sources": [
+      {
+       "id": "sva-zh",
+       "ok": true
+      },
+      {
+       "id": "chch",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 2,
+     "official": 1,
+     "live": 2,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "bsv-betraege-2027",
+       "ok": true
+      },
+      {
+       "id": "vz-ahv",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.einkMin": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 3,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 1,
+   "total": 3,
+   "sources": [
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    },
+    {
+     "id": "vz-ahv",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 1,
+     "total": 3,
+     "sources": [
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      },
+      {
+       "id": "vz-ahv",
+       "ok": true
+      },
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      },
+      {
+       "id": "bsv-skala44-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.einkMax": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 3,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 1,
+   "total": 3,
+   "sources": [
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    },
+    {
+     "id": "vz-ahv",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 1,
+     "total": 3,
+     "sources": [
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      },
+      {
+       "id": "vz-ahv",
+       "ok": true
+      },
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      },
+      {
+       "id": "bsv-skala44-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.monatsrentenProJahr": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 3,
+   "official": 3,
+   "live": 2,
+   "amtlichLaufend": 2,
+   "total": 3,
+   "sources": [
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    },
+    {
+     "id": "bsv-13",
+     "ok": true
+    },
+    {
+     "id": "ahv-13",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 3,
+     "official": 3,
+     "live": 2,
+     "amtlichLaufend": 2,
+     "total": 3,
+     "sources": [
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      },
+      {
+       "id": "bsv-13",
+       "ok": true
+      },
+      {
+       "id": "ahv-13",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.beitragsjahre": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 2,
+   "total": 2,
+   "sources": [
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    },
+    {
+     "id": "bsv-skala44-2027",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 2,
+     "total": 2,
+     "sources": [
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      },
+      {
+       "id": "bsv-skala44-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.lohnbeitrag": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 2,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 2,
+   "total": 2,
+   "sources": [
+    {
+     "id": "ahv-mb-203",
+     "ok": true
+    },
+    {
+     "id": "bsv-beitraege",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 2,
+     "total": 2,
+     "sources": [
+      {
+       "id": "ahv-mb-203",
+       "ok": true
+      },
+      {
+       "id": "bsv-beitraege",
+       "ok": true
+      }
+     ]
+    },
+    "2026": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 2,
+     "total": 2,
+     "sources": [
+      {
+       "id": "ahv-mb-203",
+       "ok": true
+      },
+      {
+       "id": "bsv-beitraege",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.freibetragRentner": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "ahv-mb-201",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "ahv-mb-201",
+       "ok": true
+      },
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      }
+     ]
+    },
+    "2026": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "ahv-mb-201",
+       "ok": true
+      },
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.formel.grenze": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.formel.festTief": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.formel.varTief": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.formel.festHoch": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.formel.varHoch": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-301",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvg",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-301",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.vorbezug.1": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 3,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 1,
+   "total": 3,
+   "sources": [
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "vz-ahv",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 1,
+     "total": 3,
+     "sources": [
+      {
+       "id": "ahv-mb-304",
+       "ok": true
+      },
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      },
+      {
+       "id": "vz-ahv",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.vorbezug.2": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 3,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 1,
+   "total": 3,
+   "sources": [
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "vz-ahv",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 1,
+     "total": 3,
+     "sources": [
+      {
+       "id": "ahv-mb-304",
+       "ok": true
+      },
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      },
+      {
+       "id": "vz-ahv",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.aufschub.1": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 3,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 1,
+   "total": 3,
+   "sources": [
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    },
+    {
+     "id": "raiffeisen-flex",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 1,
+     "total": 3,
+     "sources": [
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-304",
+       "ok": true
+      },
+      {
+       "id": "raiffeisen-flex",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.aufschub.2": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-304",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.aufschub.3": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-304",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.aufschub.4": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-304",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ahv.aufschub.5": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 4,
+   "official": 2,
+   "live": 3,
+   "amtlichLaufend": 1,
+   "total": 4,
+   "sources": [
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    },
+    {
+     "id": "vz-ahv",
+     "ok": true
+    },
+    {
+     "id": "raiffeisen-flex",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 4,
+     "official": 2,
+     "live": 3,
+     "amtlichLaufend": 1,
+     "total": 4,
+     "sources": [
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-304",
+       "ok": true
+      },
+      {
+       "id": "vz-ahv",
+       "ok": true
+      },
+      {
+       "id": "raiffeisen-flex",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ne.min": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 3,
+   "official": 2,
+   "live": 3,
+   "amtlichLaufend": 2,
+   "total": 3,
+   "sources": [
+    {
+     "id": "ahv-mb-203",
+     "ok": true
+    },
+    {
+     "id": "bsv-beitraege",
+     "ok": true
+    },
+    {
+     "id": "raiffeisen-kennzahlen",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 3,
+     "amtlichLaufend": 2,
+     "total": 3,
+     "sources": [
+      {
+       "id": "ahv-mb-203",
+       "ok": true
+      },
+      {
+       "id": "bsv-beitraege",
+       "ok": true
+      },
+      {
+       "id": "raiffeisen-kennzahlen",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 4,
+     "official": 3,
+     "live": 4,
+     "amtlichLaufend": 3,
+     "total": 4,
+     "sources": [
+      {
+       "id": "raiffeisen-kennzahlen",
+       "ok": true
+      },
+      {
+       "id": "br-mm-2027",
+       "ok": true
+      },
+      {
+       "id": "bsv-ne-2027",
+       "ok": true
+      },
+      {
+       "id": "bsv-betraege-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ne.max": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 3,
+   "official": 2,
+   "live": 3,
+   "amtlichLaufend": 2,
+   "total": 3,
+   "sources": [
+    {
+     "id": "ahv-mb-203",
+     "ok": true
+    },
+    {
+     "id": "bsv-beitraege",
+     "ok": true
+    },
+    {
+     "id": "raiffeisen-kennzahlen",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 3,
+     "amtlichLaufend": 2,
+     "total": 3,
+     "sources": [
+      {
+       "id": "ahv-mb-203",
+       "ok": true
+      },
+      {
+       "id": "bsv-beitraege",
+       "ok": true
+      },
+      {
+       "id": "raiffeisen-kennzahlen",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 2,
+     "official": 1,
+     "live": 2,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "raiffeisen-kennzahlen",
+       "ok": true
+      },
+      {
+       "id": "bsv-ne-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ne.vermoegenMin": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "ahv-mb-203",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "ahv-mb-203",
+       "ok": true
+      },
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 2,
+     "total": 2,
+     "sources": [
+      {
+       "id": "bsv-ne-2027",
+       "ok": true
+      },
+      {
+       "id": "br-verordnungen-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ne.vermoegenMax": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "ahv-mb-203",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "ahv-mb-203",
+       "ok": true
+      },
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 2,
+     "total": 2,
+     "sources": [
+      {
+       "id": "bsv-ne-2027",
+       "ok": true
+      },
+      {
+       "id": "br-verordnungen-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "ne.rentenFaktor": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-203",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-ahvv",
+       "ok": true
+      },
+      {
+       "id": "ahv-mb-203",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "s3a.maxMitPK": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 4,
+   "official": 3,
+   "live": 4,
+   "amtlichLaufend": 3,
+   "total": 4,
+   "sources": [
+    {
+     "id": "estv-3a",
+     "ok": true
+    },
+    {
+     "id": "bsv-3a",
+     "ok": true
+    },
+    {
+     "id": "vz-3a",
+     "ok": true
+    },
+    {
+     "id": "bsv-betraege-2026",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 4,
+     "official": 3,
+     "live": 4,
+     "amtlichLaufend": 3,
+     "total": 4,
+     "sources": [
+      {
+       "id": "estv-3a",
+       "ok": true
+      },
+      {
+       "id": "bsv-3a",
+       "ok": true
+      },
+      {
+       "id": "vz-3a",
+       "ok": true
+      },
+      {
+       "id": "bsv-betraege-2026",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 3,
+     "official": 3,
+     "live": 3,
+     "amtlichLaufend": 3,
+     "total": 3,
+     "sources": [
+      {
+       "id": "estv-3a",
+       "ok": true
+      },
+      {
+       "id": "estv-3a-2027",
+       "ok": true
+      },
+      {
+       "id": "bsv-betraege-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "bvg.minAlter": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-bvv2",
+     "ok": true
+    },
+    {
+     "id": "bsv-bvg",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 2,
+     "sources": [
+      {
+       "id": "fedlex-bvv2",
+       "ok": true
+      },
+      {
+       "id": "bsv-bvg",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "vorsorge.bezugJahreVorRef": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2025,
+   "confirmed": 3,
+   "official": 3,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 3,
+   "sources": [
+    {
+     "id": "fedlex-bvv3",
+     "ok": true
+    },
+    {
+     "id": "fedlex-fzv",
+     "ok": true
+    },
+    {
+     "id": "bsv-3a",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2025": {
+     "confirmed": 3,
+     "official": 3,
+     "live": 1,
+     "amtlichLaufend": 1,
+     "total": 3,
+     "sources": [
+      {
+       "id": "fedlex-bvv3",
+       "ok": true
+      },
+      {
+       "id": "fedlex-fzv",
+       "ok": true
+      },
+      {
+       "id": "bsv-3a",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "le65.m": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 2,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 2,
+   "total": 2,
+   "sources": [
+    {
+     "id": "bfs-2025-def",
+     "ok": true
+    },
+    {
+     "id": "bfs-2025-prov",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 2,
+     "total": 2,
+     "sources": [
+      {
+       "id": "bfs-2025-def",
+       "ok": true
+      },
+      {
+       "id": "bfs-2025-prov",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "le65.w": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 2,
+   "official": 2,
+   "live": 2,
+   "amtlichLaufend": 2,
+   "total": 2,
+   "sources": [
+    {
+     "id": "bfs-2025-def",
+     "ok": true
+    },
+    {
+     "id": "bfs-2025-prov",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 2,
+     "official": 2,
+     "live": 2,
+     "amtlichLaufend": 2,
+     "total": 2,
+     "sources": [
+      {
+       "id": "bfs-2025-def",
+       "ok": true
+      },
+      {
+       "id": "bfs-2025-prov",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  "kk.praemieErw": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "gueltigAb": 2026,
+   "confirmed": 3,
+   "official": 2,
+   "live": 3,
+   "amtlichLaufend": 2,
+   "total": 3,
+   "sources": [
+    {
+     "id": "bag-praemien-2026",
+     "ok": true
+    },
+    {
+     "id": "admin-praemien-2026",
+     "ok": true
+    },
+    {
+     "id": "srf-praemien-2026",
+     "ok": true
+    }
+   ],
+   "byYear": {
+    "2026": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 3,
+     "amtlichLaufend": 2,
+     "total": 3,
+     "sources": [
+      {
+       "id": "bag-praemien-2026",
+       "ok": true
+      },
+      {
+       "id": "admin-praemien-2026",
+       "ok": true
+      },
+      {
+       "id": "srf-praemien-2026",
+       "ok": true
+      }
+     ]
+    },
+    "2027": {
+     "confirmed": 3,
+     "official": 2,
+     "live": 3,
+     "amtlichLaufend": 2,
+     "total": 3,
+     "sources": [
+      {
+       "id": "bag-praemien-2027",
+       "ok": true
+      },
+      {
+       "id": "admin-praemien-2027",
+       "ok": true
+      },
+      {
+       "id": "srf-praemien-2027",
+       "ok": true
+      }
+     ]
+    }
+   }
+  }
+ },
+ "tables": {
+  "referenzalter": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "confirmed": 2,
+   "official": 2,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 2,
+   "sources": [
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    }
+   ]
+  },
+  "ahv.uebergang": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "confirmed": 5,
+   "official": 4,
+   "live": 3,
+   "amtlichLaufend": 2,
+   "total": 5,
+   "sources": [
+    {
+     "id": "fedlex-ahvg",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    },
+    {
+     "id": "ahv-mb-304",
+     "ok": true
+    },
+    {
+     "id": "bsv-vorbezug-2027",
+     "ok": true
+    },
+    {
+     "id": "vz-ahv",
+     "ok": true
+    }
+   ]
+  },
+  "neTabelle": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "confirmed": 3,
+   "official": 3,
+   "live": 2,
+   "amtlichLaufend": 2,
+   "total": 3,
+   "sources": [
+    {
+     "id": "ahv-mb-203",
+     "ok": true
+    },
+    {
+     "id": "bsv-ne-2027",
+     "ok": true
+    },
+    {
+     "id": "fedlex-ahvv",
+     "ok": true
+    }
+   ]
+  },
+  "kapSteuer": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "confirmed": 3,
+   "official": 3,
+   "live": 2,
+   "amtlichLaufend": 2,
+   "total": 3,
+   "sources": [
+    {
+     "id": "estv-kapital",
+     "ok": true
+    },
+    {
+     "id": "fedlex-dbg",
+     "ok": true
+    },
+    {
+     "id": "estv-58c-2026",
+     "ok": true
+    }
+   ]
+  },
+  "vermSteuer": {
+   "checkedAt": "2026-11-14T20:26:30.051Z",
+   "confirmed": 1,
+   "official": 1,
+   "live": 1,
+   "amtlichLaufend": 1,
+   "total": 1,
+   "sources": [
+    {
+     "id": "estv-vermoegen",
+     "ok": true
+    }
+   ]
+  }
+ },
+ "alerts": [],
+ "sources": {
+  "bag-praemien-2026": {
+   "ok": true,
+   "chars": 744262
+  },
+  "admin-praemien-2026": {
+   "ok": true,
+   "chars": 92377
+  },
+  "bag-praemien-2027": {
+   "ok": true,
+   "chars": 743949
+  },
+  "admin-praemien-2027": {
+   "ok": true,
+   "chars": 92072
+  },
+  "srf-praemien-2026": {
+   "ok": true,
+   "chars": 42847
+  },
+  "srf-praemien-2027": {
+   "ok": true,
+   "chars": 41804
+  },
+  "bag-praemien-faq": {
+   "ok": true,
+   "chars": 819051
+  },
+  "br-mm-2027": {
+   "ok": true,
+   "chars": 171991
+  },
+  "bsv-betraege-2026": {
+   "ok": true,
+   "chars": 2710
+  },
+  "bsv-betraege-2027": {
+   "ok": true,
+   "chars": 3709
+  },
+  "bsv-skala44-2027": {
+   "ok": true,
+   "chars": 6150
+  },
+  "bsv-ne-2027": {
+   "ok": true,
+   "chars": 97391
+  },
+  "bsv-vorbezug-2027": {
+   "ok": true,
+   "chars": 31758
+  },
+  "br-verordnungen-2027": {
+   "ok": true,
+   "chars": 23897
+  },
+  "bsv-13": {
+   "ok": true,
+   "chars": 197515
+  },
+  "bsv-beitraege": {
+   "ok": true,
+   "chars": 203074
+  },
+  "bsv-3a": {
+   "ok": true,
+   "chars": 166572
+  },
+  "bsv-bvg": {
+   "ok": true,
+   "chars": 189924
+  },
+  "ahv-mb-301": {
+   "ok": true,
+   "chars": 28440
+  },
+  "ahv-mb-304": {
+   "ok": true,
+   "chars": 22415
+  },
+  "ahv-mb-203": {
+   "ok": true,
+   "chars": 23460
+  },
+  "ahv-mb-201": {
+   "ok": true,
+   "chars": 28670
+  },
+  "ahv-13": {
+   "ok": true,
+   "chars": 6389
+  },
+  "sva-zh": {
+   "ok": true,
+   "chars": 17725
+  },
+  "chch": {
+   "ok": true,
+   "chars": 15576
+  },
+  "fedlex-ahvg": {
+   "ok": true,
+   "chars": 205846
+  },
+  "fedlex-ahvv": {
+   "ok": true,
+   "chars": 233861
+  },
+  "fedlex-bvv2": {
+   "ok": true,
+   "chars": 128742
+  },
+  "fedlex-bvv3": {
+   "ok": true,
+   "chars": 18754
+  },
+  "fedlex-fzv": {
+   "ok": true,
+   "chars": 32304
+  },
+  "fedlex-dbg": {
+   "ok": true,
+   "chars": 235812
+  },
+  "estv-3a": {
+   "ok": true,
+   "chars": 307931
+  },
+  "estv-3a-2027": {
+   "ok": true,
+   "chars": 294351
+  },
+  "estv-58c-2026": {
+   "ok": true,
+   "chars": 5497
+  },
+  "estv-kapital": {
+   "ok": true
+  },
+  "bfs-2025-def": {
+   "ok": true,
+   "chars": 15242
+  },
+  "bfs-2025-prov": {
+   "ok": true,
+   "chars": 739768
+  },
+  "vz-ahv": {
+   "ok": true,
+   "chars": 46666
+  },
+  "vz-3a": {
+   "ok": true,
+   "chars": 31714
+  },
+  "raiffeisen-kennzahlen": {
+   "ok": true,
+   "chars": 6138
+  },
+  "raiffeisen-flex": {
+   "ok": true,
+   "chars": 20046
+  },
+  "estv-vermoegen": {
+   "ok": true
+  }
+ }
+}

@@ -1,0 +1,33 @@
+/* 07c Pensionierung — Rahmen um die PensCheck-Oberflaeche.
+   Die Seite laedt theme.css bewusst NICHT: Deren Tokens (--bg, --ink-2, --blue …)
+   heissen gleich wie die des bbz Brand System und wuerden sich gegenseitig
+   ueberschreiben. Die Topbar ist deshalb hier mit festen Werten nachgebaut
+   (Masse und Farben wie theme.css; ADR-15: Navigation fix 14px). */
+.bbz-topbar{position:sticky;top:0;z-index:40;height:56px;background:#00315C;display:flex;align-items:center;gap:16px;padding:0 24px;
+  margin:0 calc(-1 * max(16px, env(safe-area-inset-right))) 0 calc(-1 * max(16px, env(safe-area-inset-left)));font-family:var(--sans)}
+.bbz-logo{width:30px;height:30px;border-radius:6px;background:#fff;color:#004078;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none}
+a.bbz-logo{cursor:pointer;transition:box-shadow .15s}
+a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
+/* Das Brand System kennt selbst eine Komponente .bbz-nav (mit Umbruch und Abstaenden): hier zuruecksetzen. */
+.bbz-nav{display:flex;flex-wrap:nowrap;align-items:center;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;margin:0;padding:0}
+.bbz-nav::-webkit-scrollbar{display:none}
+/* Kontrast inaktiver Reiter mindestens 4.5:1 (Assessment C1) */
+.bbz-nav-tab{color:rgba(255,255,255,.66);font-size:14px;padding:6px 7px;white-space:nowrap;text-decoration:none;border-radius:7px}
+.bbz-nav-tab.active{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
+/* Unter-Module (05b, 07a–07c …): inaktiv nur die Nummer, sonst laeuft die Topbar ueber (13+ Reiter). */
+.bbz-nav-tab.sub:not(.active) .bbz-nav-lbl{display:none}
+.bbz-nav-tab.sub:not(.active){padding-left:4px;padding-right:4px}
+.bbz-nav.eng .bbz-nav-tab.sub .bbz-nav-lbl{display:none}
+
+@media (max-width:1439px){
+  .bbz-topbar{gap:10px;padding:0 14px}
+  .bbz-nav{gap:1px}
+  .bbz-nav-tab{padding:6px 3px}
+  .bbz-nav-tab.sub:not(.active){padding-left:2px;padding-right:2px}
+}
+@media print{.bbz-topbar{display:none}}
+
+/* Modul-Titel statt der PensCheck-Wortmarke */
+.pc-kicker{margin:0;font-size:var(--bbz-size-caption);letter-spacing:.08em;font-weight:700;color:var(--bbz-color-brand-primary, #004078)}
+body[data-mode="form"] .hero-txt .pc-kicker, body[data-mode="tutor"]:not([data-tstep="start"]) .hero-txt .pc-kicker{display:none}
+.pc-foot{margin-top:var(--bbz-space-32)}

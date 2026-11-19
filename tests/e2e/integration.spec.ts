@@ -83,7 +83,7 @@ test('v1-Migration: rohes v1-bbzData wird verlustfrei gelesen (ADR-4)', async ({
   await expect(page.locator('#kpiLTV')).toHaveText('80%');
   await page.waitForTimeout(350); // Persist-Debounce (200ms)
   const mig = await page.evaluate(() => JSON.parse(localStorage.getItem('bbzData') || '{}'));
-  expect(mig.__schemaVersion).toBe(2); // migrate() hat das v1-Objekt angehoben
+  expect(mig.__schemaVersion).toBe(3); // migrate() hat das v1-Objekt angehoben
   // Reload: migrierte Werte bleiben korrekt lesbar (String → number → Anzeige)
   await page.reload();
   await expect(page.locator('#price')).toHaveValue("900'000");

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>bbz360 — Absicherung</title>
+  <script type="module" src="/src/modules/07e-absicherung.ts"></script>
+</head>
+<body class="pc-app fm-app">
+  <header class="bbz-topbar">
+    <a class="bbz-logo" href="../index.html" title="Zurück zum Beratercockpit" aria-label="Zurück zum Beratercockpit">bbz</a>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+  </header>
+  <div class="wrap">
+    <section class="hero fm-hero" aria-labelledby="fmTitel">
+      <div>
+        <p class="pc-kicker fm-kicker">07e · ABSICHERUNG</p>
+        <h1 id="fmTitel">Was, wenn etwas passiert?</h1>
+        <p class="lead">Invalidität und Tod: Was bleibt dem Haushalt, und wie gross ist die Lücke zum Bedarf?</p>
+      </div>
+    </section>
+    <main id="main" class="fm-main">
+      <section class="panel fm-panel" aria-labelledby="abEinTitel">
+        <h2 id="abEinTitel">Angaben.</h2>
+        <div class="fm-felder">
+          <div class="fm-feld"><label for="abKinder">Kinder</label><input type="text" inputmode="numeric" id="abKinder" data-frei autocomplete="off"><small>Alle Kinder, gleich welchen Alters (für den Anspruch auf Witwen- oder Witwerrente; dieselbe Angabe wie im Nachlass)</small></div>
+          <div class="fm-feld"><label for="abKinderAbh">Davon unter 18 oder in Ausbildung</label><input type="text" inputmode="numeric" id="abKinderAbh" data-frei autocomplete="off"><small>Für Kinder- und Waisenrenten</small></div>
+          <div class="fm-feld"><span class="fm-lbl" id="abUrsacheLbl">Ursache</span><div class="fm-wahl" role="group" aria-labelledby="abUrsacheLbl"><button type="button" class="chip" data-ursache="krankheit" aria-pressed="true">Krankheit</button><button type="button" class="chip" data-ursache="unfall" aria-pressed="false">Unfall</button></div><small>Bei Unfall kommt die Unfallversicherung dazu</small></div>
+          <div class="fm-feld"><label for="abBedarf">Bedarf pro Monat (CHF)</label><input type="text" inputmode="decimal" id="abBedarf" autocomplete="off"><small id="abBedarfHinweis"></small></div>
+        </div>
+        <h3>Pensionskasse laut Vorsorgeausweis (pro Jahr).</h3>
+        <div class="fm-cols" id="abPk"></div>
+      </section>
+
+      <section class="fm-cols" id="abFaelle" aria-live="polite" aria-label="Ergebnis"></section>
+
+      <section class="panel fm-panel" aria-labelledby="abAnnTitel">
+        <h2 id="abAnnTitel">So ist gerechnet.</h2>
+        <ul class="fm-liste" id="abGrundlagen"></ul>
+      </section>
+    </main>
+    <nav class="fm-weiter" aria-label="Weiter">
+      <a class="bbz-button bbz-button--ghost" href="07d-steuern.html">← Steuern</a>
+      <a class="bbz-button bbz-button--primary" href="07f-nachlass.html">Weiter: Nachlass →</a>
+    </nav>
+  </div>
+</body>
+</html>

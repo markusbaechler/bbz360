@@ -1,5 +1,5 @@
 /* ============================================================================
-   theme.css v3.0 — bbz360 Single Source of Truth
+   theme.css v4.0 — bbz360 Single Source of Truth (Brand-Tokens und -Schriften, DESIGN-SPEC §7)
    Abgeleitet aus den eingefrorenen Referenzen in design/ (14.07.2026).
    ERSETZT v2 vollstaendig. Wichtigste Korrekturen gegenueber v2:
    - Root FIX 16px (fluider clamp-Root abgeschafft — Ursache der 60px-Titel)
@@ -8,18 +8,23 @@
    - Buehnen-Grammatik als Klassen: .bbz-app/.bbz-rail/.bbz-stage/.bbz-bar
    - Seite scrollt nie; Scroll nur in .bbz-scroll-Regionen
    ========================================================================== */
+@import './pension/bbz-fonts-embedded.css';
 :root{
-  /* Farben (unveraendert, Semantik reserviert: red=Kundeninhalt, amber=mittelfristig) */
-  --blue:#004078; --blue-dk:#00335f; --blue-md:#2f6ea3; --blue-lt:#dce8f4;
-  --blue-soft:#f4f8fb; --blue-line:#c7d6e4;
-  --red:#950e13; --red-ink:#5a1518; --red-soft:#faf6f6; --red-kicker:#8a5a5d;
-  --green:#2e6b45; --green-soft:#e7efe9; --amber:#b45309; --slate:#475569;
+  /* Farben: seit v4 (ADR-21) die Werte des bbz Brand System (src/styles/pension/bbz-base.css).
+     Semantik unveraendert reserviert: red=Kundeninhalt, amber=mittelfristig. */
+  --blue:#004078; --blue-dk:#00315C; --blue-md:#2278C3; --blue-lt:#D9E6F2;
+  --blue-soft:#F0F5F9; --blue-line:#B0CEE8;
+  --red:#932528; --red-ink:#5a1518; --red-soft:#faf6f6; --red-kicker:#8a5a5d;
+  --green:#115F3B; --green-soft:#e7efe9; --amber:#8E5E0C; --slate:#535965;
   /* System-Warnung (Technik, kein Kundeninhalt) — red/amber sind semantisch belegt */
   --warn:#8a2b00;
-  --ink:#0f2a44; --ink-2:#1c2b3a; --ink-3:#3d4c5c; --ink-4:#5f7d99;
-  --mut:#8b98a5; --mut-2:#98a5b2; --mut-3:#b0bcc7;
-  --bg:#eef2f6; --surface:#fff; --line:#dde5ec; --line-soft:#edf1f5;
-  --font:'DM Sans',system-ui,sans-serif;
+  --ink:#15181E; --ink-2:#252932; --ink-3:#3C424E; --ink-4:#535965;
+  --mut:#6C7484; --mut-2:#6C7484; --mut-3:#959DAC;
+  --bg:#F7F8FA; --surface:#fff; --line:#D9DCE3; --line-soft:#EDEFF2;
+  /* Schriften des Brand System, eingebettet (kein Abruf bei Google Fonts mehr): Grundschrift Selawik
+     (auf Windows Segoe UI), Auszeichnung Space Grotesk nur fuer grosse Titel (ab 1.5rem). */
+  --font:"Segoe UI",Selawik,system-ui,sans-serif;
+  --font-head:"Space Grotesk",Selawik,"Segoe UI",system-ui,sans-serif;
   /* Typo-Skala (Root fix 16px). DECKEL: --fs-title. */
   --fs-2xs:.6875rem; /*11 Kicker*/ --fs-xs:.75rem; /*12*/ --fs-sm:.8125rem; /*13*/
   /* ABSOLUT, skaliert bewusst NICHT mit: die Topbar traegt 11 Tabs und lief ab
@@ -29,7 +34,8 @@
   --fs-lg:1.1875rem; /*19 Quittungs-Wert*/ --fs-card:1.375rem; /*22 Karten-Titel*/
   --fs-kpi:1.5rem; /*24*/ --fs-title:1.75rem; /*28 Saeulen-Titel*/
   --fs-welcome:2.125rem; /*34 NUR Gastgeber-/Buehnen-Begruessung*/
-  --w-reg:400;--w-med:500;--w-bold:700;--w-black:900;
+  /* Brand System: nur 400 und 700 (kein Semibold, kein Black) */
+  --w-reg:400;--w-med:400;--w-bold:700;--w-black:700;
   --sp-1:.25rem;--sp-2:.5rem;--sp-3:.75rem;--sp-4:1rem;--sp-5:1.375rem;--sp-6:1.75rem;
   --r-sm:7px;--r-md:9px;--r-lg:13px;--r-xl:14px;--r-pill:999px;
   --topbar-h:56px;--bar-h:68px;--rail-w:360px;
@@ -72,37 +78,46 @@ body.bbz-app:has(>.bbz-speicherhinweis){grid-template-rows:auto var(--topbar-h) 
 /* Logo-als-Home-Link (Rücksprung ins Beratercockpit) — nur wo <a>. */
 a.bbz-logo{cursor:pointer;transition:box-shadow var(--dur)}
 a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
-.bbz-nav{display:flex;gap:4px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.bbz-nav{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
 .bbz-nav::-webkit-scrollbar{display:none}
-.bbz-nav-tab{color:rgba(255,255,255,.5);font-size:var(--fs-nav);padding:6px 12px;white-space:nowrap;text-decoration:none;border-radius:var(--r-sm)}
+/* 12 Tabs seit 07c (ADR-16): Abstaende enger, Beschriftung bleibt. */
+/* Kontrast inaktiver Reiter mindestens 4.5:1 (Assessment C1) */
+.bbz-nav-tab{color:rgba(255,255,255,.66);font-size:var(--fs-nav);padding:6px 7px;white-space:nowrap;text-decoration:none;border-radius:var(--r-sm)}
 .bbz-nav-tab.active{background:rgba(255,255,255,.16);color:#fff;font-weight:var(--w-bold)}
+/* Unter-Module (05b, 07a–07c …): inaktiv nur die Nummer, sonst laeuft die Topbar ueber (13+ Reiter). */
+.bbz-nav-tab.sub:not(.active) .bbz-nav-lbl{display:none}
+.bbz-nav-tab.sub:not(.active){padding-left:4px;padding-right:4px}
+.bbz-nav.eng .bbz-nav-tab.sub .bbz-nav-lbl{display:none}
+
 .bbz-edit-toggle{color:rgba(255,255,255,.8);font-size:var(--fs-nav);background:none;border:none;cursor:pointer;font-family:var(--font);flex-shrink:0}
 /* Schmale Praesentationsgeraete: 11 Tabs passten bei 1280px nicht, die letzten
    Module waren nur per horizontalem Scrollen erreichbar. Engere Abstaende
    genuegen — die Beschriftung bleibt, die braucht man im Gespraech. */
 @media (max-width:1439px){
   .bbz-topbar{gap:10px;padding:0 14px}
-  .bbz-nav{gap:2px}
-  .bbz-nav-tab{padding:6px 6px}
+  .bbz-nav{gap:1px}
+  .bbz-nav-tab{padding:6px 3px}
+  .bbz-nav-tab.sub:not(.active){padding-left:2px;padding-right:2px}
 }
 
 /* Saeulen-Bausteine */
-.rail-title{color:#fff;font-size:var(--fs-title);font-weight:var(--w-black);letter-spacing:-.01em}
-.rail-sub{color:rgba(255,255,255,.6);font-size:var(--fs-sm);line-height:1.5;margin-top:6px}
+/* Markenzeichen Vertikallinie am Saeulen-Titel; Auszeichnungsschrift (v4, ADR-21) */
+.rail-title{color:#fff;font-family:var(--font-head);font-size:var(--fs-title);font-weight:var(--w-black);letter-spacing:-.01em;border-left:3px solid #fff;padding-left:12px}
+.rail-sub{color:rgba(255,255,255,.7);font-size:var(--fs-sm);line-height:1.5;margin-top:6px}
 .rail-sect{border-top:1px solid rgba(255,255,255,.18);padding-top:18px}
-.rail-kicker{color:rgba(255,255,255,.45);font-size:var(--fs-2xs);letter-spacing:.08em;font-weight:var(--w-bold)}
-.rail-foot{margin-top:auto;color:rgba(255,255,255,.45);font-size:var(--fs-xs);line-height:1.5}
-.rail-kpi-l{color:rgba(255,255,255,.5);font-size:.65625rem;letter-spacing:.07em;font-weight:var(--w-bold)}
+.rail-kicker{color:rgba(255,255,255,.7);font-size:var(--fs-2xs);letter-spacing:.08em;font-weight:var(--w-bold)}
+.rail-foot{margin-top:auto;color:rgba(255,255,255,.7);font-size:var(--fs-xs);line-height:1.5}
+.rail-kpi-l{color:rgba(255,255,255,.7);font-size:.65625rem;letter-spacing:.07em;font-weight:var(--w-bold)}
 .rail-kpi-v{color:#fff;font-size:var(--fs-kpi);font-weight:var(--w-black);margin-top:1px}
-.rail-kpi-v small{font-size:var(--fs-sm);font-weight:var(--w-med);color:rgba(255,255,255,.5)}
-.rail-kpi-s{color:rgba(255,255,255,.45);font-size:var(--fs-2xs)}
+.rail-kpi-v small{font-size:var(--fs-sm);font-weight:var(--w-med);color:rgba(255,255,255,.7)}
+.rail-kpi-s{color:rgba(255,255,255,.7);font-size:var(--fs-2xs)}
 /* Phasenliste (Wizard) */
-.rail-phase{display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:8px;color:rgba(255,255,255,.6);font-size:var(--fs-nav)}
+.rail-phase{display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:8px;color:rgba(255,255,255,.7);font-size:var(--fs-nav)}
 .rail-phase .pc{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:var(--w-bold);flex-shrink:0;background:rgba(255,255,255,.22);color:#fff}
 .rail-phase.active{background:#fff;color:var(--blue);font-weight:var(--w-bold)}
 .rail-phase.active .pc{background:var(--blue);color:#fff}
-.rail-phase.next{color:rgba(255,255,255,.5)}
-.rail-phase.next .pc{background:none;border:1.5px solid rgba(255,255,255,.35);color:rgba(255,255,255,.55)}
+.rail-phase.next{color:rgba(255,255,255,.7)}
+.rail-phase.next .pc{background:none;border:1.5px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7)}
 
 /* Buehnen-Bausteine */
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 22px}
@@ -120,8 +135,8 @@ a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 .seq-step.done .seq-n{background:var(--green-soft);color:var(--green)}
 .seq-step.active{background:#f7fafc}
 .seq-step.active .seq-n{background:var(--blue);color:#fff}
-.seq-step.locked .seq-n{background:var(--bg);color:var(--mut-3)}
-.seq-step.locked{color:var(--mut-3)}
+.seq-step.locked .seq-n{background:var(--bg);color:var(--mut)}
+.seq-step.locked{color:var(--mut)}
 /* Chips */
 .chip{font-size:var(--fs-sm);color:var(--ink-3);border:1.5px solid var(--blue-line);background:var(--surface);padding:9px 16px;border-radius:10px;font-weight:var(--w-med);cursor:pointer;font-family:var(--font);min-height:40px}
 .chip.on{background:var(--blue);color:#fff;font-weight:var(--w-bold);border-color:var(--blue)}
@@ -138,7 +153,7 @@ a.bbz-logo:hover{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
 /* Inputs */
 .input{font-family:var(--font);font-size:var(--fs-base);color:var(--ink-2);border:none;border-bottom:2px solid var(--blue-line);padding:9px 4px;background:none;min-height:40px}
 .input:focus{outline:none;border-bottom-color:var(--blue)}
-.input::placeholder{color:var(--mut-3)}
+.input::placeholder{color:var(--mut)}
 select.input{border:1px solid var(--blue-line);background:var(--blue-soft);border-radius:var(--r-md);padding:9px 16px;font-weight:var(--w-bold);color:var(--blue)}
 /* Tabellen (admin) */
 table.bbz{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}

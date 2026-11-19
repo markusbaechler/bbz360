@@ -32,7 +32,7 @@ test('index — Beratercockpit (Picker, Readiness, Toggles, Reset)', async ({ pa
   await page.locator('[data-branch="b07a"]').click();          // einzige aktive → bleibt
   await expect(page.locator('[data-branch="b07a"]')).not.toHaveClass(/off/);
   await page.locator('[data-branch="b07b"]').click();
-  await expect(page.locator('#branchHint')).toContainText('Beide Vertiefungen aktiv');
+  await expect(page.locator('#branchHint')).toContainText('Mehrere Vertiefungen aktiv');
 
   // Neue Beratung: Session weg, Config (bbzCockpit/Toggles) bleibt
   await page.locator('#btnReset').click();

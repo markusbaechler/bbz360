@@ -24,6 +24,22 @@ import { mountNav } from '../lib/nav';
 import { tragbarkeit } from '../lib/finance';
 import { fmt, parseNum, fmtDate } from '../lib/format';
 import { imageUrl, setImageOverride } from '../lib/images';
+import grundlagen from '../../public/data/params.json';
+import { horizon } from '../lib/pension/analyse';
+import { kurzAus } from '../lib/pension/kurz';
+import type { PensionKurz } from '../lib/pension/kurz';
+import { createEngine, monthOf } from '../lib/pension/engine';
+import { resolveParams, nextParams } from '../lib/pension/params';
+import type { ParamDatei } from '../lib/pension/typen';
+import { absicherung } from '../lib/absicherung';
+import type { PkLeistungen } from '../lib/absicherung';
+import { NACHLASS_THEMEN, STEUER_THEMEN, vorgemerkt } from '../lib/fach-themen';
+import { rechenEingaben } from '../lib/pension/themen';
+import type { Gesamtauswertung } from '../lib/pension/auswertung';
+import { kaufErfasst, lebensplan, planBisJahr } from '../lib/lebensplan';
+import type { PlanEintrag } from '../lib/lebensplan';
+import { gemeinsamAusHaushalt, haushaltLesen, vorbelegung } from '../lib/haushalt';
+import type { SessionData } from '../lib/schema';
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 const esc = (s: unknown): string => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -71,19 +87,26 @@ function gather(): {
   fin: ReturnType<typeof tragbarkeit> & { price: number } | null;
   konk: Record<string, string> | null; produktwahl: { praeferenz?: string; auswahl?: string } | null;
   vereinb: Array<Record<string, unknown>>; ratings: number[];
+  pens: PlanKurz | null; fach: FachKurz;
 } {
   const traktanden = Array.isArray(D.agenda_traktanden) ? (D.agenda_traktanden as string[]) : [];
   const traktandenErledigt = Array.isArray(D.agenda_erledigt) ? (D.agenda_erledigt as unknown[]) : [];
   const erwartungen = Array.isArray(D.agenda_erwartungen) ? (D.agenda_erwartungen as string[]) : [];
   const cd = (D.cockpit_data ?? {}) as CockpitData;
-  const liq = (cd.zahlen?.saldo ?? 0) + (cd.sparen?.saldo ?? 0);
+  // Haushalt fuehrt (ADR-22): Gibt es einen Haushalts-Stand, kommen die geteilten Groessen von dort — die Kopie in
+  // cockpit_data ist nur bis zum naechsten Cockpit-Besuch aktuell.
+  const gH = D.haushalt ? gemeinsamAusHaushalt(haushaltLesen()) : null;
+  const liq = gH ? gH.liquiditaet : (cd.zahlen?.saldo ?? 0) + (cd.sparen?.saldo ?? 0);
+  const s3 = gH ? gH.s3a : cd.vorsorgen?.s3Saldo ?? 0;
+  const pkSaldo = gH ? gH.pk : Number(D.cockpit_pk_saldo ?? cd.vorsorgen?.pkSaldo) || 0;
+  const anlage = gH ? gH.wertschriften : cd.anlegen?.volumen ?? 0;
   const kpis = [
-    { label: 'Bruttoeinkommen p.a.', val: CHF(D.cockpit_einkommen), sub: 'annualisiert' },
-    { label: 'Verpflichtungen p.a.', val: CHF(D.cockpit_verpflichtungen), sub: 'laufend' },
+    { label: 'Bruttoeinkommen p.a.', val: CHF(vorbelegung().einkommen), sub: 'annualisiert' },
+    { label: 'Verpflichtungen p.a.', val: CHF(vorbelegung().verpflichtungen), sub: 'laufend' },
     { label: 'Liquide Mittel', val: liq > 0 ? CHF(liq) : '–', sub: 'Zahlungs- & Sparkonten' },
-    { label: '3. Säule (Säule 3a)', val: (cd.vorsorgen?.s3Saldo ?? 0) > 0 ? CHF(cd.vorsorgen!.s3Saldo) : '–', sub: 'Vorsorge' },
-    { label: '2. Säule (PK)', val: CHF(D.cockpit_pk_saldo ?? cd.vorsorgen?.pkSaldo), sub: 'Pensionskasse' },
-    { label: 'Anlagevermögen', val: (cd.anlegen?.volumen ?? 0) > 0 ? CHF(cd.anlegen!.volumen) : '–', sub: 'Depots & Fonds' },
+    { label: '3. Säule (Säule 3a)', val: s3 > 0 ? CHF(s3) : '–', sub: 'Vorsorge' },
+    { label: '2. Säule (PK)', val: CHF(pkSaldo), sub: 'Pensionskasse' },
+    { label: 'Anlagevermögen', val: anlage > 0 ? CHF(anlage) : '–', sub: 'Depots & Fonds' },
   ];
   const ziele = Array.isArray(D.ziele) ? (D.ziele as Array<Record<string, unknown>>) : [];
   const wuensche = Array.isArray(D.wuensche) ? (D.wuensche as Array<Record<string, unknown>>) : [];
@@ -95,11 +118,14 @@ function gather(): {
 
   // 07a aus finanzierung_data neu rechnen (Rechenkern)
   let fin: (ReturnType<typeof tragbarkeit> & { price: number }) | null = null;
-  const fd = D.finanzierung_data as { inputs?: Record<string, unknown> } | null;
+  const fd = D.finanzierung_data as { inputs?: Record<string, unknown>; vorbelegt?: unknown } | null;
   if (fd?.inputs) {
-    const n = (k: string): number => parseNum(fd.inputs![k] as string | number | null);
+    // Felder, die in 07a nur vorbelegt und nie geändert wurden, gelten mit dem aktuellen Stand (wie beim nächsten Besuch von 07a)
+    const nurVb = Array.isArray(fd.vorbelegt) ? (fd.vorbelegt as unknown[]) : [];
+    const vb = vorbelegung();
+    const n = (k: string): number => (k === 'income' && nurVb.includes(k) ? vb.einkommen : k === 'obligations' && nurVb.includes(k) ? vb.verpflichtungen : parseNum(fd.inputs![k] as string | number | null));
     const price = n('price');
-    if (price > 0) {
+    if (price > 0 && kaufErfasst(D as unknown as SessionData)) {
       fin = {
         ...tragbarkeit({
           income: n('income'), obligations: n('obligations'), price, cashEquity: n('cashEquity'),
@@ -114,8 +140,74 @@ function gather(): {
   const produktwahl = (D.anlage_produktwahl as { praeferenz?: string; auswahl?: string }) || null;
   const vereinb = Array.isArray(D.vereinbarungen) ? (D.vereinbarungen as Array<Record<string, unknown>>) : [];
   const ratings = Array.isArray(D.fb_ratings) ? (D.fb_ratings as number[]) : [];
-  return { traktanden, traktandenErledigt, erwartungen, kpis, items, fin, konk, produktwahl, vereinb, ratings };
+  return { traktanden, traktandenErledigt, erwartungen, kpis, items, fin, konk, produktwahl, vereinb, ratings, pens: pensStand, fach: fachKurz() };
 }
+
+// 07 / 07c: Urteil des Lebensplans (mit allen Zielen) und der Pensionierung allein, aus dem gemeinsamen
+// Haushalts-Stand (ADR-16, ADR-18). Gerechnet wird im Worker der Pensionierung; bis das Ergebnis da ist,
+// fehlt der Abschnitt, danach wird die Zusammenfassung neu gezeichnet.
+interface PlanKurz { plan: PensionKurz; nur: PensionKurz | null; eintraege: PlanEintrag[] }
+let pensStand: PlanKurz | null = null;
+/** Stand der Rechnung für den Druckbericht: läuft, fertig oder fehlgeschlagen. */
+let planStatus: 'laeuft' | 'fertig' | 'fehler' | 'leer' = 'leer';
+let planFertig: Promise<void> = Promise.resolve();
+function rechnePlan(): void {
+  // Wie Modul 07: derselbe Haushalts-Stand (gespeichert oder aus Stammdaten und Cockpit abgeleitet), derselbe
+  // Umwandlungssatz aus den Grundlagen.
+  const session = D as unknown as SessionData;
+  const H = haushaltLesen();
+  if (!(H.ausgabenRuhestand > 0)) { planStatus = 'leer'; return; }
+  const A0 = monthOf(), jahr = Math.floor(A0 / 12), daten = grundlagen as unknown as ParamDatei;
+  const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
+  const hz = horizon(H, E);
+  const plan = lebensplan(session, H, jahr, { uws65: E.P.annahmen.uws65, bisJahr: planBisJahr(H, hz), A0 });
+  planStatus = 'laeuft';
+  planFertig = new Promise<void>((fertig) => {
+    const worker = new Worker(new URL('../pension-ui/worker.ts', import.meta.url), { type: 'module' });
+    const ende = (ok: boolean): void => { worker.terminate(); if (!ok) planStatus = 'fehler'; renderSummary(); fertig(); };
+    worker.onmessage = (ev: MessageEvent<{ R?: Gesamtauswertung; error?: string }>) => {
+      const k = ev.data.R ? kurzAus(ev.data.R, plan.S) : null;
+      if (ev.data.error || !ev.data.R || !k) { if (ev.data.error) console.error(ev.data.error); ende(false); return; }
+      pensStand = { plan: k, nur: kurzAus(ev.data.R.varianten[0], H), eintraege: plan.eintraege };
+      planStatus = 'fertig';
+      ende(true);
+    };
+    worker.onerror = (e) => { console.error(e); ende(false); };
+    worker.postMessage({ id: 1, S: rechenEingaben(plan.S), params: daten, A0, stopA: undefined, varianten: [rechenEingaben(H)] });
+  });
+}
+const pensAlterTxt = (p: PensionKurz): string => p.pensAlter.join(' / ');
+
+// 07d–07f: vorgemerkte Themen (Steuern, Nachlass) und die groesste Luecke der Absicherung (ADR-20).
+/** absStatus: 'luecke' | 'gedeckt' = gerechnet; 'keine' = kein Fall zu rechnen (niemand erwerbstätig); 'fehler' = Rechnung nicht möglich. */
+interface FachKurz { steuern: string[]; nachlass: string[]; luecke: { text: string; betrag: number } | null; absicherungErfasst: boolean; absStatus: 'luecke' | 'gedeckt' | 'keine' | 'fehler' }
+function fachKurz(): FachKurz {
+  const steuern = vorgemerkt(STEUER_THEMEN, D.steuern), nachlass = vorgemerkt(NACHLASS_THEMEN, D.nachlass);
+  let luecke: FachKurz['luecke'] = null;
+  let absStatus: FachKurz['absStatus'] = 'fehler';
+  const ab = D.absicherung as { ursache?: string; bedarfMonat?: number; pk?: Partial<PkLeistungen>[] } | undefined;
+  const erfasst = !!ab;
+  if (erfasst) {
+    try {
+      const A0 = monthOf(), jahr = Math.floor(A0 / 12), daten = grundlagen as unknown as ParamDatei;
+      const E = createEngine(resolveParams(daten, jahr), A0, nextParams(daten, jahr));
+      const z = (v: unknown): number => (typeof v === 'number' && isFinite(v) && v > 0 ? v : 0);
+      const pk = (i: number): PkLeistungen => { const q = ab!.pk?.[i] ?? {}; return { ivRente: z(q.ivRente), partnerRente: z(q.partnerRente), kinderRente: z(q.kinderRente), todesfallKapital: z(q.todesfallKapital) }; };
+      const H = haushaltLesen(); // derselbe Stand wie in 07e (mit nachgeführten Stammdaten)
+      const r = absicherung(H, E, { kinder: z(D.familie_kinder), kinderAbh: z(D.familie_kinder_abh), ursache: ab!.ursache === 'unfall' ? 'unfall' : 'krankheit', bedarfMonat: z(ab!.bedarfMonat), pk: [pk(0), pk(1)] });
+      const f = r.faelle.reduce<(typeof r.faelle)[number] | null>((m, x) => (!m || x.luecke > m.luecke ? x : m), null);
+      const wer = (i: number): string => String((i === 0 ? D.p1name : D.p2name) || '').trim() || `Person ${i + 1}`;
+      if (f && f.luecke > 0) luecke = { text: `${wer(f.person)} ${f.ereignis === 'tod' ? 'stirbt' : 'wird invalid'}`, betrag: f.luecke };
+      absStatus = !f ? 'keine' : luecke ? 'luecke' : 'gedeckt';
+    } catch (e) { console.error(e); }
+  }
+  return { steuern, nachlass, luecke, absicherungErfasst: erfasst, absStatus };
+}
+const ABS_TEXT: Record<FachKurz['absStatus'], string> = {
+  luecke: '', gedeckt: 'Bedarf in allen Fällen gedeckt',
+  keine: 'kein Fall gerechnet (niemand ist heute erwerbstätig)', fehler: 'Rechnung nicht möglich, bitte in Modul 07e prüfen',
+};
+const ampelKl = (p: PensionKurz | null): string => (p?.st === 'rot' ? 'crit' : p?.st === 'gelb' ? 'warn' : '');
 
 // ── Bühnen-Zusammenfassung ───────────────────────────────────────────────────
 const TYP_LABEL: Record<string, string> = { ziel: 'Ziel', wunsch: 'Wunsch', zufluss: 'Geldzufluss' };
@@ -145,6 +237,18 @@ function renderSummary(): void {
         <div class="ab-kpi"><span class="ab-kl">Finale Strategie</span><span class="ab-kv">${esc(g.konk.finaleStrategie)}</span></div>
         ${g.produktwahl?.auswahl ? `<div class="ab-kpi"><span class="ab-kl">Produktwahl</span><span class="ab-kv">${esc(produktLabel[g.produktwahl.auswahl] ?? g.produktwahl.auswahl)}</span></div>` : ''}
       </div></div>` : ''}
+    ${g.pens ? `<div class="ab-sec"><div class="ab-sech">07 · LEBENSPLAN &amp; PENSIONIERUNG</div>
+      <div class="ab-kpis">
+        <div class="ab-kpi"><span class="ab-kl">Urteil mit allen Zielen</span><span class="ab-kv">${esc(g.pens.plan.wort)}</span></div>
+        <div class="ab-kpi"><span class="ab-kl">Nur Pensionierung</span><span class="ab-kv">${esc(g.pens.nur?.wort ?? '–')}</span></div>
+        <div class="ab-kpi"><span class="ab-kl">Pensionierung mit</span><span class="ab-kv">${esc(pensAlterTxt(g.pens.plan))}</span></div>
+        <div class="ab-kpi"><span class="ab-kl">Tragbare Ausgaben / Mt.</span><span class="ab-kv">${CHF(g.pens.plan.tragbar)}</span></div>
+      </div></div>` : ''}
+    ${g.fach.steuern.length || g.fach.nachlass.length || g.fach.absicherungErfasst ? `<div class="ab-sec"><div class="ab-sech">07d–07f · STEUERN, ABSICHERUNG, NACHLASS</div>
+      ${g.fach.steuern.length ? `<div class="ab-vrow"><span class="ab-vcheck">✓</span><span>Steuern prüfen: ${g.fach.steuern.map(esc).join(' · ')}</span></div>` : ''}
+      ${g.fach.absicherungErfasst ? `<div class="ab-vrow"><span class="ab-vcheck">${g.fach.absStatus === 'gedeckt' ? '✓' : g.fach.absStatus === 'luecke' ? '!' : '?'}</span><span>Absicherung: ${g.fach.luecke ? `grösste Lücke ${CHF(g.fach.luecke.betrag)} pro Jahr (${esc(g.fach.luecke.text)})` : ABS_TEXT[g.fach.absStatus]}</span></div>` : ''}
+      ${g.fach.nachlass.length ? `<div class="ab-vrow"><span class="ab-vcheck">✓</span><span>Nachlass regeln: ${g.fach.nachlass.map(esc).join(' · ')}</span></div>` : ''}
+    </div>` : ''}
     <div class="ab-sec"><div class="ab-sech">08 · VEREINBARUNGEN <small>${g.vereinb.length}</small></div>
       ${g.vereinb.length ? g.vereinb.map((v) => `<div class="ab-vrow"><span class="ab-vcheck">✓</span><span>${esc(v.text || v.sparte || '–')}${v.stepWer ? ` <small>· ${esc(v.stepWer)}</small>` : ''}${v.stepWann ? ` <small>· ${esc(v.stepWann)}</small>` : ''}</span></div>`).join('') : '<div class="ab-empty">Keine Vereinbarungen erfasst.</div>'}
     </div>
@@ -233,6 +337,39 @@ function buildReport(): string {
         : '<div class="rp-empty">Keine Anlegerdaten erfasst.</div>');
   }
 
+  if (printBranches.includes('07c')) {
+    const p = g.pens;
+    html += section('07', 'Lebensplan & Pensionierung', 'Standortbestimmung',
+      p
+        ? `<div class="rp-kpis rp-kpis4">
+            <div class="rp-kpi"><span>Urteil mit allen Zielen</span><b class="${ampelKl(p.plan)}">${esc(p.plan.wort)}</b></div>
+            <div class="rp-kpi"><span>Nur Pensionierung</span><b class="${ampelKl(p.nur)}">${esc(p.nur?.wort ?? '–')}</b></div>
+            <div class="rp-kpi"><span>Ausgaben geplant / Mt.</span><b>${CHF(p.plan.ausgaben)}</b></div>
+            <div class="rp-kpi"><span>Ausgaben tragbar / Mt.</span><b>${CHF(p.plan.tragbar)}</b></div>
+          </div>
+          <p class="rp-reason">${p.plan.aufgebraucht != null ? `Mit allen Zielen ist das freie Vermögen mit ${p.plan.aufgebraucht} aufgebraucht (Planungshorizont ${p.plan.horizont}).` : `Mit allen Zielen reicht das freie Vermögen bis zum Planungshorizont ${p.plan.horizont}.`} Pensionierung mit ${esc(pensAlterTxt(p.plan))}. Erste Einschätzung nach PensCheck; sie ersetzt keine Finanzplanung.</p>
+          ${p.eintraege.filter((e) => e.quelle !== '07c').map((e) => `<div class="rp-vrow"><span class="rp-vcheck">${e.rechnet ? '✓' : '?'}</span><div><b>${esc(e.name)}${e.jahr ? ` · ${e.jahr}` : ''}${e.betrag ? ` · ${CHF(e.betrag)}` : ''}</b><div class="rp-vwho">${e.rechnet ? 'In der Rechnung' : 'Vorgemerkt, nicht gerechnet'}</div></div></div>`).join('')}
+          ${(p.nur ?? p.plan).schritte.map((a) => `<div class="rp-vrow"><span class="rp-vcheck">→</span><div><b>${esc(a.titel)}</b><div class="rp-vwho">${esc([a.when, a.stelle].filter(Boolean).join(' · '))}</div></div></div>`).join('')}`
+        : `<div class="rp-empty">${planStatus === 'fehler' ? 'Die Rechnung zur Pensionierung ist fehlgeschlagen; bitte die Angaben im Modul Pensionierung prüfen.' : 'Keine Angaben zur Pensionierung erfasst (Ausgaben im Ruhestand fehlen).'}</div>`);
+  }
+
+  if (printBranches.includes('07d')) {
+    html += section('7d', 'Steuern', 'Zu prüfende Themen',
+      g.fach.steuern.length ? g.fach.steuern.map((t) => `<div class="rp-vrow"><span class="rp-vcheck">✓</span><div><b>${esc(t)}</b></div></div>`).join('') + (typeof (D.steuern as { notiz?: string } | undefined)?.notiz === 'string' && (D.steuern as { notiz: string }).notiz ? `<div class="rp-notiz">${esc((D.steuern as { notiz: string }).notiz)}</div>` : '')
+        : '<div class="rp-empty">Keine Themen vorgemerkt.</div>');
+  }
+  if (printBranches.includes('07e')) {
+    html += section('7e', 'Absicherung', 'Invalidität & Todesfall',
+      g.fach.absicherungErfasst
+        ? `<p class="rp-reason">${g.fach.luecke ? `Grösste Lücke zum Bedarf: ${CHF(g.fach.luecke.betrag)} pro Jahr (${esc(g.fach.luecke.text)}).` : g.fach.absStatus === 'gedeckt' ? 'Der Bedarf ist in allen gerechneten Fällen gedeckt.' : `${ABS_TEXT[g.fach.absStatus]}.`} Gerechnet mit gesetzlichen Anteilen von AHV/IV und UVG sowie den Leistungen der Pensionskasse laut Vorsorgeausweis; vereinfachte Einschätzung.</p>`
+        : '<div class="rp-empty">Keine Angaben zur Absicherung erfasst.</div>');
+  }
+  if (printBranches.includes('07f')) {
+    html += section('7f', 'Nachlass', 'Zu regelnde Themen',
+      g.fach.nachlass.length ? g.fach.nachlass.map((t) => `<div class="rp-vrow"><span class="rp-vcheck">✓</span><div><b>${esc(t)}</b></div></div>`).join('') + (typeof (D.nachlass as { notiz?: string } | undefined)?.notiz === 'string' && (D.nachlass as { notiz: string }).notiz ? `<div class="rp-notiz">${esc((D.nachlass as { notiz: string }).notiz)}</div>` : '')
+        : '<div class="rp-empty">Keine Themen vorgemerkt.</div>');
+  }
+
   html += section('08', 'Vereinbarungen & nächste Schritte', `${g.vereinb.length} Vereinbarungen`,
     g.vereinb.length
       ? g.vereinb.map((v) => `<div class="rp-vrow"><span class="rp-vcheck">✓</span><div><b>${esc(v.text || v.sparte || '–')}</b>
@@ -255,11 +392,13 @@ function buildReport(): string {
 }
 
 // v1 printBericht (Modi)
-function printBericht(mode: string): void {
+async function printBericht(mode: string): Promise<void> {
+  await planFertig; // die Rechnung zu Lebensplan und Pensionierung läuft im Worker: erst drucken, wenn sie da ist
   D = BBZ.all() as Record<string, unknown>; // frisch lesen (z.B. Schlussnotiz)
-  if (mode === 'total') printBranches = ['07a', '07b'];
+  if (mode === 'total') printBranches = ['07a', '07b', '07c', '07d', '07e', '07f'].filter((b) => b === '07a' || b === '07b' || activeBranches.includes(b));
   else if (mode === 'finanzieren') printBranches = ['07a'];
   else if (mode === 'anlegen') printBranches = ['07b'];
+  else if (mode === 'pension') printBranches = ['07c'];
   else printBranches = activeBranches.length ? activeBranches : ['07a'];
   el('printReport').innerHTML = buildReport();
   window.print();
@@ -282,14 +421,16 @@ function init(): void {
     };
     reader.readAsDataURL(file);
   });
-  el('btnPrint').addEventListener('click', () => printBericht((document.getElementById('printScope') as HTMLSelectElement).value));
+  el('btnPrint').addEventListener('click', () => void printBericht((document.getElementById('printScope') as HTMLSelectElement).value));
   // Nur aktive Vertiefungen anbieten (index: "im Abschluss wählbar welche gedruckt wird")
   load();
   const scope = document.getElementById('printScope') as HTMLSelectElement;
   if (!activeBranches.includes('07a')) (scope.querySelector('[value="finanzieren"]') as HTMLOptionElement).disabled = true;
   if (!activeBranches.includes('07b')) (scope.querySelector('[value="anlegen"]') as HTMLOptionElement).disabled = true;
+  if (!activeBranches.includes('07c')) (scope.querySelector('[value="pension"]') as HTMLOptionElement).disabled = true;
   initUI();
   renderSummary();
+  rechnePlan();
   wireSummaryScroll();
 }
 

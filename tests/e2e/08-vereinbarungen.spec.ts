@@ -11,7 +11,7 @@ test('08 Vereinbarungen — Smoke (Wizard)', async ({ page }) => {
 
   await page.goto('modules/08-vereinbarungen.html');
   await expect(page.locator('.rail-title')).toHaveText('Vereinbarungen');
-  await expect(page.locator('#bbzNav .bbz-nav-tab')).toHaveCount(11);
+  await expect(page.locator('#bbzNav .bbz-nav-tab')).toHaveCount(17);
   const noScroll = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1);
   expect(noScroll, 'Regel 1').toBe(true);
 

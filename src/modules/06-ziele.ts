@@ -271,7 +271,7 @@ function makeChip(item: (Ziel | Wunsch) & { _w?: boolean }): HTMLElement {
   const chip = document.createElement('button');
   chip.type = 'button';
   chip.className = 'zl-ndchip' + (isZ ? ' nd-g' : isW ? ' nd-r' : '');
-  chip.innerHTML = `${k ? `<span class="zl-ndicon">${I[k.ikon]}</span>` : ''}<span class="zl-ndname">${esc(item.name || k?.lbl.replace('\n', ' ') || '–')}</span>${item.jahr ? `<span class="zl-ndamt" style="opacity:.5">${item.jahr}</span>` : ''}${item.betrag ? `<span class="zl-ndamt">${isZ ? '+' : ''}CHF ${fmt(item.betrag)}</span>` : ''}`;
+  chip.innerHTML = `${k ? `<span class="zl-ndicon">${I[k.ikon]}</span>` : ''}<span class="zl-ndname">${esc(item.name || k?.lbl.replace('\n', ' ') || '–')}</span>${item.jahr ? `<span class="zl-ndamt zl-ndjahr">${item.jahr}</span>` : ''}${item.betrag ? `<span class="zl-ndamt">${isZ ? '+' : ''}CHF ${fmt(item.betrag)}</span>` : ''}`;
   chip.addEventListener('click', () => { if (isW) openWEdit(item.id); else openItemEdit(item.id); });
   return chip;
 }

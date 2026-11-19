@@ -50,7 +50,7 @@ function renderPillars(): void {
   el('pillars').innerHTML = Object.entries(PILLARS)
     .map(([key, p], i) => `
       <button class="bk-pillar" type="button" data-key="${key}">
-        <span class="bk-deco">${String(i + 1).padStart(2, '0')}</span>
+        <span class="bk-deco" aria-hidden="true" data-n="${String(i + 1).padStart(2, '0')}"></span>
         <svg class="bk-picon" viewBox="0 0 40 40" fill="none">${p.icon}</svg>
         <span class="bk-ptitle">${p.title}</span>
         <span class="bk-pcta">Mehr erfahren →</span>

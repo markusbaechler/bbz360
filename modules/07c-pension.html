@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>bbz360 — Pensionierung</title>
+  <script type="module" src="/src/modules/07c-pension.ts"></script>
+</head>
+<body class="pc-app" data-view="form" data-mode="form">
+  <header class="bbz-topbar">
+    <a class="bbz-logo" href="../index.html" title="Zurück zum Beratercockpit" aria-label="Zurück zum Beratercockpit">bbz</a>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+  </header>
+  <a class="skip" href="#main">Zum Inhalt springen</a>
+  <div class="wrap">
+
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-txt">
+        <p class="pc-kicker">07c · PENSIONIERUNG</p>
+        <h1 id="heroTitle">Pensionierung planen.</h1>
+        <p class="lead">Standortbestimmung nach PensCheck: Reicht es, wann reicht es, und was lässt sich ändern?</p>
+      </div>
+      <nav class="modes" aria-label="Vorgehen">
+        <button type="button" class="mode" data-mode="tutor" aria-pressed="true"><svg class="mico" viewBox="0 0 48 48" aria-hidden="true"><path class="mi-s" d="M10.5 36.5h9v-8.5h9v-8.5h9.5"/><circle class="ma mi-hop" cx="33.5" cy="14.5" r="4.2"/></svg><span class="mtxt">Geführt</span><span class="mdesc">Schritt für Schritt</span></button>
+        <button type="button" class="mode" data-mode="form" aria-pressed="false"><svg class="mico" viewBox="0 0 48 48" aria-hidden="true"><rect class="mi-s" x="12" y="8" width="24" height="32" rx="3.5"/><rect class="ma mi-r1" x="16.5" y="14" width="5" height="5" rx="1.2"/><path class="mi-s" d="M25 16.5h7"/><rect class="ma mi-r2" x="16.5" y="21.5" width="5" height="5" rx="1.2"/><path class="mi-s" d="M25 24h7"/><rect class="mi-s mi-r3" x="16.5" y="29" width="5" height="5" rx="1.2"/><path class="mi-s" d="M25 31.5h5"/></svg><span class="mtxt">Formular</span><span class="mdesc">alles auf einen Blick</span></button>
+      </nav>
+    </section>
+
+    <aside class="leisten" aria-label="Hinweise">
+
+      <!-- Über dem Inhalt, damit der Hinweis im Tutor, im Formular und in der mobilen Ansicht «Eingaben» sichtbar ist -->
+      <p class="rfehler" id="rechenFehler" role="alert" hidden><b>Die Rechnung ist fehlgeschlagen.</b> <span id="rechenFehlerText"></span> Bitte prüfen Sie die letzte Eingabe.</p>
+    </aside>
+
+    <main class="layout" id="main">
+      <section class="tutor" id="tutor" aria-label="Geführte Erfassung"></section>
+      <div class="formwrap" id="formwrap">
+        <div class="newbar">
+          <button class="bbz-button bbz-button--ghost sm" id="btnImport" type="button">PensCheck-Stand einlesen</button>
+        </div>
+        <!-- Kundenname und Gesprächsdatum aus den Berichtsangaben (leer, wenn nicht erfasst) -->
+        <p class="gespraech" id="gespraech" hidden></p>
+        <!-- Kleines Bild (bis 768 px in der Ansicht «Eingaben»): führt zum Bild im Ergebnis (src/ui/buehne.js) -->
+        <button type="button" class="minibild" id="miniBild"><span class="mb-kopf"><span>Ihr Bild ansehen</span><span class="mb-pfeil" aria-hidden="true">›</span></span><span class="mb-bild" data-minibild aria-hidden="true"></span></button>
+        <!-- Karteneditor eines Themas über den Schritten (src/ui/themenui.js) -->
+        <section class="panel themaedit" id="themaEdit" aria-labelledby="themaEditTitel" hidden></section>
+        <!-- Schrittleiste des Formularmodus: Inhalt aus src/ui/schritte.js -->
+        <nav class="schritte" id="schritte" aria-label="Schritte"></nav>
+        <!-- Bis 768 px in der Ansicht «Eingaben»: dieselbe Themenleiste unter den Schritten (src/ui/themenui.js) -->
+        <div class="themenleiste themenleiste-ein" id="themenleisteEin" hidden></div>
+        <section class="panel form" aria-label="Eingaben" id="form"></section>
+      </div>
+      <section class="results" aria-label="Ergebnis" id="results">
+        <!-- Nur im Tutor-Ergebnis: Sprung zu den Abschnitten (src/ui/buehne.js); bis 768 px am unteren Rand über «Eingaben | Ergebnis» -->
+        <nav class="sprung" id="sprung" aria-label="Abschnitte"><a href="#urteilBlock">Urteil</a><a href="#ansichtenBlock">Bild</a><a href="#akt">Schritte</a><a href="#opt">Ansatz<wbr>punkte</a><a href="#erkunden">Themen</a></nav>
+        <!-- Schritte 5 bis 8 auf schmalen Bildschirmen in der Ansicht «Ergebnis»; data-block: Blockwahl je Schritt (styles.css) -->
+        <nav class="schritte-mobil" id="schritteMobil" aria-label="Auswertung"></nav>
+        <div class="panel verdict" id="urteilBlock" data-block="kopf">
+          <div class="lamp" id="lamp" aria-hidden="true"><i></i><i></i><i></i></div>
+          <!-- Nur das Urteil wird bei einer Neuberechnung vorgelesen, nicht das ganze Ergebnis -->
+          <div class="urteil-live" aria-live="polite" aria-atomic="true"><div class="kicker" id="kicker"></div><h2 id="verdictText">Rechne …</h2></div>
+          <p class="sub" id="verdictSub"></p>
+          <!-- Nur im Ausdruck: was die erreichte Stufe der Ampel bedeutet (am Bildschirm erklärt sie das Glossar) -->
+          <p class="cap nurdruck" id="ampelDruck"></p>
+          <!-- Formularmodus ohne Ergebnis: Frage des aktiven Schritts statt des Urteils (src/ui/buehne.js) -->
+          <div class="kfrage" id="kopfFrage" hidden></div>
+          <!-- Formularmodus ab 1025 px: zwei Kennzahlen in der Kopfzeile (Kopie aus #kpis, buehne.js) -->
+          <div class="kopfkpis" id="kopfKpis"></div>
+        </div>
+        <div class="kpis" id="kpis" data-block="kopf"></div>
+        <!-- Formularmodus ab 1025 px, Schritt 5: Ergänzung zum Urteil unter dem Bild (Text aus #verdictSub, buehne.js) -->
+        <p class="sub subunten" id="subUnten"></p>
+        <div class="trag" id="tragBox" data-block="trag" hidden></div>
+        <!-- Schritt 6 «So oder so» (src/ui/vergleich.js); der Regler «früher aufhören» darunter, im Tutor immer offen.
+             Im Tutor-Ergebnis stehen dieser Block, die Themenleiste und der Karteneditor in «Weiter erkunden» (buehne.js) -->
+        <div class="vgblock" data-block="vergleich">
+          <div class="panel vergleich" id="vergleich"></div>
+          <details class="sofortbox" id="sofortBox"><summary>Was wäre, wenn Sie früher aufhören?</summary><div class="panel sofort" id="sofort"></div></details>
+        </div>
+        <div class="panel" id="ansichtenBlock" data-block="ansichten">
+          <h2 class="vh" id="bildTitel">Bild und Auswertungen.</h2>
+          <div class="ansichtwahl" id="ansichtBox" hidden><label for="ansichtWahl" id="ansichtLabel">Ansicht</label><select id="ansichtWahl"></select></div>
+          <div class="tabs" role="tablist" aria-label="Auswertungen" id="resTabs"></div>
+          <div class="tabbody" id="tabBody" role="tabpanel" tabindex="0"></div>
+        </div>
+        <!-- Formularmodus, Schritte 1 bis 6: vorgemerkte und gerechnete Themen unter dem Bild (src/ui/themenui.js) -->
+        <div class="themenleiste" id="themenleiste" data-block="themen" hidden></div>
+        <!-- Nur im Druck: alle Ansichten nacheinander (buehne.js), sonst leer und ausgeblendet -->
+        <div class="druckansichten" id="druckAnsichten"></div>
+        <div class="panel hints opt" id="opt" data-block="ansatz"></div>
+        <section class="panel akt" id="akt" aria-label="Aktionsplan" data-block="aktion" hidden></section>
+        <!-- Nur im Tutor-Ergebnis: freiwilliger Teil mit Themen und So oder so (Inhalt verschiebt buehne.js hierher) -->
+        <section class="erkunden" id="erkunden" data-block="erkunden" aria-labelledby="erkundenTitel"><h2 id="erkundenTitel">Weiter erkunden.</h2></section>
+        <div class="panel cta" data-block="abschluss">
+          <h3>Wie weiter?</h3>
+          <p class="cap">Der Bericht fasst Urteil, Bild und nächste Schritte zusammen. Bericht und Kalenderdatei entstehen auf diesem Gerät; die Angaben werden dabei nicht übertragen.</p>
+          <div class="ctarow">
+            <button class="bbz-button bbz-button--secondary" id="btnPdf" type="button">Bericht als PDF</button>
+          </div>
+        </div>
+        <p class="disc" data-block="hinweis"><b>Wichtiger Hinweis:</b> <span data-hinweis-kurz></span> <button type="button" class="linkbtn" data-hinweis>Mehr dazu</button></p>
+      </section>
+    </main>
+
+    <section class="sources-wrap" id="sourcesWrap" role="main" aria-label="Grundlagen und Quellen">
+      <button class="bbz-button bbz-button--ghost sm" id="btnSrcBack" type="button">← Zurück zur Planung</button>
+      <div class="panel sources" id="sources"></div>
+    </section>
+
+    <footer class="foot pc-foot">
+      <div class="foot-bot">
+        <div class="fmeta"><span class="fver"><span id="dataBadge"></span></span></div>
+        <nav class="flinks" aria-label="Weitere Informationen">
+          <button type="button" class="flink" data-hinweis>Wichtiger Hinweis</button>
+          <button type="button" class="flink" id="btnSources">Grundlagen und Quellen</button>
+        </nav>
+      </div>
+    </footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="dlg" id="hinweisDlg" aria-labelledby="hinweisTitel">
+    <h2 id="hinweisTitel" tabindex="-1">Wichtiger Hinweis.</h2>
+    <div class="dlg-body" id="hinweisText"></div>
+    <div class="ctarow">
+      <button class="bbz-button bbz-button--primary" type="button" data-close>Verstanden</button>
+    </div>
+  </dialog>
+  <dialog class="dlg" id="confirmDlg" aria-labelledby="confirmTitel" aria-describedby="confirmText">
+    <h2 id="confirmTitel"></h2>
+    <div class="dlg-body"><p id="confirmText"></p></div>
+    <div class="ctarow">
+      <button class="bbz-button bbz-button--primary" type="button" id="btnConfirmJa">Ja, ersetzen</button>
+      <button class="bbz-button bbz-button--ghost" type="button" id="btnConfirmNein">Abbrechen</button>
+    </div>
+  </dialog>
+  <dialog class="dlg" id="importDlg" aria-labelledby="importTitel">
+    <h2 id="importTitel" tabindex="-1">PensCheck-Stand einlesen.</h2>
+    <div class="dlg-body">
+      <p>Hat die Kundin oder der Kunde die Angaben im öffentlichen PensCheck erfasst? Fügen Sie hier den Link («Link kopieren» im PensCheck) ein. Der Inhalt wird geprüft, bevor er übernommen wird.</p>
+      <label for="importText">Link oder Code</label>
+      <textarea id="importText" rows="4" spellcheck="false" autocomplete="off" style="width:100%"></textarea>
+      <p class="rfehler" id="importFehler" role="alert" hidden>Der Link ist unvollständig oder ungültig. Die bisherigen Angaben bleiben unverändert.</p>
+    </div>
+    <div class="ctarow">
+      <button class="bbz-button bbz-button--primary" type="button" id="btnImportJa">Einlesen</button>
+      <button class="bbz-button bbz-button--ghost" type="button" id="btnImportNein">Abbrechen</button>
+    </div>
+  </dialog>
+  <dialog class="dlg thdlg" id="themenDlg" aria-labelledby="themenTitel">
+    <h2 id="themenTitel" tabindex="-1">Was beschäftigt Sie noch?</h2>
+    <div class="dlg-body"><p>Ein Klick merkt das Thema vor. Die Zahl kann später folgen; dann rechnet die Karte mit.</p><div id="themenAuswahl"></div></div>
+    <p class="th-status" id="themenStatus" role="status"></p>
+    <div class="ctarow">
+      <button class="bbz-button bbz-button--primary" type="button" id="btnThemaFertig">Fertig</button>
+    </div>
+  </dialog>
+  <nav class="mnav" aria-label="Ansicht">
+    <button type="button" data-view="form" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" /></svg>Eingaben</button>
+    <button type="button" data-view="results" aria-pressed="false"><span class="mlamp" id="mlamp" aria-hidden="true"></span>Ergebnis<span class="vh" id="mlampTxt"></span></button>
+  </nav>
+</body>
+</html>

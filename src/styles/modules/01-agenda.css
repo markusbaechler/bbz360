@@ -5,7 +5,7 @@
 
 /* ── SÄULE ───────────────────────────────────────────────────────────────── */
 .bbz-rail { padding: 36px 32px; gap: 26px; }
-.ag-meta { color: rgba(255, 255, 255, 0.55); font-size: var(--fs-sm); line-height: 1.5; }
+.ag-meta { color: rgba(255, 255, 255, 0.7); font-size: var(--fs-sm); line-height: 1.5; }
 .bbz-rail .rail-title { font-size: var(--fs-title); line-height: 1.2; margin-top: 8px; white-space: pre-line; }
 .bbz-rail .rail-sub { font-size: var(--fs-base); color: rgba(255, 255, 255, 0.72); margin-top: 12px; }
 .ag-goal { color: #fff; font-size: var(--fs-md); line-height: 1.6; font-weight: var(--w-med); }
@@ -45,9 +45,9 @@ body.edit-mode .ag-tt { cursor: text; }
 .ag-tr[data-done="1"]:hover { background: var(--line-soft); }
 .ag-tr[data-done="1"] .ag-tt { color: var(--ink-4); }
 .ag-count { margin-left: 6px; margin-right: auto; font-size: var(--fs-2xs); font-weight: var(--w-bold); color: var(--green); letter-spacing: .08em; }
-.ag-grip { cursor: grab; color: var(--mut-3); user-select: none; }
+.ag-grip { cursor: grab; color: var(--mut); user-select: none; }
 .ag-del {
-  border: none; background: none; cursor: pointer; color: var(--mut-3);
+  border: none; background: none; cursor: pointer; color: var(--mut);
   font-size: var(--fs-md); line-height: 1; min-width: 44px; min-height: 44px;
   display: flex; align-items: center; justify-content: center;
 }

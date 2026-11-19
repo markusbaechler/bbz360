@@ -1,0 +1,17 @@
+/* 07 Lebensplan — bbz Brand System (Topbar aus 07c-pension.css, Hero/Fuss wie 05b). */
+.lp-hero { padding: var(--bbz-space-32) var(--bbz-space-32) var(--bbz-space-24); margin-bottom: var(--bbz-space-24); }
+.lp-hero .lp-kicker { color: var(--on-deep); opacity: .75; margin-bottom: var(--bbz-space-8); }
+.lp-hero .lead { margin-top: var(--bbz-space-8); }
+.lp-main { display: flex; flex-direction: column; gap: var(--bbz-space-24); }
+.lp-panel { padding: var(--bbz-space-24); display: flex; flex-direction: column; gap: var(--bbz-space-16); }
+.lp-panel h2 { margin: 0; }
+.lp-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.lp-kpis .kpi .v .pill { font-size: inherit; padding: 2px 12px; }
+.lp-app[aria-busy="true"] .lp-kpis, .lp-app[aria-busy="true"] #lpBild { opacity: .55; transition: opacity .15s; }
+#lpBildKopf { display: flex; flex-wrap: wrap; gap: var(--bbz-space-8) var(--bbz-space-16); align-items: center; }
+.lp-tab td:first-child small { display: block; color: var(--muted); white-space: normal; max-width: 44ch; font-weight: 400; }
+.lp-tab td:first-child b { color: var(--ink); }
+.lp-tab td:last-child, .lp-tab th:last-child, .lp-tab td:nth-child(5), .lp-tab th:nth-child(5) { text-align: left; }
+.lp-tab tr[data-rechnet="nein"] td { color: var(--muted); }
+.lp-annahmen ul { margin: 0; padding-left: 1.2em; color: var(--ink-2); font-size: var(--bbz-size-small); display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 900px) { .lp-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

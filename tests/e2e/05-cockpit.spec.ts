@@ -11,7 +11,7 @@ test('05 Cockpit — Smoke', async ({ page }) => {
 
   await page.goto('modules/05-cockpit.html');
   await expect(page.locator('.rail-title')).toHaveText('Finanz-Cockpit');
-  await expect(page.locator('#bbzNav .bbz-nav-tab')).toHaveCount(11);
+  await expect(page.locator('#bbzNav .bbz-nav-tab')).toHaveCount(17);
   await expect(page.locator('.ck-kpi')).toHaveCount(6);
   const noScroll = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1);
   expect(noScroll, 'Regel 1').toBe(true);

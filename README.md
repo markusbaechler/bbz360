@@ -1,6 +1,6 @@
 # bbz360 — Beratungsdialog v2
 
-Digitales Beratungsgespräch der bbz bank st.gallen: 13 Module von der Agenda
+Digitales Beratungsgespräch der bbz bank st.gallen: 19 Module von der Agenda
 bis zum Gesprächsbericht, neu aufgebaut nach **Design-Grammatik v3**
 (`design/DESIGN-SPEC.md`) mit Vite + TypeScript.
 
@@ -14,9 +14,15 @@ bis zum Gesprächsbericht, neu aufgebaut nach **Design-Grammatik v3**
 | 01 | Agenda — Traktanden (abhakbar) & Erwartungen | Gastgeber (referenz-01) |
 | 02–04 | Bank / Berater:in / Philosophie | Bühnen-Module |
 | 05 | Finanz-Cockpit — KPIs, Erfassungsmodale, Simulation | referenz-05 |
+| 05b | Budget & Liquidität — Budget im Ruhestand (8 Positionen, Musterbudgets), Ausgaben heute, Sparbetrag, Reserve | bbz Brand System (ADR-17) |
 | 06 | Ziele & Wünsche — Zeitachse, Lebensthemen, Wunschliste (zweistufige Erfassung) | Zielkarten + Sequenz |
+| 07 | Lebensplan — Ziele, Eigenheim, Anlegen und Pensionierung in einem Bild und einer Rechnung | bbz Brand System (ADR-18) |
 | 07a | Eigenheimfinanzierung — Tragbarkeit, Varianten | 05-Simulations-Muster |
 | 07b | Anlegen — Profilierung (6 Phasen) + Umsetzung (3 Phasen) | referenz-08 |
+| 07c | Pensionierung — Standortbestimmung nach PensCheck: Bühne mit Bild und Ampel, geführte Erfassung, Themenkarten, «So oder so», Aktionsplan, PDF-Bericht | bbz Brand System (ADR-16) |
+| 07d | Steuern — Kapitalbezüge staffeln, Abzüge (3a, PK-Einkauf), Vermögenssteuer, Themen | bbz Brand System (ADR-20) |
+| 07e | Absicherung — Invalidität und Tod je Person, Lücke zum Bedarf | bbz Brand System (ADR-20) |
+| 07f | Nachlass — gesetzliche Erbfolge, Pflichtteile, erwartete Erbschaften, Themen | bbz Brand System (ADR-20) |
 | 08 | Vereinbarungen — Wizard | referenz-08 |
 | 09 | Feedback — Slider-Zeilen, grosse Daumen | 01-Panel-Muster |
 | 10 | Abschluss — Zusammenfassung + Druckbericht | 01-Grammatik |
@@ -42,7 +48,13 @@ npm run build        # Produktion nach dist/
 - **Rechenkern** `src/lib/finance.ts`: Tragbarkeit (07a), Simulation und
   Empfehlung (07b) — verbatim aus v1 portiert, Unit-Tests gegen die
   eingefrorenen Referenzwerte in `FIXTURES.md`.
-- **Design**: `src/styles/theme.css` ist Single Source of Truth;
+- **Pensionierungs-Rechenkern** `src/lib/pension/`: TypeScript-Port des
+  PensCheck (monatsgenau: AHV, PK, 3a, Freizügigkeit, Liegenschaften,
+  Steuern), geprüfte Grundlagen in `public/data/params.json`. Gemeinsamer
+  Haushalts-Stand `haushalt` über `src/lib/haushalt.ts` (ADR-16, Zielbild in
+  `docs/ZIELBILD-FUSION.md`). Oberfläche: `src/pension-ui/` (Modul 07c).
+- **Design**: `src/styles/theme.css` (v4, Brand-Tokens und -Schriften) ist Single Source of Truth
+  für die Module 01–10; die neuen Module laufen im bbz Brand System (`src/styles/pension/`, DESIGN-SPEC §7);
   verbindliche Regeln in `design/DESIGN-SPEC.md` (Bühnen-Grammatik,
   6 Regeln, Inventar-Pflicht §5 inkl. Vereinfachungs-Verbot §5.4).
   Lesegrösse wächst mit der Bildschirmhöhe: `clamp(16px, 2.2vh, 20px)`,
@@ -97,6 +109,22 @@ App sie automatisch.
   schon einen eigenen `bbzAdmin`-Stand haben.
 - Im JSON steht nie Base64: Fotos sind Repo-Pfade, damit die Datei klein
   bleibt.
+
+## Offline (PWA)
+
+Die App ist installierbar und läuft nach dem ersten Laden ohne Netz
+(`vite-plugin-pwa`, ADR-21). Eine neue Version gilt, sobald alle Fenster der
+App geschlossen waren. Kundendaten bleiben im Browser (localStorage) und
+werden nicht übertragen.
+
+## Grundlagen der Rechnung
+
+Gesetzliche Werte, Tarife und Annahmen liegen mit ihren Quellen in
+`public/data/params.json` (aus dem PensCheck übernommen, Stand siehe Datei).
+`npm run verify:sources` prüft sie gegen die hinterlegten Quellen; es gibt
+keinen automatischen Prüflauf. Die Grundlagen werden bei Bedarf aus dem
+PensCheck-Repo nachgeführt. Die Fachmodule 07d–07f nennen ihre Grundlagen im
+Modul unter «So ist gerechnet» (ADR-20).
 
 ## Deploy
 

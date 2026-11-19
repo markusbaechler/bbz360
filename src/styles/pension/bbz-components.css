@@ -1,0 +1,629 @@
+/*
+ * bbz Brand System – Komponenten
+ * Version 0.110.0-rc.2 · Stand 2026-10-17
+ *
+ * GENERIERT aus adapters/_shared/css/ – nicht von Hand editieren.
+ * Setzt bbz-base.css voraus.
+ */
+
+/* ── adapters/_shared/css/components/badge.css ── */
+/* Statusetikett.
+ * Regel color-never-alone: das Etikett trägt immer Text. Ein farbiger Punkt
+ * oder Balken allein ist keine zulässige Statuskodierung. */
+
+.bbz-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bbz-space-4);
+  padding: var(--bbz-space-4) var(--bbz-space-8);
+  border: 1px solid var(--bbz-border-default);
+  border-radius: var(--bbz-radius-control);
+  background-color: var(--bbz-surface-subtle);
+  color: var(--bbz-text-strong);
+  font-family: var(--bbz-font-body);
+  font-size: var(--bbz-size-small);
+  font-weight: var(--bbz-weight-emphasis);
+  line-height: var(--bbz-leading-tight);
+  white-space: nowrap;
+}
+
+.bbz-badge--positive {
+  background-color: var(--bbz-surface-default);
+  color: var(--bbz-signal-positive);
+  border-color: var(--bbz-signal-positive);
+}
+
+.bbz-badge--warning {
+  background-color: var(--bbz-surface-default);
+  color: var(--bbz-signal-warning);
+  border-color: var(--bbz-signal-warning);
+}
+
+.bbz-badge--negative {
+  background-color: var(--bbz-surface-default);
+  color: var(--bbz-signal-negative);
+  border-color: var(--bbz-signal-negative);
+}
+
+.bbz-badge--info {
+  background-color: var(--bbz-surface-default);
+  color: var(--bbz-signal-info);
+  border-color: var(--bbz-signal-info);
+}
+
+/* :empty wie beim Hinweisblock: Wo das Zeichen als Text im Markup steht – im
+ * E-Mail-Kanal ist das Pflicht –, darf CSS es nicht noch einmal setzen. */
+.bbz-badge__icon:empty::before { content: ""; }
+.bbz-badge--positive .bbz-badge__icon:empty::before { content: "\2713\00A0"; }
+.bbz-badge--warning .bbz-badge__icon:empty::before { content: "\26A0\FE0E\00A0"; }
+.bbz-badge--negative .bbz-badge__icon:empty::before { content: "\2715\00A0"; }
+.bbz-badge--info .bbz-badge__icon:empty::before { content: "\2139\FE0E\00A0"; }
+
+/* ── adapters/_shared/css/components/button.css ── */
+/* Schaltfläche.
+ * Regel primary-blue-reserved: action.primary erscheint ausschliesslich an
+ * klickbaren Primäraktionen, nie dekorativ und nie an nicht-interaktiven
+ * Elementen. Höchstens eine primäre Schaltfläche pro Ansicht. */
+
+.bbz-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bbz-gap-tight);
+  padding: var(--bbz-space-12) var(--bbz-space-24);
+  border: 1px solid transparent;
+  border-radius: var(--bbz-radius-control);
+  font-family: var(--bbz-font-body);
+  font-size: var(--bbz-size-body);
+  font-weight: var(--bbz-weight-emphasis);
+  line-height: var(--bbz-leading-tight);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.bbz-button:focus-visible {
+  outline: 2px solid var(--bbz-focus-ring);
+  outline-offset: 2px;
+}
+
+.bbz-button:disabled,
+.bbz-button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bbz-button--primary {
+  background-color: var(--bbz-action-primary);
+  color: var(--bbz-text-on-brand);
+}
+
+.bbz-button--primary:hover:not(:disabled) {
+  background-color: var(--bbz-action-primary-hover);
+  color: var(--bbz-text-on-brand);
+}
+
+.bbz-button--secondary {
+  background-color: var(--bbz-surface-default);
+  color: var(--bbz-action-primary);
+  border-color: var(--bbz-border-accent);
+}
+
+.bbz-button--secondary:hover:not(:disabled) {
+  background-color: var(--bbz-surface-subtle);
+  color: var(--bbz-action-primary);
+}
+
+.bbz-button--ghost {
+  background-color: transparent;
+  color: var(--bbz-text-default);
+}
+
+.bbz-button--ghost:hover:not(:disabled) {
+  background-color: var(--bbz-surface-subtle);
+  color: var(--bbz-text-default);
+}
+
+/* ── adapters/_shared/css/components/callout.css ── */
+/* Hinweisblock.
+ *
+ * Fläche und Linie wie der Kasten in Word (surface.brand-subtle, Linie in
+ * border.accent) — Entscheid des Hauses vom 06.10.2026, «Web zieht nach».
+ * Bis dahin stand der Block auf surface.subtle mit Linie in border.default,
+ * und das Haus hatte zwei Hinweisblöcke in zwei Farben.
+ *
+ * Regel color-never-alone: die vier Varianten dürfen sich NICHT allein durch
+ * die Farbe unterscheiden. Jede trägt deshalb zwingend
+ *   - einen Icon-Slot  .bbz-callout__icon  (Glyphe aus dieser Datei oder, wo
+ *     Pseudo-Elemente nicht ankommen, als Text im Markup – siehe unten)
+ *   - ein Textlabel    .bbz-callout__label (Text kommt aus dem Markup)
+ * Fehlt das Label, wird das im Entwurf sichtbar gemacht statt still
+ * durchzugehen. */
+
+.bbz-callout {
+  display: flex;
+  gap: var(--bbz-gap-default);
+  padding: var(--bbz-gap-default);
+  margin: 0 0 var(--bbz-block-default);
+  background-color: var(--bbz-surface-brand-subtle);
+  color: var(--bbz-text-default);
+  border-left: 3px solid var(--bbz-border-accent);
+  border-radius: var(--bbz-radius-default);
+}
+
+.bbz-callout__icon {
+  flex: 0 0 auto;
+  font-weight: var(--bbz-weight-emphasis);
+  line-height: var(--bbz-leading-default);
+}
+
+.bbz-callout__label {
+  display: block;
+  font-weight: var(--bbz-weight-emphasis);
+  color: var(--bbz-text-strong);
+}
+
+.bbz-callout__body > :last-child { margin-bottom: 0; }
+
+.bbz-callout--positive { border-left-color: var(--bbz-signal-positive); }
+.bbz-callout--warning { border-left-color: var(--bbz-signal-warning); }
+.bbz-callout--negative { border-left-color: var(--bbz-signal-negative); }
+.bbz-callout--info { border-left-color: var(--bbz-signal-info); }
+
+/* Die Glyphe unterscheidet die Varianten auch ohne Farbe.
+ *
+ * :empty ist kein Schmuck. Mailprogramme entfernen Pseudo-Elemente, und im
+ * Modus inline-attributes sind sie grundsätzlich nicht abbildbar – dort steht
+ * das Zeichen als Text im Markup. Der Guard verhindert, dass es in Umgebungen
+ * mit funktionierendem CSS doppelt erscheint. Wo :empty unbekannt ist, greift
+ * die Regel gar nicht – derselbe Fall wie ein entferntes ::before. */
+.bbz-callout--positive .bbz-callout__icon:empty::before { content: "\2713"; }
+.bbz-callout--warning .bbz-callout__icon:empty::before { content: "\26A0\FE0E"; }
+.bbz-callout--negative .bbz-callout__icon:empty::before { content: "\2715"; }
+.bbz-callout--info .bbz-callout__icon:empty::before { content: "\2139\FE0E"; }
+
+/* Entwurfshilfe: ein Hinweisblock ohne Textlabel verstösst gegen
+ * color-never-alone. Browser ohne :has() ignorieren die Regel folgenlos. */
+.bbz-callout:not(:has(.bbz-callout__label)) {
+  outline: 2px dashed var(--bbz-signal-negative);
+  outline-offset: 2px;
+}
+
+/* ── adapters/_shared/css/components/card.css ── */
+/* Karte. */
+
+.bbz-card {
+  background-color: var(--bbz-surface-default);
+  color: var(--bbz-text-default);
+  border: 1px solid var(--bbz-border-default);
+  border-radius: var(--bbz-radius-default);
+  padding: var(--bbz-gap-loose);
+}
+
+.bbz-card__title {
+  margin: 0 0 var(--bbz-gap-tight);
+  font-family: var(--bbz-font-body);
+  font-size: var(--bbz-size-h4);
+  font-weight: var(--bbz-weight-emphasis);
+  color: var(--bbz-text-strong);
+}
+
+.bbz-card__body > :last-child { margin-bottom: 0; }
+
+/* Die Vertikallinie ist eines der beiden nicht-typografischen Markenzeichen.
+ * Regel brand-marks-from-logo. */
+.bbz-card--accent { border-left: 3px solid var(--bbz-border-accent); }
+
+.bbz-card--brand {
+  background-color: var(--bbz-surface-brand);
+  color: var(--bbz-text-on-brand);
+  border-color: var(--bbz-surface-brand);
+}
+
+.bbz-card--warm {
+  background-color: var(--bbz-surface-accent-warm);
+  color: var(--bbz-text-on-accent-warm);
+  border-color: var(--bbz-surface-accent-warm);
+}
+
+/* Rote Markenfläche. Regel accent-red-is-surface-not-status: schmückt, meldet
+ * nichts. Für Fehler und Negativwerte gilt signal.negative. */
+.bbz-card--red {
+  background-color: var(--bbz-surface-accent-red);
+  color: var(--bbz-text-on-brand);
+  border-color: var(--bbz-surface-accent-red);
+}
+
+/* Der Titel setzt seine Farbe selbst und würde sie sonst auch auf dunkler
+ * Fläche behalten – text.strong auf surface.brand ergäbe 1.7:1. Regel
+ * text-surface-tone-match; validate:css prüft diese Überschreibungen. */
+.bbz-card--brand .bbz-card__title,
+.bbz-card--red .bbz-card__title { color: var(--bbz-text-on-brand); }
+
+.bbz-card--warm .bbz-card__title { color: var(--bbz-text-on-accent-warm); }
+
+/* ── adapters/_shared/css/components/figure.css ── */
+/* Kennzahl.
+ * Das Label steht über der Zahl. Die Zahl steht in der Grundschrift, nicht in
+ * der Auszeichnungsschrift – Regel figures-body-font.
+ *
+ * Die Kachel ist eine Box und trägt deshalb denselben Radius wie Karte und
+ * Hinweisblock – Regel corners-rounded-boxes. Wer die Kennzahl ohne Rahmen im
+ * Fliesstext braucht, nimmt bbz-figure-block--plain. */
+
+.bbz-figure-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bbz-space-4);
+  padding: var(--bbz-gap-default);
+  background-color: var(--bbz-surface-default);
+  color: var(--bbz-text-default);
+  border: 1px solid var(--bbz-border-default);
+  border-radius: var(--bbz-radius-default);
+}
+
+.bbz-figure-block--plain {
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  border-radius: var(--bbz-radius-none);
+}
+
+.bbz-figure-block__label {
+  font-size: var(--bbz-size-small);
+  font-weight: var(--bbz-weight-default);
+  color: var(--bbz-text-muted);
+}
+
+/* Gewicht 700 ist zulässig, 300 nicht – Regel figures-never-light.
+ * font-family explizit, damit die Kennzahl in einer Überschrift nicht die
+ * Auszeichnungsschrift erbt. */
+.bbz-figure-block__value {
+  font-family: var(--bbz-font-body);
+  font-size: var(--bbz-size-h1);
+  font-weight: var(--bbz-weight-emphasis);
+  line-height: var(--bbz-leading-tight);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  color: var(--bbz-text-figure);
+}
+
+.bbz-figure-block__unit {
+  font-size: var(--bbz-size-h4);
+  font-weight: var(--bbz-weight-default);
+  color: var(--bbz-text-muted);
+}
+
+.bbz-figure-block__note {
+  font-size: var(--bbz-size-small);
+  color: var(--bbz-text-muted);
+}
+
+/* ── adapters/_shared/css/components/form.css ── */
+/* Formularfeld: Label, Eingabe, Hilfetext, Fehlerzustand.
+ * Regel color-never-alone: ein Fehler wird nie allein rot markiert. Er trägt
+ * ein Zeichen und einen Text, und der Text ist über aria-describedby mit dem
+ * Feld verknüpft. */
+
+.bbz-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bbz-space-4);
+  margin: 0 0 var(--bbz-block-default);
+}
+
+.bbz-field__label {
+  font-weight: var(--bbz-weight-emphasis);
+  color: var(--bbz-text-strong);
+}
+
+.bbz-field__control {
+  padding: var(--bbz-space-8) var(--bbz-space-12);
+  border: 1px solid var(--bbz-border-default);
+  border-radius: var(--bbz-radius-control);
+  background-color: var(--bbz-surface-default);
+  color: var(--bbz-text-default);
+  font-family: var(--bbz-font-body);
+  font-size: var(--bbz-size-body);
+}
+
+.bbz-field__control:focus-visible {
+  outline: 2px solid var(--bbz-focus-ring);
+  outline-offset: 2px;
+}
+
+.bbz-field__control:disabled {
+  background-color: var(--bbz-surface-subtle);
+  color: var(--bbz-text-muted);
+  cursor: not-allowed;
+}
+
+.bbz-field__hint {
+  font-size: var(--bbz-size-small);
+  color: var(--bbz-text-muted);
+}
+
+.bbz-field__error {
+  display: flex;
+  gap: var(--bbz-space-4);
+  font-size: var(--bbz-size-small);
+  font-weight: var(--bbz-weight-emphasis);
+  color: var(--bbz-signal-negative);
+}
+
+.bbz-field__error::before { content: "\26A0\FE0E"; }
+
+.bbz-field--invalid .bbz-field__control {
+  border-color: var(--bbz-signal-negative);
+  border-width: 2px;
+}
+
+/* ── adapters/_shared/css/components/hero.css ── */
+/* Hero.
+ * Auf dunkler Fläche steht ausschliesslich text.on-brand – Regel
+ * text-surface-tone-match. */
+
+.bbz-hero {
+  background-color: var(--bbz-surface-brand);
+  color: var(--bbz-text-on-brand);
+  padding: var(--bbz-section-default) var(--bbz-gap-loose);
+}
+
+.bbz-hero--deep {
+  background-color: var(--bbz-surface-brand-deep);
+  color: var(--bbz-text-on-brand);
+}
+
+/* Rote Titelfläche. Rot ist die Hauptfarbe für prominente Titel – Titelfolien,
+ * Kapitelauftakte, Veranstaltungsköpfe. Regel accent-red-is-surface-not-status:
+ * nie als Warn- oder Fehlerfläche. */
+.bbz-hero--red {
+  background-color: var(--bbz-surface-accent-red);
+  color: var(--bbz-text-on-brand);
+}
+
+/* Panel: die Titelfläche liegt als Block über einem Bild.
+ *
+ * Die Deckkraft steht auf einem Pseudo-Element statt auf dem Block selbst –
+ * "opacity" auf dem Block würde auch den Text durchsichtig machen. So bleibt
+ * die Schrift voll deckend und nur die Fläche lässt das Bild durch.
+ *
+ * Regel panel-opacity-over-image: nie unter overlay.panel-min, sonst reicht
+ * der Kontrast über einem hellen Bildbereich nicht mehr. */
+.bbz-hero--panel {
+  position: relative;
+  background-color: transparent;
+  border-radius: var(--bbz-radius-panel);
+}
+
+.bbz-hero--panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--bbz-surface-accent-red);
+  opacity: var(--bbz-overlay-panel);
+}
+
+.bbz-hero--panel.bbz-hero--brand::before { background-color: var(--bbz-surface-brand); }
+.bbz-hero--panel.bbz-hero--deep::before { background-color: var(--bbz-surface-brand-deep); }
+
+/* Der Inhalt liegt über der Fläche. */
+.bbz-hero--panel > * { position: relative; }
+
+.bbz-hero__kicker {
+  margin: 0 0 var(--bbz-gap-default);
+  color: var(--bbz-text-on-brand);
+}
+
+.bbz-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bbz-section-default);
+  margin-top: var(--bbz-section-default);
+}
+
+.bbz-hero__meta-label {
+  margin-bottom: var(--bbz-space-4);
+  color: var(--bbz-text-on-brand);
+}
+
+.bbz-hero__meta-value {
+  color: var(--bbz-text-on-brand);
+}
+
+.bbz-hero__title {
+  margin: 0 0 var(--bbz-gap-default);
+  font-family: var(--bbz-font-heading);
+  font-size: var(--bbz-size-h1);
+  line-height: var(--bbz-leading-tight);
+  color: var(--bbz-text-on-brand);
+}
+
+.bbz-hero__lead {
+  margin: 0;
+  font-size: var(--bbz-size-lead);
+  color: var(--bbz-text-on-brand);
+}
+
+/* Umbruch nur an den definierten Breakpoints – Regel breakpoints-fixed-set.
+ * Media Queries können keine Custom Properties auswerten, deshalb steht der
+ * Wert hier als Literal. Er entspricht dem Token breakpoint.768. */
+@media (min-width: 768px) {
+  .bbz-hero { padding: var(--bbz-section-loose) var(--bbz-section-default); }
+  .bbz-hero__title { font-size: var(--bbz-size-display); }
+}
+
+/* ── adapters/_shared/css/components/list.css ── */
+/* Liste.
+ * Das Listenzeichen ist der Punkt aus dem Logo. Sein Durchmesser stammt aus
+ * der Logo-Konstanten dot-diameter, normiert auf die x-Höhe – deshalb
+ * skaliert er mit der Schriftgrösse mit. Regel brand-marks-from-logo. */
+
+.bbz-list {
+  list-style: none;
+  margin: 0 0 var(--bbz-block-default);
+  padding: 0;
+}
+
+.bbz-list > li {
+  position: relative;
+  padding-left: var(--bbz-gap-default);
+  margin-bottom: var(--bbz-space-8);
+}
+
+.bbz-list > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: calc(var(--bbz-logo-ratio-dot-diameter) * 1em);
+  height: calc(var(--bbz-logo-ratio-dot-diameter) * 1em);
+  border-radius: 50%;
+  background-color: var(--bbz-text-muted);
+}
+
+.bbz-list--brand > li::before { background-color: var(--bbz-border-accent); }
+
+.bbz-list > li > :last-child { margin-bottom: 0; }
+
+/* ── adapters/_shared/css/components/marker.css ── */
+/* Kapitelmarker.
+ * Die Vertikallinie als Abschnittstrenner, volle Höhe des Blocks. Zusammen
+ * mit dem Punkt aus .bbz-list das gesamte nicht-typografische Vokabular der
+ * Marke – Regel brand-marks-from-logo. */
+
+.bbz-marker {
+  position: relative;
+  padding-left: var(--bbz-gap-loose);
+  margin: 0 0 var(--bbz-section-default);
+}
+
+.bbz-marker::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--bbz-border-accent);
+}
+
+.bbz-marker--muted::before { background-color: var(--bbz-border-default); }
+
+.bbz-marker__label {
+  display: block;
+  margin-bottom: var(--bbz-space-4);
+  font-size: var(--bbz-size-small);
+  font-weight: var(--bbz-weight-emphasis);
+  color: var(--bbz-text-muted);
+}
+
+.bbz-marker > :last-child { margin-bottom: 0; }
+
+/* ── adapters/_shared/css/components/nav.css ── */
+/* Horizontale Navigation.
+ * Regel color-never-alone: der aktive Eintrag wird über aria-current="page"
+ * ausgezeichnet und trägt zusätzlich Gewicht und Vertikallinie, nicht nur
+ * eine andere Farbe. */
+
+/* Kein Rahmen um die Navigation: Die durchgezogene Linie unter allen Einträgen
+ * trug keine Bedeutung und stand der Unterlinie des aktiven Eintrags optisch im
+ * Weg. Ausgezeichnet wird nur, was ausgezeichnet gehört. */
+.bbz-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bbz-gap-loose);
+}
+
+.bbz-nav__link {
+  display: inline-block;
+  padding: var(--bbz-space-12) 0;
+  color: var(--bbz-text-default);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+
+.bbz-nav__link:hover { text-decoration: underline; }
+
+.bbz-nav__link:focus-visible {
+  outline: 2px solid var(--bbz-focus-ring);
+  outline-offset: 2px;
+}
+
+.bbz-nav__link[aria-current="page"] {
+  color: var(--bbz-text-strong);
+  font-weight: var(--bbz-weight-emphasis);
+  border-bottom-color: var(--bbz-border-accent);
+}
+
+/* ── adapters/_shared/css/components/quote.css ── */
+/* Zitat.
+ * Kein Kursiv (Regel no-italic-in-body), keine Anführungsgrafik. Die
+ * Auszeichnung ist die Vertikallinie – Regel brand-marks-from-logo. */
+
+.bbz-quote {
+  margin: 0 0 var(--bbz-block-default);
+  padding-left: var(--bbz-gap-default);
+  border-left: 3px solid var(--bbz-border-accent);
+  font-style: normal;
+  font-size: var(--bbz-size-lead);
+  line-height: var(--bbz-leading-default);
+  color: var(--bbz-text-strong);
+}
+
+.bbz-quote p { margin: 0 0 var(--bbz-gap-tight); }
+.bbz-quote > :last-child { margin-bottom: 0; }
+
+.bbz-quote__source {
+  display: block;
+  margin-top: var(--bbz-space-8);
+  font-size: var(--bbz-size-small);
+  font-style: normal;
+  font-weight: var(--bbz-weight-default);
+  color: var(--bbz-text-muted);
+}
+
+/* ── adapters/_shared/css/components/table.css ── */
+/* Finanztabelle.
+ * Zahlenspalten tragen .bbz-figure: Grundschrift, tabellarische Ziffern,
+ * rechtsbündig. Regeln figures-body-font und figures-right-aligned. */
+
+.bbz-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--bbz-size-body);
+}
+
+.bbz-table caption {
+  caption-side: top;
+  text-align: left;
+  padding-bottom: var(--bbz-space-8);
+  color: var(--bbz-text-muted);
+  font-size: var(--bbz-size-small);
+}
+
+.bbz-table th,
+.bbz-table td {
+  padding: var(--bbz-space-8) var(--bbz-space-12);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--bbz-border-default);
+}
+
+.bbz-table thead th {
+  background-color: var(--bbz-surface-subtle);
+  color: var(--bbz-text-strong);
+  font-weight: var(--bbz-weight-emphasis);
+}
+
+.bbz-table tbody tr:nth-child(even) { background-color: var(--bbz-surface-subtle); }
+
+.bbz-table th.bbz-figure,
+.bbz-table td.bbz-figure { text-align: right; }
+
+.bbz-table tfoot th,
+.bbz-table tfoot td {
+  border-top: 3px solid var(--bbz-border-accent);
+  border-bottom: 0;
+  font-weight: var(--bbz-weight-emphasis);
+}

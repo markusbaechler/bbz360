@@ -4,8 +4,8 @@
 
 /* Topbar: Name + Datum + Admin-Link (keine Modul-Nav auf dem Hub) */
 .ix-topname { color: #fff; font-size: var(--fs-nav); font-weight: var(--w-bold); }
-.ix-topdate { margin-left: auto; color: rgba(255, 255, 255, 0.5); font-size: var(--fs-sm); }
-.ix-adminlink { color: rgba(255, 255, 255, 0.65); font-size: var(--fs-sm); text-decoration: none; padding: 6px 10px; border-radius: var(--r-sm); }
+.ix-topdate { margin-left: auto; color: rgba(255, 255, 255, 0.7); font-size: var(--fs-sm); }
+.ix-adminlink { color: rgba(255, 255, 255, 0.7); font-size: var(--fs-sm); text-decoration: none; padding: 6px 10px; border-radius: var(--r-sm); }
 .ix-adminlink:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
 
 /* ── SÄULE: Berater-Picker + Datum + Session ─────────────────────────────── */
@@ -28,7 +28,7 @@
 .ix-bavatar img { width: 100%; height: 100%; object-fit: cover; }
 .ix-binfo { display: flex; flex-direction: column; min-width: 0; }
 .ix-bname { font-size: var(--fs-nav); font-weight: var(--w-bold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ix-btitel { font-size: var(--fs-xs); opacity: 0.65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ix-btitel { font-size: var(--fs-xs); opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ix-bcheck { font-weight: var(--w-black); }
 .ix-date { font-family: var(--font); font-size: var(--fs-base); color: #fff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: var(--r-md); padding: 9px 12px; margin-top: 10px; width: 100%; min-height: 44px; color-scheme: dark; }
 .ix-actions { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
@@ -44,7 +44,9 @@
 .ix-lbl { font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: var(--w-bold); color: var(--mut); }
 .ix-lbl small { font-weight: var(--w-reg); text-transform: none; letter-spacing: 0; }
 .ix-module { flex: 0 0 auto; }
-.ix-modcols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+/* Seit 07c–07f (ADR-20) traegt die Vertiefung sechs Kacheln: breitere Spalte, Kacheln zweispaltig. */
+.ix-modcols { display: grid; grid-template-columns: 1fr 1fr 1.9fr 1fr; gap: 24px; }
+#gridVertiefung { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ix-sec { font-size: var(--fs-xs); letter-spacing: 0.06em; font-weight: var(--w-bold); color: var(--ink-4); text-transform: uppercase; margin-bottom: 10px; }
 .ix-sec small { font-weight: var(--w-reg); text-transform: none; letter-spacing: 0; color: var(--mut); }
 .ix-grid { display: flex; flex-direction: column; gap: 8px; }
@@ -55,13 +57,14 @@
 }
 .ix-mod.tog { cursor: pointer; }
 .ix-mod.tog:hover { border-color: var(--blue); }
-.ix-mod.off { background: var(--bg); border-color: var(--line); opacity: 0.55; }
+/* Abgewählt: ohne Flächenfarbe, gestrichelter Rand, kein Haken — aber lesbar (Kontrast, Assessment C2) */
+.ix-mod.off { background: var(--surface); border-color: var(--mut-3); border-style: dashed; }
 .ix-mnum { grid-area: num; font-size: var(--fs-nav); font-weight: var(--w-black); color: var(--blue); font-variant-numeric: tabular-nums; }
-.ix-mod.off .ix-mnum { color: var(--mut-2); }
+.ix-mod.off .ix-mnum { color: var(--ink-4); }
 .ix-mname { grid-area: name; font-size: var(--fs-nav); font-weight: var(--w-bold); color: var(--ink); }
 .ix-mdesc { grid-area: desc; font-size: var(--fs-xs); color: var(--ink-4); }
 .ix-mcheck { grid-area: check; font-weight: var(--w-black); color: var(--blue); }
-.ix-mod.off .ix-mcheck { color: var(--mut-2); }
+.ix-mod.off .ix-mcheck { color: var(--ink-4); }
 .ix-branchhint { font-size: var(--fs-xs); color: var(--ink-4); margin-top: 8px; line-height: 1.5; }
 
 #btnStart small { display: block; font-size: var(--fs-2xs); opacity: 0.85; }

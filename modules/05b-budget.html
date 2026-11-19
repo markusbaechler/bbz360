@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>bbz360 — Budget &amp; Liquidität</title>
+  <script type="module" src="/src/modules/05b-budget.ts"></script>
+</head>
+<body class="pc-app bu-app">
+  <header class="bbz-topbar">
+    <a class="bbz-logo" href="../index.html" title="Zurück zum Beratercockpit" aria-label="Zurück zum Beratercockpit">bbz</a>
+    <nav class="bbz-nav" id="bbzNav" aria-label="Module"></nav>
+  </header>
+  <div class="wrap">
+    <section class="hero bu-hero" aria-labelledby="buTitel">
+      <div>
+        <p class="pc-kicker bu-kicker">05b · BUDGET &amp; LIQUIDITÄT</p>
+        <h1 id="buTitel">Was braucht es zum Leben?</h1>
+        <p class="lead">Ausgaben heute und im Ruhestand, Sparquote und Reserve. Die Beträge gelten in allen Modulen.</p>
+      </div>
+    </section>
+
+    <main class="bu-layout" id="main">
+      <section class="panel bu-panel" aria-labelledby="buRuheTitel">
+        <h2 id="buRuheTitel">Budget im Ruhestand.</h2>
+        <p class="cap">Pro Monat, in heutiger Kaufkraft, ohne Steuern. Ein Beispiel laden und anpassen, oder jede Position selbst erfassen.</p>
+        <div class="bu-muster" role="group" aria-label="Mit einem Beispiel beginnen">
+          <span class="chiplbl">Beispiel laden:</span>
+          <span id="buMuster"></span>
+        </div>
+        <div class="bu-pos" id="buPos"></div>
+        <div class="bu-total"><span>Total pro Monat</span><b id="buSumme">–</b></div>
+        <label class="bu-aktiv"><input type="checkbox" id="buAktiv"><span>Dieses Budget gilt als Ausgaben im Ruhestand</span></label>
+        <p class="cap" id="buAktivHinweis"></p>
+        <div class="bu-feld" id="buRuheFeld">
+          <label for="buRuhe">Ausgaben im Ruhestand pro Monat (ohne Budget)</label>
+          <input type="text" inputmode="decimal" id="buRuhe" autocomplete="off">
+        </div>
+        <details class="twhy bu-details" id="buMusterTabelle"></details>
+      </section>
+
+      <div class="bu-rechts">
+        <section class="panel bu-panel" aria-labelledby="buHeuteTitel">
+          <h2 id="buHeuteTitel">Heute.</h2>
+          <div class="bu-feld">
+            <label for="buHeute">Ausgaben heute pro Monat</label>
+            <input type="text" inputmode="decimal" id="buHeute" autocomplete="off">
+            <p class="cap">Alles, was der Haushalt heute ausgibt, ohne Steuern und ohne Sparen. Derselbe Betrag steht im Finanz-Cockpit unter «Ausgaben».</p>
+          </div>
+          <div class="kpis bu-kpis" id="buKpis" aria-live="polite"></div>
+          <p class="cap" id="buHinweis"></p>
+        </section>
+        <section class="panel bu-panel bu-annahmen" aria-labelledby="buAnnTitel">
+          <h2 id="buAnnTitel">So ist gerechnet.</h2>
+          <ul id="buAnnahmen"></ul>
+        </section>
+      </div>
+    </main>
+
+    <nav class="bu-weiter" aria-label="Weiter">
+      <a class="bbz-button bbz-button--ghost" href="05-cockpit.html">← Finanz-Cockpit</a>
+      <a class="bbz-button bbz-button--primary" href="06-ziele.html">Weiter: Ziele &amp; Wünsche →</a>
+    </nav>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
